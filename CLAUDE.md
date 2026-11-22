@@ -151,21 +151,17 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
 - **Test the fix, not the code near it.** Assert the declaration or behavior that is the fix,
   revert the fix and watch the test fail, then put it back. For CSS, cover the class-prefixed
   build too.
-- **Changed how something looks, or how it looks in a state:** show it in the PR, before and
-  after. Capture "before" from main (bestax.io's Storybook or docs page) and "after" from the
-  PR's preview deployment (the URL in its Preview Deployment comment, or a local build of the
-  branch when there is none), with the same story, args, theme and viewport, so the change is the
-  only difference. Storybook's `iframe.html?id=<story>&args=size:small;ticks:!true` renders a
-  story with other args, which reaches variations no story shows on its own. Cover each variation
-  the change reaches: the sizes, colors and modifiers, light and dark, right to left and forced
-  colors, whichever apply. Capture a responsive component or page at a phone, a tablet and a
-  desktop width. When the change
-  is to a state or an interaction (hover, focus, open, checked, disabled, a click, a drag), drive
-  the component into that state the way a user would, with the mouse and keyboard rather than by
-  setting a class, and capture each state the change reaches. Label each image with what it
-  shows, and attach the images to the PR body or a comment rather than committing them. If you
-  can't attach images, say so in the PR body and say what you checked instead. A change with no
-  visible effect says that too.
+- **Changed how something looks, or how it looks in a state:** show it in the PR with
+  before-and-after screenshots. "Before" comes from main (bestax.io's Storybook or docs page) and
+  "after" from the PR's preview deployment (or a local build of the branch when there is none),
+  with the same story, args, theme and viewport. Cover the variations the change reaches (sizes,
+  colors, light and dark, right to left, forced colors; phone, tablet and desktop widths for
+  anything responsive) and each state it touches (hover, focus, open, a click, a drag), reached
+  with the mouse and keyboard rather than by setting a class. Storybook's
+  `iframe.html?id=<story>&args=size:small` reaches variations no story shows. Keep it short for
+  the reviewer: tile each before beside its after, label them, use as few images as show the
+  change, and name in one line the variations you checked that didn't change. Attach the images
+  to the PR rather than committing them, and if you can't, say so.
 - **Changed more than one package:** one commit per package, each with that package's scope (see
   "Commits" below).
 - **Keep the PR body true.** Tick only what you did, name follow-up work as an issue or as not
