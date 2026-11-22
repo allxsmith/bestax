@@ -23,6 +23,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { Reporter } from './report.js';
 import { runTransform } from './runner.js';
+import { nearestManifest } from './sources/_shared/manifests.js';
 import { getSource, sourceNames } from './sources/registry.js';
 import { reportMigrateRun, type MigrateRunStats } from './telemetry.js';
 import type {
@@ -112,19 +113,9 @@ export function collectFiles(
 export function findPackageJsons(targets: string[]): string[] {
   const found = new Set<string>();
   for (const target of targets) {
-    const stat = fs.statSync(target, { throwIfNoEntry: false });
-    if (!stat) continue;
-    let dir = path.resolve(stat.isDirectory() ? target : path.dirname(target));
-    for (;;) {
-      const candidate = path.join(dir, 'package.json');
-      if (fs.existsSync(candidate)) {
-        found.add(candidate);
-        break;
-      }
-      const parent = path.dirname(dir);
-      if (parent === dir) break;
-      dir = parent;
-    }
+    if (!fs.statSync(target, { throwIfNoEntry: false })) continue;
+    const manifest = nearestManifest(target);
+    if (manifest) found.add(manifest);
   }
   return [...found].sort();
 }
@@ -330,6 +321,7 @@ function migrateFiles(
         output = runTransform(source.transform, file, sourceText, collector, {
           ...project,
           cssMode: options.cssMode,
+          deps: options.deps,
         }).output;
       }
     } catch (error) {
@@ -377,6 +369,7 @@ function migrateHtmlPage(
     result = transformHtml(file, sourceText, collector, {
       ...options.project,
       cssMode: options.cssMode,
+      deps: options.deps,
     });
   } catch (error) {
     const message = (error as Error).message;

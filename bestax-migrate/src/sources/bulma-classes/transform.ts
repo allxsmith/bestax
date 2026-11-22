@@ -44,6 +44,8 @@ import {
   prefersTabs,
   resolvesToBinding,
 } from '../_shared/imports.js';
+import { bestaxFloorFor } from '../_shared/bestax-floor.js';
+import { innermostAround } from '../_shared/manifests.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   BESTAX,
@@ -648,12 +650,7 @@ function fileJsxRuntime(root: any, j: any): string | null {
 
 /** The runtime the innermost package around this file declares, if any. */
 function projectJsxRuntime(file: string, runtimes: unknown): string | null {
-  if (!Array.isArray(runtimes)) return null;
-  const resolved = path.resolve(file);
-  const found = (runtimes as JsxRuntime[])
-    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
-    .sort((a, b) => b.dir.length - a.dir.length)[0];
-  return found ? found.runtime : null;
+  return innermostAround<JsxRuntime>(file, runtimes)?.runtime ?? null;
 }
 
 /** Whether a file is CommonJS: `require` or `module.exports`, no ES modules. */
@@ -1171,6 +1168,13 @@ export default function transform(
   }
   const j = api.jscodeshift;
   const root = j(source);
+  // The oldest bestax-bulma release the file can count on, for the class
+  // map's `classNameSince`.
+  const bestaxFloor = bestaxFloorFor(
+    fileInfo.path,
+    options.bestaxPackages,
+    options.deps
+  );
 
   const ctx: TransformContext = {
     j,
@@ -1641,6 +1645,7 @@ export default function transform(
       // Any other computed className may carry classes its strings don't
       // show (a variable, a call).
       ...(className === null && !joined && { unreadClasses: true }),
+      ...(bestaxFloor && { bestaxFloor }),
     };
     if (facts.tokens.some(token => rootFor(token)?.readsGlyph)) {
       Object.assign(facts, glyphPlace(elementPath));

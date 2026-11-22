@@ -14,6 +14,11 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import {
+  bestaxPackagesOf,
+  type BestaxPackage,
+} from '../_shared/bestax-floor.js';
+import { innermostAround, readManifests } from '../_shared/manifests.js';
 
 /** `jsxImportSource` values whose JSX is React's. */
 export const REACT_RUNTIMES: ReadonlySet<string> = new Set([
@@ -31,16 +36,6 @@ const OTHER_RUNTIMES = [
   '@builder.io/qwik',
   'hono',
 ];
-
-const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
-  'coverage',
-  '.next',
-  '.e2e-tmp',
-]);
 
 export interface JsxRuntime {
   /** A package's directory, absolute. */
@@ -82,6 +77,8 @@ export interface ProjectFacts {
    * in one of them can be the site's home page.
    */
   runRoots: string[];
+  /** The bestax-bulma each package declares, for `bestaxFloorFor`. */
+  bestaxPackages: BestaxPackage[];
 }
 
 /** Whether `dir` is a folder below `parent`. */
@@ -90,36 +87,6 @@ function isInside(dir: string, parent: string): boolean {
   return (
     relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative)
   );
-}
-
-function nearestManifest(target: string): string | null {
-  let dir = path.resolve(target);
-  if (fs.statSync(dir, { throwIfNoEntry: false })?.isFile()) {
-    dir = path.dirname(dir);
-  }
-  for (;;) {
-    const candidate = path.join(dir, 'package.json');
-    if (fs.existsSync(candidate)) return candidate;
-    const parent = path.dirname(dir);
-    if (parent === dir) return null;
-    dir = parent;
-  }
-}
-
-function manifestsBelow(dir: string, out: string[]): void {
-  let entries: fs.Dirent[];
-  try {
-    entries = fs.readdirSync(dir, { withFileTypes: true });
-  } catch {
-    return;
-  }
-  for (const entry of entries) {
-    if (entry.isDirectory() && !SKIP_DIRS.has(entry.name)) {
-      manifestsBelow(path.join(dir, entry.name), out);
-    } else if (entry.isFile() && entry.name === 'package.json') {
-      out.push(path.join(dir, entry.name));
-    }
-  }
 }
 
 /**
@@ -213,19 +180,14 @@ export function runtimeOf(
 }
 
 export function analyzeProject(targets: string[]): ProjectFacts {
-  const manifests = new Set<string>();
+  const run = readManifests(targets);
   const starts = new Set<string>();
   for (const target of targets) {
-    const nearest = nearestManifest(target);
-    if (nearest) manifests.add(path.resolve(nearest));
-    const below: string[] = [];
-    if (fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()) {
-      manifestsBelow(path.resolve(target), below);
-      starts.add(path.resolve(target));
-    } else {
-      starts.add(path.dirname(path.resolve(target)));
-    }
-    for (const manifest of below) manifests.add(manifest);
+    starts.add(
+      fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
+        ? path.resolve(target)
+        : path.dirname(path.resolve(target))
+    );
   }
 
   const facts: ProjectFacts = {
@@ -235,8 +197,9 @@ export function analyzeProject(targets: string[]): ProjectFacts {
     runRoots: [...starts]
       .filter(dir => ![...starts].some(other => isInside(dir, other)))
       .sort(),
+    bestaxPackages: bestaxPackagesOf(run),
   };
-  for (const manifest of [...manifests].sort()) {
+  for (const manifest of run.manifests) {
     let pkg: Record<string, Record<string, string> | undefined>;
     try {
       // A byte-order mark is legal in a file JSON.parse will not read.
@@ -281,11 +244,7 @@ function packageAround(
   file: string,
   languages: unknown
 ): PackageLanguage | undefined {
-  if (!Array.isArray(languages)) return undefined;
-  const resolved = path.resolve(file);
-  return (languages as PackageLanguage[])
-    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
-    .sort((a, b) => b.dir.length - a.dir.length)[0];
+  return innermostAround<PackageLanguage>(file, languages);
 }
 
 /**

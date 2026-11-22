@@ -40,11 +40,11 @@ describe('bulma-classes updateDependencies', () => {
     expect(section(r)).toEqual({
       bulma: '^0.9.4',
       react: '^18.2.0',
-      '@allxsmith/bestax-bulma': '^5',
+      '@allxsmith/bestax-bulma': '^5.78.4',
     });
     expect(section(r, 'devDependencies')).toEqual({ 'node-sass': '^9.0.0' });
     expect(r.todos.map(t => t.message)).toEqual([
-      'added @allxsmith/bestax-bulma ^5 to dependencies',
+      'added @allxsmith/bestax-bulma ^5.78.4 to dependencies',
       expect.stringContaining('left bulma ^0.9.4 in dependencies as it is'),
     ]);
   });

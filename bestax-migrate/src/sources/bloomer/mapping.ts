@@ -146,17 +146,24 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
  * emitting an excess-property type error.
  */
 /**
- * Targets whose `className` cannot be used: `Pagination.Ellipsis` spreads
- * `{...props}` AFTER its own className (so one written here replaces the
- * class that makes it work), and
- * `Dropdown.Divider` is a bare `React.FC` that declares no props at all and
- * renders its own `<hr>` regardless. A helper on one of these is named, never
- * converted.
+ * Targets whose `className` cannot be used: `Dropdown.Divider` is a bare
+ * `React.FC` that declares no props at all and renders its own `<hr>`
+ * regardless. A helper on one of these is named, never converted.
  */
-export const NO_CLASSNAME_TARGETS = new Set([
-  'Pagination.Ellipsis',
-  'Dropdown.Divider',
-]);
+export const NO_CLASSNAME_TARGETS = new Set(['Dropdown.Divider']);
+
+/**
+ * Targets that keep their own class beside a `className` only from a
+ * bestax-bulma release, by target. An older release writes the `className`
+ * in place of the class that makes the element work, so the transform takes
+ * one as a `NO_CLASSNAME_TARGETS` entry unless the run shows the project gets
+ * that release (`_shared/bestax-floor.ts`), and as a `HELPERLESS_TARGETS` one
+ * when it does. bulma-classes' class map holds the same release as
+ * `classNameSince`.
+ */
+export const CLASSNAME_SINCE: Readonly<Record<string, string>> = {
+  'Pagination.Ellipsis': '5.78.4',
+};
 
 export const HELPERLESS_TARGETS = new Set([
   'Pagination.Previous',
@@ -737,13 +744,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
   PageEllipsis: {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
+    // Classes, where the project gets the release in CLASSNAME_SINCE.
     props: {
-      isActive: {
-        todo: 'bestax `Pagination.Ellipsis` spreads its props after its own className, so a class written here would replace `pagination-ellipsis`; wrap it or restyle by hand if you need `is-active`',
-      },
-      isFocused: {
-        todo: 'bestax `Pagination.Ellipsis` spreads its props after its own className, so a class written here would replace `pagination-ellipsis`; wrap it or restyle by hand if you need `is-focused`',
-      },
+      isActive: { toClass: 'is-active' },
+      isFocused: { toClass: 'is-focused' },
     },
   },
   // bestax's Pagination.Link and Pagination.Ellipsis render their own <li>.

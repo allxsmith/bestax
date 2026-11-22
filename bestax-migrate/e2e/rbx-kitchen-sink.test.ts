@@ -220,7 +220,7 @@ describe('rbx kitchen-sink e2e', () => {
     // deliberate declaration and the app's own Sass may import them.
     expect(pkg.dependencies['bulma-badge']).toBe('^3.0.1');
     expect(pkg.dependencies['bulma-tooltip']).toBe('^2.0.2');
-    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');

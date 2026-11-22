@@ -5,7 +5,9 @@
  */
 
 import transform from '../transform.js';
+import { CLASSNAME_SINCE } from '../mapping.js';
 import { runSpecial } from '../specials.js';
+import { ROOTS } from '../../bulma-classes/class-map.js';
 import { runTransform } from '../../../runner.js';
 import type { TodoEntry } from '../../../types.js';
 
@@ -1059,5 +1061,86 @@ describe('runSpecial', () => {
     expect(() =>
       runSpecial('no-such-handler', {} as never, {} as never, {})
     ).toThrow(/unknown special handler/);
+  });
+});
+
+describe('bloomer PageEllipsis and the bestax-bulma release it needs (#2178)', () => {
+  // A package the run writes, which declares no bestax-bulma, gets the range
+  // the run adds; one declaring an older release doesn't.
+  const added = {
+    bestaxPackages: [{ dir: '/app', written: true }],
+    deps: true,
+  };
+  const older = {
+    bestaxPackages: [{ dir: '/app', floor: '5.70.0', written: true }],
+  };
+  function migrateIn(source: string, options: Record<string, unknown>) {
+    const todos: TodoEntry[] = [];
+    const { output } = runTransform(
+      transform,
+      '/app/src/case.tsx',
+      source,
+      { add: entry => todos.push(entry) },
+      options
+    );
+    return { output: output ?? '', todos, rules: todos.map(t => t.rule) };
+  }
+  const ellipsis = dyn(
+    'PageEllipsis',
+    '<PageEllipsis isHidden="mobile" isActive isFocused={false} />'
+  );
+
+  it('writes its helpers and isActive as classes where the project gets 5.78.4', () => {
+    const { output, rules } = migrateIn(ellipsis, added);
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Pagination.Ellipsis className="is-hidden-mobile is-active" />'
+    );
+  });
+
+  it('names them in TODOs, with the release, where it may not', () => {
+    for (const options of [older, {}, { ...added, deps: false }]) {
+      const { output, todos } = migrateIn(ellipsis, options);
+      expect(todos.map(t => t.rule)).toEqual([
+        'prop:isHidden',
+        'prop:isActive',
+      ]);
+      for (const todo of todos) expect(todo.message).toContain('5.78.4');
+      // The target takes no `isActive`, so it goes, named in its TODO.
+      expect(jsx(output)).toContain('<Pagination.Ellipsis />');
+    }
+  });
+
+  it('converts one with a spread only where the project gets 5.78.4', () => {
+    const spread = dyn('PageEllipsis', '<PageEllipsis {...p.rest} />');
+    expect(migrateIn(spread, added).output).toContain(
+      '<Pagination.Ellipsis {...p.rest} />'
+    );
+    const kept = migrateIn(spread, older);
+    expect(kept.rules).toEqual(['component:PageEllipsis']);
+    expect(kept.todos[0].message).toContain('5.78.4');
+    expect(kept.output).toContain('<PageEllipsis {...p.rest} />');
+  });
+
+  it("keeps one with a className of its own bloomer's where it may not", () => {
+    const classed = dyn(
+      'PageEllipsis',
+      '<PageEllipsis className="has-text-grey" />'
+    );
+    expect(migrateIn(classed, added).output).toContain(
+      '<Pagination.Ellipsis className="has-text-grey" />'
+    );
+    const kept = migrateIn(classed, older);
+    expect(kept.rules).toEqual(['component:PageEllipsis']);
+    expect(kept.todos[0].message).toContain('5.78.4');
+    expect(kept.output).toContain('<PageEllipsis className="has-text-grey" />');
+  });
+
+  it('holds the release to the one the bulma-classes class map names', () => {
+    expect(CLASSNAME_SINCE['Pagination.Ellipsis']).toBe(
+      ROOTS['pagination-ellipsis']?.status === 'mapped'
+        ? ROOTS['pagination-ellipsis'].classNameSince
+        : undefined
+    );
   });
 });
