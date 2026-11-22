@@ -126,7 +126,17 @@ export const HELPER_GROUPS: Record<string, HelperGroup> = {
       'textWeight',
       'fontFamily',
     ],
-    aliases: ['text', 'font', 'weight', 'align', 'size', 'uppercase', 'italic'],
+    aliases: [
+      'text',
+      'font',
+      'weight',
+      'align',
+      'size',
+      'uppercase',
+      'italic',
+      'underline',
+      'underlined',
+    ],
   },
   flex: {
     headings: ['### With Flexbox Helpers', '### Gap'],
