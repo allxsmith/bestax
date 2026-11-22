@@ -769,7 +769,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
   it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
-  children and renders its own arrows and indicators (`autoplay` for a timed one). Name it for
+  children and renders its own arrows and indicators (`autoplay` for a timed one, with
+  `rotationControl` for a button that stops it). Name it for
   what it shows with `ariaLabel`, without the word "carousel", which its role description
   already says. For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
