@@ -166,7 +166,7 @@ Combine the `textColor` and `bgColor` props to style the image container for bra
 
 - **Alt Text:** Give each image an `alt` that says what it shows, or `alt=""` for a decorative one, which a screen reader then skips. A development build warns about an `<img>` with no `alt`.
 - **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.
-- **Custom Content:** Give an iframe a `title` that says what it shows. Video or audio you embed needs its own captions and description; `Image` adds none.
+- **Custom Content:** Give an iframe a `title` that says what it shows. Video you embed needs its own captions and audio description, and audio its own transcript; `Image` adds none.
 
 :::warning
 Do not use `Image` for decorative images without `alt=""`, unless purely presentational.
