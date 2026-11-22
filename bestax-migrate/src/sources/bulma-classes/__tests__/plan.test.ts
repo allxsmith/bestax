@@ -332,6 +332,27 @@ describe('plan', () => {
   });
 
   describe('helper classes', () => {
+    it("writes Bulma's is-underlined as textTransform, like the other text transforms", () => {
+      expect(
+        plan(facts('span', 'has-text-grey is-underlined')).conversion?.props
+      ).toEqual([
+        ['textColor', 'grey'],
+        ['textTransform', 'underlined'],
+      ]);
+    });
+
+    it('keeps a second text transform as a class, since textTransform takes one', () => {
+      expect(plan(facts('span', 'is-italic is-underlined')).conversion).toEqual(
+        {
+          target: 'Span',
+          props: [['textTransform', 'italic']],
+          className: 'is-underlined',
+          drop: [],
+          numbers: [],
+        }
+      );
+    });
+
     it('uses the text-color prop the target renders it through', () => {
       expect(plan(facts('div', 'box has-text-info')).conversion?.props).toEqual(
         [['textColor', 'info']]
