@@ -33,12 +33,32 @@ const SLIDE_CSS = `
   .homepage-carousel {
     position: relative;
   }
-  /* The rotation control, drawn like the carousel's arrows, in the corner
-     above the previous one. */
+  /* The controls sit in a row centered under the slides, as a media
+     player's do: Previous, the rotation control, Next. The arrows are the
+     Carousel's own, moved from the slides' sides into the room the row
+     takes under them, and the rotation control is drawn like them. Each
+     sits a little above the bottom edge so its focus ring isn't clipped. */
+  .homepage-carousel.has-control-row .carousel-container {
+    padding-bottom: calc(48px + 0.5rem);
+  }
+  /* The row sets the slide apart from what follows, so the slide's own
+     bottom padding can mostly go. */
+  .homepage-carousel.has-control-row .homepage-slide {
+    padding-bottom: 0.5rem;
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow {
+    top: calc(100% - 24px - 0.25rem);
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow.is-prev {
+    inset-inline-start: calc(50% - 24px - 0.5rem - 48px);
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow.is-next {
+    inset-inline-end: calc(50% - 24px - 0.5rem - 48px);
+  }
   .homepage-carousel .homepage-rotation.button {
     position: absolute;
-    top: 1rem;
-    inset-inline-start: 1rem;
+    bottom: 0.25rem;
+    left: 50%;
     z-index: 11;
     width: 48px;
     height: 48px;
@@ -52,6 +72,7 @@ const SLIDE_CSS = `
       0.8
     );
     color: var(--bulma-text);
+    transform: translateX(-50%);
     transition:
       background-color var(--bulma-duration),
       transform var(--bulma-duration);
@@ -63,7 +84,7 @@ const SLIDE_CSS = `
       var(--bulma-scheme-main-l),
       0.95
     );
-    transform: scale(1.05);
+    transform: translateX(-50%) scale(1.05);
   }
   @media (prefers-reduced-motion: reduce) {
     .homepage-carousel .homepage-rotation.button {
@@ -75,9 +96,19 @@ const SLIDE_CSS = `
     height: 24px;
   }
   @media screen and (max-width: 768px) {
+    .homepage-carousel.has-control-row .carousel-container {
+      padding-bottom: calc(36px + 0.5rem);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow {
+      top: calc(100% - 18px - 0.25rem);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow.is-prev {
+      inset-inline-start: calc(50% - 18px - 0.5rem - 36px);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow.is-next {
+      inset-inline-end: calc(50% - 18px - 0.5rem - 36px);
+    }
     .homepage-carousel .homepage-rotation.button {
-      top: 0.5rem;
-      inset-inline-start: 0.5rem;
       width: 36px;
       height: 36px;
     }
@@ -135,10 +166,16 @@ function CarouselSlides({
 
   return (
     <ShadowPreview extraStyles={SLIDE_CSS}>
-      <div className="homepage-carousel">
-        {/* First in the carousel's tab order. Its name says what pressing it
-            does, so it changes with the state rather than taking a pressed
-            state of its own. */}
+      <div
+        className={clsx(
+          'homepage-carousel',
+          (arrow || rotates) && 'has-control-row'
+        )}
+      >
+        {/* First in the carousel's tab order, though it sits between the
+            arrows in the row. Its name says what pressing it does, so it
+            changes with the state rather than taking a pressed state of its
+            own. */}
         {rotates && (
           <button
             type="button"
@@ -239,12 +276,6 @@ export default function HomepageCarousel({
   if (slideMinHeight) {
     sectionVars['--homepage-slide-min-height'] = slideMinHeight;
     sectionVars['--homepage-slide-demo-max-height'] = slideMinHeight;
-  }
-  // The arrows are 48px wide at a 1rem offset, so the slide needs wider side
-  // padding to keep them from overlapping the slide content.
-  if (arrow) {
-    sectionVars['--homepage-slide-x-padding'] = '5rem';
-    sectionVars['--homepage-slide-x-padding-mobile'] = '3.25rem';
   }
   const sectionStyle = Object.keys(sectionVars).length
     ? sectionVars
