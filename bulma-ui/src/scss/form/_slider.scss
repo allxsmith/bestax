@@ -397,7 +397,6 @@ $slider-vertical-height: 200px !default;
   .#{iv.$class-prefix}slider-input {
     writing-mode: vertical-lr;
     direction: rtl;
-    height: 100%;
     width: cv.getVar("slider-track-height");
     background: linear-gradient(
       to top,
@@ -406,6 +405,16 @@ $slider-vertical-height: 200px !default;
       cv.getVar("slider-track-color") var(--slider-progress, 0%),
       cv.getVar("slider-track-color") 100%
     );
+  }
+
+  // A size gives the input its track's height, a horizontal track's
+  // thickness, in rules that weigh as much as the one above and come later,
+  // so a vertical slider with a size shrank to that height when the rule
+  // above set it (#2293). A vertical input runs the slider's height at every
+  // size, so it's set here, where it outweighs them, as the vertical range
+  // slider's rule below does.
+  &:not(.#{iv.$class-prefix}is-range) .#{iv.$class-prefix}slider-input {
+    height: 100%;
   }
 
   // Vertical output tooltip — positioned via inline left/right style

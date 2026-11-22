@@ -256,6 +256,76 @@ describe('Slider in the cascade', () => {
   });
 });
 
+// A size gives the input its track's height, a horizontal track's thickness,
+// in rules that tied with the vertical slider's `height: 100%` and came
+// later, so a vertical slider with a size shrank to a few pixels (#2293).
+// jsdom works out no layout, so this reads the height the cascade gives the
+// input, with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider input height by orientation and size, with %s', (_label, prefix) => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const heightsOf = (ui: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    return Array.from(
+      container.querySelectorAll(`.${prefix}slider-input`),
+      input => getComputedStyle(input).height
+    );
+  };
+
+  const sizes = [
+    ['default', undefined],
+    ['small', 'small'],
+    ['medium', 'medium'],
+    ['large', 'large'],
+  ] as const;
+
+  it.each(sizes)(
+    'runs a %s vertical slider’s input the slider’s height',
+    (_name, size) => {
+      expect(
+        heightsOf(
+          <Slider aria-label="Level" orientation="vertical" size={size} />
+        )
+      ).toEqual(['100%']);
+      expect(
+        heightsOf(
+          <Slider range aria-label="Level" orientation="vertical" size={size} />
+        )
+      ).toEqual(['100%', '100%']);
+    }
+  );
+
+  it.each(sizes)(
+    'keeps a %s horizontal slider’s input its track’s height',
+    (_name, size) => {
+      expect(heightsOf(<Slider aria-label="Level" size={size} />)).toEqual([
+        size
+          ? `var(--bulma-slider-track-height-${size})`
+          : 'var(--bulma-slider-track-height)',
+      ]);
+    }
+  );
+});
+
 // Forced colors turns the value bubble's fill into the page's and paints every
 // side of its arrow, which then draws as a square (#1502). jsdom evaluates no
 // media query, so the rules are read off the compiled sheet, with no prefix
