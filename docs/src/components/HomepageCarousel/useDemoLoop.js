@@ -1,17 +1,26 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const CANCELLED = Symbol('cancelled');
 
 /**
+ * Whether the slide show a demo sits in was stopped with its rotation
+ * control, which stops the demo too, where it stands. A demo outside one
+ * reads `false`.
+ */
+export const SlideShowStoppedContext = createContext(false);
+
+/**
  * Scaffolding for the looping homepage demos: runs `run({ sleep })` in an
  * endless loop while the slide is active, the demo is on screen, the visitor
- * isn't hovering it, and reduced motion isn't requested. `sleep` rejects with
- * a cancellation sentinel once the loop is torn down, unwinding `run`.
+ * isn't hovering it, the slide show around it isn't stopped, and reduced
+ * motion isn't requested. `sleep` rejects with a cancellation sentinel once
+ * the loop is torn down, unwinding `run`.
  *
  * Returns { reducedMotion, hoverProps } — spread hoverProps on the wrapper
  * so hovering pauses the loop and hands the control to the visitor.
  */
 export default function useDemoLoop({ active, wrapperRef, run }) {
+  const stopped = useContext(SlideShowStoppedContext);
   const [paused, setPaused] = useState(false);
   const [inView, setInView] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -34,7 +43,9 @@ export default function useDemoLoop({ active, wrapperRef, run }) {
   }, [wrapperRef]);
 
   useEffect(() => {
-    if (!active || !inView || paused || reducedMotion) return undefined;
+    if (!active || !inView || paused || stopped || reducedMotion) {
+      return undefined;
+    }
 
     const token = { cancelled: false };
     // Sleeps under way, which a teardown cuts short, so a run unwinds (and
@@ -72,7 +83,7 @@ export default function useDemoLoop({ active, wrapperRef, run }) {
       token.cancelled = true;
       pending.forEach(cancel => cancel());
     };
-  }, [active, inView, paused, reducedMotion, run]);
+  }, [active, inView, paused, stopped, reducedMotion, run]);
 
   return {
     reducedMotion,
