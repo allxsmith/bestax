@@ -27,7 +27,7 @@
       "code": "<Level>\n  <Level.Left>\n    <Level.Item>\n      <Title as=\"p\" size=\"5\">\n        <strong>All Posts</strong>\n      </Title>\n    </Level.Item>\n  </Level.Left>\n  <Level.Right>\n    <Level.Item as=\"p\">\n      <a href=\"#published\">Published</a>\n    </Level.Item>\n    <Level.Item as=\"p\">\n      <Button color=\"success\" as=\"a\" href=\"#new-post\">\n        New\n      </Button>\n    </Level.Item>\n  </Level.Right>\n</Level>"
     }
   ],
-  "accessibility": "- `Level` renders a `<nav>` by default, as Bulma's markup does. A `nav` is a navigation landmark, which a screen reader user can list and jump to, so keep it for a row of links. A row that isn't navigation, such as the statistics above, takes `as=\"div\"`, which adds no landmark. `as=\"header\"` suits a level that opens a section and `as=\"footer\"` one that closes it.\n- Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as=\"a\"` for links, with an `href`: an `<a>` without one isn't a link, and Tab skips it. Provide clear text or accessible labels.\n- Below tablet a level's items stack. `isMobile` keeps its own items, and its `Level.Left` and `Level.Right`, in a row there, and Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Keep it for a row that fits.\n- Use Bulma helper props for spacing and color to improve contrast and readability.\n\n:::note\nFor best accessibility, use semantic elements for headings/content within items, and ensure interactive elements (like `Button` or links) are focusable and labeled.\n:::",
+  "accessibility": "- `Level` renders a `<nav>` by default, as Bulma's markup does. A `nav` is a navigation landmark, which a screen reader user can list and jump to, so keep it for a row of links. A row that isn't navigation, such as the statistics above, takes `as=\"div\"`, which adds no landmark. `as=\"header\"` suits a level that opens a section and `as=\"footer\"` one that closes it.\n- Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as=\"a\"` for links, with an `href`: an `<a>` without one isn't a link, and Tab skips it. Provide clear text or accessible labels.\n- Below tablet a level's items stack. `isMobile` keeps its own items, and its `Level.Left` and `Level.Right`, in a row there, though the items inside `Level.Left` and `Level.Right` still stack. Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Keep it for a row that fits.\n- Use Bulma helper props for spacing and color to improve contrast and readability.\n\n:::note\nFor best accessibility, use semantic elements for headings/content within items, and ensure interactive elements (like `Button` or links) are focusable and labeled.\n:::",
   "related": ["Button", "Field", "Input", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-level--default",
   "summary": "The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right, distributing items evenly, or centering statistics and controls.",
@@ -53,7 +53,7 @@
           "name": "isMobile",
           "type": "boolean",
           "default": "false",
-          "description": "Keeps the level's own items, and its `Level.Left` and `Level.Right`, in a row on mobile (Bulma `is-mobile`), where they otherwise stack below tablet. Items inside `Level.Left` and `Level.Right` still stack there. Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow): keep it for a row that fits.",
+          "description": "Keeps the level's own items, and its `Level.Left` and `Level.Right`, in a row on mobile (Bulma `is-mobile`), where they otherwise stack below tablet. Items inside `Level.Left` and `Level.Right` still stack there, as Bulma 1 draws them: for a row on a phone, put the items straight in the level. Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow): keep it for a row that fits.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -113,7 +113,7 @@
     },
     {
       "path": "Level.Left",
-      "summary": "Left-aligned content.",
+      "summary": "Left-aligned content. Its items stack below tablet, in a level with `isMobile` too.",
       "component": null,
       "props": [
         {
@@ -171,7 +171,7 @@
     },
     {
       "path": "Level.Right",
-      "summary": "Right-aligned content.",
+      "summary": "Right-aligned content. Its items stack below tablet, in a level with `isMobile` too.",
       "component": null,
       "props": [
         {
