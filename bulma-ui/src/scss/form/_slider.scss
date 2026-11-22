@@ -273,20 +273,23 @@ $slider-vertical-height: 200px !default;
 
 // --- Ticks ---
 // The ticks overlay a single slider's input, and each tick centers itself on
-// the line the ticks sit on. The input is the first child in flow, on the
-// line's baseline, which with the default thumb, track and type is the top
-// padding, half the thumb and the track's height down. A theme that changes
-// the thumb or the track, or a type that moves the baseline, leaves the ticks
-// off the track (#2295). A size's track keeps that bottom edge and grows or
-// shrinks upward from it, so the ticks go up half its height from there,
-// which the sizes set as `--slider-size-track-height`. A range slider and a
-// vertical one place theirs below.
+// the line the ticks sit on. The input is the first child in flow, so its
+// track's bottom edge sits on the line's baseline, which with Bulma's type is
+// the top padding, half the default thumb and the default track down. Those
+// are the Sass defaults, not the theme's variables, since a theme that
+// changes the thumb or the track moves no baseline. A type that moves the
+// baseline, or a Sass build with other defaults, leaves the ticks off the
+// track (#2295). The track grows or
+// shrinks upward from that edge, so the ticks go up half its height from
+// there: the size's, which the sizes set as `--slider-size-track-height`, or
+// the theme's track height. A range slider and a vertical one place theirs
+// below.
 .#{iv.$class-prefix}slider-ticks {
   position: absolute;
   left: 0;
   right: 0;
   top: calc(
-    0.5rem + cv.getVar("slider-thumb-size") / 2 + cv.getVar("slider-track-height") -
+    0.5rem + #{$slider-thumb-size} / 2 + #{$slider-track-height} -
       var(--slider-size-track-height, #{cv.getVar("slider-track-height")}) / 2
   );
   height: 0;

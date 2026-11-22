@@ -303,8 +303,12 @@ describe.each([
       const { slider, ticks } = ticksOf(
         <Slider range ticks step={10} defaultValue={[20, 70]} size={size} />
       );
-      // The track is centred in the slider, and the ticks sit there too.
+      // The track is centred in the slider, and the ticks sit there too, both
+      // placed against the slider itself.
       const track = slider.querySelector(`.${prefix}slider-track`)!;
+      expect(track.parentElement).toBe(slider);
+      expect(ticks.parentElement).toBe(slider);
+      expect(getComputedStyle(slider).position).toBe('relative');
       expect(getComputedStyle(track).top).toBe('50%');
       expect(getComputedStyle(track).transform).toBe('translateY(-50%)');
       expect(getComputedStyle(ticks).top).toBe('50%');
@@ -319,9 +323,12 @@ describe.each([
   });
 
   it('places a single slider’s ticks half its track up from the default track’s bottom edge', () => {
+    // That edge is the line's baseline, which a theme's thumb or track
+    // doesn't move, so it's written from the Sass defaults rather than the
+    // theme's variables. The half track is the theme's.
     const { ticks } = ticksOf(<Slider ticks step={10} />);
     expect(getComputedStyle(ticks).top.replace(/\s+/g, ' ')).toBe(
-      'calc(0.5rem + var(--bulma-slider-thumb-size) / 2 + var(--bulma-slider-track-height) - var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
+      'calc(0.5rem + 1.25rem / 2 + 0.5rem - var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
     );
   });
 
