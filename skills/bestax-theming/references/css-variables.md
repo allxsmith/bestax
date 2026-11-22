@@ -233,7 +233,9 @@ lone class loses to and `style` does not. Each component's API page lists its va
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
 edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
 In forced colors bestax's CSS sets `--bulma-button-disabled-opacity` to `1` on each button, so what
-Bulma dims with it draws at full strength there.
+dims with it draws at full strength there. Bulma's `--bulma-button-disabled-*` variables also draw
+a link `Button` with `isDisabled`, which bestax's CSS draws the way Bulma draws a disabled
+`<button>`, so overriding one restyles both.
 
 ## Shadow — override the upstream token, not the derived one
 

@@ -350,11 +350,14 @@ Notes:
   colors (Windows' contrast themes) drops the shadow and sets the border's color, so a focused
   button can look like an unfocused one there. Forced colors also replaces a colored button's fill,
   which Bulma draws with no border, so an icon-only one shows only its glyph there. The `button`
-  extras partial gives those focused buttons an outline, apart from a loading one, which the
+  extras partial gives those focused buttons an outline, and a focused disabled link one, apart
+  from a loading one, which the
   `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
   system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
   button a 1px border in forced colors, a disabled button full strength in forced colors, where
-  Bulma's disabled opacity would fade the system's color for it, and an outlined button the
+  Bulma's disabled opacity would fade the system's color for it, a link `Button` with `isDisabled`
+  the look Bulma gives a disabled `<button>`, since Bulma draws only the `disabled` attribute,
+  which a link doesn't get, and an outlined button the
   lightness Bulma picks for its color's text on the page where that's lighter, so a dark color
   reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's
   button module. Its rules win over Bulma's either way, so the order of the `@use` lines does not
