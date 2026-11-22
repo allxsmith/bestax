@@ -12,7 +12,7 @@
     },
     {
       "title": "Media With Inputs",
-      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"/img/carousel/carousel-banner-1-1by1.jpg\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field>\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Level as=\"div\">\n      <Level.Left>\n        <Level.Item>\n          <Button color=\"info\">Submit</Button>\n        </Level.Item>\n      </Level.Left>\n      <Level.Right>\n        <Level.Item>\n          <Checkbox>Press enter to submit</Checkbox>\n        </Level.Item>\n      </Level.Right>\n    </Level>\n  </Media.Content>\n</Media>",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"/img/carousel/carousel-banner-1-1by1.jpg\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field label=\"Comment\">\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Level as=\"div\">\n      <Level.Left>\n        <Level.Item>\n          <Button color=\"info\">Submit</Button>\n        </Level.Item>\n      </Level.Left>\n      <Level.Right>\n        <Level.Item>\n          <Checkbox>Press enter to submit</Checkbox>\n        </Level.Item>\n      </Level.Right>\n    </Level>\n  </Media.Content>\n</Media>",
       "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
@@ -22,7 +22,7 @@
     },
     {
       "title": "Media With Button Below",
-      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"/img/carousel/carousel-banner-1-1by1.jpg\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field>\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Field>\n      <Control as=\"p\">\n        <Button>Post comment</Button>\n      </Control>\n    </Field>\n  </Media.Content>\n</Media>",
+      "code": "<Media>\n  <Media.Left>\n    <Image\n      as=\"p\"\n      size=\"64x64\"\n      src=\"/img/carousel/carousel-banner-1-1by1.jpg\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Field label=\"Comment\">\n      <Control as=\"p\">\n        <TextArea placeholder=\"Add a comment...\" />\n      </Control>\n    </Field>\n    <Field>\n      <Control as=\"p\">\n        <Button>Post comment</Button>\n      </Control>\n    </Field>\n  </Media.Content>\n</Media>",
       "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
