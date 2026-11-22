@@ -184,10 +184,6 @@ export const WithMargin: Story = {
   },
 };
 
-// Big Buck Bunny, (c) copyright 2008, Blender Foundation /
-// www.bigbuckbunny.org, under CC BY 3.0
-// (https://creativecommons.org/licenses/by/3.0/), embedded from Blender's own
-// YouTube channel.
 export const WithIframe: Story = {
   args: {
     size: '16by9',
@@ -196,10 +192,8 @@ export const WithIframe: Story = {
         className="has-ratio"
         width="640"
         height="360"
-        src="https://www.youtube.com/embed/YE7VzlLtp-4"
-        frameBorder="0"
-        allowFullScreen
-        title="Big Buck Bunny"
+        srcDoc="<!doctype html><html lang='en'><style>html{color-scheme:light dark;background:Canvas;color:CanvasText}body{margin:0;height:100vh;box-sizing:border-box;padding:1rem;border:2px dashed;display:grid;place-items:center;text-align:center;font:1.25rem system-ui,sans-serif}</style><p>This frame keeps a 16:9 ratio at any width.</p></html>"
+        title="A frame that keeps a 16:9 ratio"
       />
     ),
   },

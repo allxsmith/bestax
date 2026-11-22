@@ -99,14 +99,13 @@ describe('Image Component', () => {
         className="has-ratio"
         width="640"
         height="360"
-        src="https://www.youtube.com/embed/YE7VzlLtp-4"
+        srcDoc="<p>A frame</p>"
         frameBorder="0"
-        allowFullScreen
-        title="Test YouTube Video"
+        title="Test frame"
       />
     );
     render(<Image size="16by9">{iframe}</Image>);
-    const iframeElement = screen.getByTitle('Test YouTube Video');
+    const iframeElement = screen.getByTitle('Test frame');
     expect(iframeElement).toBeInTheDocument();
     expect(iframeElement).toHaveClass('has-ratio');
     expect(iframeElement.closest('figure')).toHaveAttribute(
