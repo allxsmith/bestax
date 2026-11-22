@@ -1,3 +1,11 @@
+## [1.18.93](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.92...bestax-mcp@1.18.93) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a link Button with isDisabled the way Bulma draws a disabled button ([98fa850](https://github.com/allxsmith/bestax/commit/98fa850477d4655c6d5e664fbe8e66db75e5c16e)), closes [#1898](https://github.com/allxsmith/bestax/issues/1898)
+* **bulma-ui:** ring a selected toggle Tabs.Item link in its text color, inside the tab ([61dfb93](https://github.com/allxsmith/bestax/commit/61dfb93fd6a515d27c4ef557e6fc6eb5434cbb3a)), closes [#1945](https://github.com/allxsmith/bestax/issues/1945)
+
 ## [1.18.92](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.91...bestax-mcp@1.18.92) (2026-11-22)
 
 
