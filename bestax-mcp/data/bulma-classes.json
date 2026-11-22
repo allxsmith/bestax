@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "roots": {
     "block": {
       "status": "mapped",
@@ -27,7 +27,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "box": {
@@ -56,7 +56,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "button": {
@@ -116,7 +116,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "buttons": {
@@ -152,7 +152,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card": {
@@ -191,7 +191,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-header": {
@@ -224,7 +224,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-header-title": {
@@ -253,7 +253,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-header-icon": {
@@ -282,7 +282,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-image": {
@@ -311,7 +311,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-content": {
@@ -340,7 +340,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-footer": {
@@ -369,7 +369,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "card-footer-item": {
@@ -398,7 +398,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "columns": {
@@ -510,7 +510,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "column": {
@@ -1179,7 +1179,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "grid": {
@@ -1390,7 +1390,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "cell": {
@@ -1636,7 +1636,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "container": {
@@ -1696,7 +1696,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": "where it is only there to center this element, `mx=\"auto\"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout"
     },
     "content": {
@@ -1729,7 +1729,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "delete": {
@@ -1762,7 +1762,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "field": {
@@ -1821,7 +1821,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "field-label": {
@@ -1855,7 +1855,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "field-body": {
@@ -1884,7 +1884,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "control": {
@@ -1921,7 +1921,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "input": {
@@ -1970,7 +1970,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "textarea": {
@@ -2020,7 +2020,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "select": {
@@ -2079,7 +2079,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "footer": {
@@ -2108,7 +2108,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero": {
@@ -2157,7 +2157,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero-head": {
@@ -2186,7 +2186,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero-body": {
@@ -2215,7 +2215,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero-foot": {
@@ -2244,7 +2244,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "level": {
@@ -2273,7 +2273,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "level-left": {
@@ -2302,7 +2302,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "level-right": {
@@ -2331,7 +2331,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "level-item": {
@@ -2360,7 +2360,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "media": {
@@ -2389,7 +2389,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "media-left": {
@@ -2418,7 +2418,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "media-content": {
@@ -2447,7 +2447,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "media-right": {
@@ -2476,7 +2476,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar": {
@@ -2523,7 +2523,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-brand": {
@@ -2552,7 +2552,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-menu": {
@@ -2581,7 +2581,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-start": {
@@ -2610,7 +2610,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-end": {
@@ -2639,7 +2639,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-item": {
@@ -2673,7 +2673,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-dropdown": {
@@ -2705,7 +2705,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-divider": {
@@ -2734,7 +2734,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "notification": {
@@ -2774,7 +2774,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "progress": {
@@ -2817,7 +2817,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "section": {
@@ -2849,7 +2849,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "subtitle": {
@@ -2910,7 +2910,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "table": {
@@ -2945,7 +2945,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "tag": {
@@ -2991,7 +2991,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "tags": {
@@ -3024,7 +3024,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "title": {
@@ -3086,7 +3086,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "breadcrumb": {
@@ -3135,7 +3135,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "skeleton-block": {
@@ -3164,7 +3164,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "skeleton-lines": {
@@ -3193,7 +3193,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "checkbox": {
@@ -3222,7 +3222,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "checkboxes": {
@@ -3251,7 +3251,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "radio": {
@@ -3280,7 +3280,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "radios": {
@@ -3309,7 +3309,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file": {
@@ -3358,7 +3358,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file-label": {
@@ -3387,7 +3387,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file-input": {
@@ -3416,7 +3416,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file-cta": {
@@ -3445,7 +3445,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file-icon": {
@@ -3474,7 +3474,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "file-name": {
@@ -3503,7 +3503,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "dropdown": {
@@ -3532,7 +3532,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "dropdown-menu": {
@@ -3561,7 +3561,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "dropdown-content": {
@@ -3590,7 +3590,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "dropdown-item": {
@@ -3619,7 +3619,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "dropdown-divider": {
@@ -3648,7 +3648,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "icon": {
@@ -3684,7 +3684,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "icon-text": {
@@ -3713,7 +3713,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "image": {
@@ -3817,7 +3817,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "menu": {
@@ -3846,7 +3846,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "menu-label": {
@@ -3875,7 +3875,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "menu-list": {
@@ -3923,7 +3923,7 @@
       },
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "menu-item": {
@@ -3952,7 +3952,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "message": {
@@ -3981,7 +3981,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "message-header": {
@@ -4010,7 +4010,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "message-body": {
@@ -4039,7 +4039,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal": {
@@ -4068,7 +4068,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-background": {
@@ -4097,7 +4097,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-content": {
@@ -4126,7 +4126,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-card": {
@@ -4155,7 +4155,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-card-head": {
@@ -4184,7 +4184,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-card-title": {
@@ -4213,7 +4213,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-card-body": {
@@ -4242,7 +4242,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-card-foot": {
@@ -4271,7 +4271,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "modal-close": {
@@ -4300,7 +4300,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-burger": {
@@ -4329,7 +4329,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-link": {
@@ -4358,7 +4358,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination": {
@@ -4405,7 +4405,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination-list": {
@@ -4434,7 +4434,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination-previous": {
@@ -4465,7 +4465,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination-next": {
@@ -4496,7 +4496,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination-link": {
@@ -4532,7 +4532,7 @@
       "items": null,
       "parent": { "tag": "li" },
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "pagination-ellipsis": {
@@ -4561,7 +4561,7 @@
       "items": null,
       "parent": { "tag": "li" },
       "rendersText": "…",
-      "classNameReplaces": true,
+      "classNameSince": "5.78.4",
       "onAnother": null
     },
     "panel": {
@@ -4601,7 +4601,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "panel-heading": {
@@ -4630,7 +4630,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "panel-tabs": {
@@ -4659,7 +4659,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "panel-block": {
@@ -4693,7 +4693,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "panel-icon": {
@@ -4722,7 +4722,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "tabs": {
@@ -4773,7 +4773,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "table-container": {
@@ -4802,7 +4802,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "fixed-grid": {
@@ -5171,7 +5171,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "help": {
@@ -5200,7 +5200,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "panel-list": {
@@ -5229,7 +5229,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "label": {
@@ -5258,7 +5258,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "loader": {
@@ -5287,7 +5287,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero-buttons": {
@@ -5316,7 +5316,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "hero-video": {
@@ -5345,7 +5345,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-content": {
@@ -5374,7 +5374,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "navbar-tabs": {
@@ -5403,7 +5403,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "theme-dark": {
@@ -5432,7 +5432,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "theme-light": {
@@ -5461,7 +5461,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     },
     "fa": {
@@ -5490,7 +5490,7 @@
       "items": null,
       "parent": null,
       "rendersText": null,
-      "classNameReplaces": false,
+      "classNameSince": null,
       "onAnother": null
     }
   },

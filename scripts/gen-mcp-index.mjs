@@ -144,8 +144,11 @@ const HELPER_PROPS_PAGE = 'useBulmaClasses';
  *
  * 2: `cssVarIndex` maps a variable to every component that declares it, its
  * owner first, rather than to one name (#964).
+ * 3: a bulma-classes root carries `classNameSince`, the release from which
+ * its component keeps its own class beside a `className`, in place of
+ * `classNameReplaces` (#2178).
  */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const collapse = s =>
   String(s ?? '')
@@ -1037,7 +1040,7 @@ export async function bulmaClassTable(records) {
         items: itemsOf(map.PLACED, token),
         parent: entry.parent ?? null,
         rendersText: entry.rendersText ?? null,
-        classNameReplaces: entry.classNameReplaces ?? false,
+        classNameSince: entry.classNameSince ?? null,
         onAnother: entry.onAnother ?? null,
       },
     ])
