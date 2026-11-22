@@ -1065,7 +1065,7 @@ async function checkStyleMappingSync() {
     '`bgColor`',
     '`textSize="1"`…`"7"`',
     '`textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`',
-    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`',
+    '`textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`, `underlined`',
     '`display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`',
     '`flexGrow="1"`',
     '`visibility="hidden"`',

@@ -110,7 +110,7 @@ A preview that shows up on hover (a profile card on a username, a summary on a l
 keyboard focus after a delay, lets the pointer move onto the card, closes on Escape, and ignores
 touch unless `openOnTap` is on, which suits only a trigger with no tap action of its own (a
 `Button` with no `onClick`, never a link). Its `trigger` has to be a link or a button, and a trigger in running text takes
-`appendToBody`. A form never goes in one; that's `Popover`.
+`appendToBody`, and a link trigger there takes `textTransform="underlined"` so more than its color sets it apart. A form never goes in one; that's `Popover`.
 
 A menu of actions that opens on a right-click (Rename and Delete on a table row, Archive on a
 card) is `ContextMenu`: use it rather than an `onContextMenu` handler that positions a
@@ -202,7 +202,7 @@ translate each declaration:
 | `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
 | `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest). On `Title`/`SubTitle`, `as` sets the level and `size` picks it too, so an `<h3>` at size 4 is `as="h3" textSize="4"`       |
 | `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
-| `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
+| `textTransform`, italics, underline      | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`, `underlined`                                                                               |
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
 | `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
