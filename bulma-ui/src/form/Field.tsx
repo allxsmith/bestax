@@ -1,6 +1,9 @@
 import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
+import {
+  warnDeprecatedColorProp,
+  warnTextHelperColorProp,
+} from '../helpers/colorDeprecations';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { elementType, isElementOf } from '../helpers/elementType';
 import {
@@ -70,9 +73,19 @@ export interface FieldLabelProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Size for the field label. */
   size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
-  /** Text color for the label. */
+  /**
+   * Text color for the label. It renders nothing while a `color` prop is
+   * present, even an undefined one.
+   */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color for the label. */
+  /**
+   * Renders the text color helper (`has-text-<color>`), not a modifier:
+   * Bulma ships no field label color CSS. It takes the place of `textColor`,
+   * which renders nothing while this prop is present, even as `undefined`.
+   * Passing it logs a console warning in development.
+   * @deprecated Use `textColor` instead. This prop will be removed in the
+   * next major version.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the label. */
@@ -90,9 +103,19 @@ export interface FieldBodyProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Text color for the field body. */
+  /**
+   * Text color for the field body. It renders nothing while a `color` prop
+   * is present, even an undefined one.
+   */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color for the field body. */
+  /**
+   * Renders the text color helper (`has-text-<color>`), not a modifier:
+   * Bulma ships no field body color CSS. It takes the place of `textColor`,
+   * which renders nothing while this prop is present, even as `undefined`.
+   * Passing it logs a console warning in development.
+   * @deprecated Use `textColor` instead. This prop will be removed in the
+   * next major version.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the field body. */
@@ -133,6 +156,7 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
   children,
   ...props
 }) => {
+  warnTextHelperColorProp('Field.Label', props);
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -167,6 +191,7 @@ export const FieldBody: React.FC<FieldBodyProps> = ({
   children,
   ...props
 }) => {
+  warnTextHelperColorProp('Field.Body', props);
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

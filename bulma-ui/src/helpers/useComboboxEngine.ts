@@ -281,12 +281,28 @@ export function useComboboxEngine({
 
   // A browser scrolls to what has focus, not to an active descendant, so
   // the highlighted option is brought into view here, when a key or a
-  // landing moved it there.
+  // landing moved it there. A group's heading sits above its first option,
+  // where no key reaches it, so it comes into view with that option (#2268),
+  // first, so the option wins where the two don't both fit.
   useClientLayoutEffect(() => {
     if (highlighted === null || !scrollToHighlightRef.current) return;
     scrollToHighlightRef.current = false;
-    const option = shownOptions().find(shown => shown.value === highlighted);
-    option?.element.scrollIntoView?.({ block: 'nearest' });
+    const options = shownOptions();
+    const element = options.find(shown => shown.value === highlighted)?.element;
+    // A group inside this list, not one around the whole combobox.
+    const group = element?.parentElement?.closest('[role="group"]');
+    // The heading a group part draws ahead of its options.
+    const heading = group?.firstElementChild;
+    if (
+      group &&
+      listboxRef.current?.contains(group) &&
+      options.find(shown => group.contains(shown.element))?.element ===
+        element &&
+      !heading?.contains(element as Node)
+    ) {
+      (heading as HTMLElement).scrollIntoView?.({ block: 'nearest' });
+    }
+    element?.scrollIntoView?.({ block: 'nearest' });
   }, [highlighted, shownOptions]);
 
   // A press outside the field and the list closes it. The path is checked

@@ -46,7 +46,12 @@ function example() {
 
   return (
     <Block>
-      <Taginput value={tags} onChange={setTags} placeholder="Add a tag..." />
+      <Taginput
+        value={tags}
+        onChange={setTags}
+        label="Tags"
+        placeholder="Add a tag..."
+      />
       <Paragraph mt="2" textColor="grey">
         Tags: {tags.join(', ')}
       </Paragraph>
@@ -79,6 +84,7 @@ function example() {
 
   return (
     <Taginput
+      label="Frameworks"
       value={tags}
       onChange={setTags}
       data={suggestions}
@@ -111,6 +117,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Categories"
         value={tags}
         onChange={setTags}
         data={categories}
@@ -135,31 +142,37 @@ Tags with different color variants.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Taginput
+    label="Primary"
     defaultValue={['Primary']}
     tagColor="primary"
     placeholder="Primary tags..."
   />
   <Taginput
+    label="Success"
     defaultValue={['Success']}
     tagColor="success"
     placeholder="Success tags..."
   />
   <Taginput
+    label="Info"
     defaultValue={['Info']}
     tagColor="info"
     placeholder="Info tags..."
   />
   <Taginput
+    label="Warning"
     defaultValue={['Warning']}
     tagColor="warning"
     placeholder="Warning tags..."
   />
   <Taginput
+    label="Danger"
     defaultValue={['Danger']}
     tagColor="danger"
     placeholder="Danger tags..."
   />
   <Taginput
+    label="Dark"
     defaultValue={['Dark']}
     tagColor="dark"
     placeholder="Dark tags..."
@@ -176,23 +189,27 @@ Tag inputs in different sizes.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Taginput
+    label="Small"
     defaultValue={['Small']}
     size="small"
     tagColor="primary"
     placeholder="Small..."
   />
   <Taginput
+    label="Normal"
     defaultValue={['Normal']}
     tagColor="primary"
     placeholder="Normal..."
   />
   <Taginput
+    label="Medium"
     defaultValue={['Medium']}
     size="medium"
     tagColor="primary"
     placeholder="Medium..."
   />
   <Taginput
+    label="Large"
     defaultValue={['Large']}
     size="large"
     tagColor="primary"
@@ -216,6 +233,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Tags"
         value={tags}
         onChange={setTags}
         maxTags={3}
@@ -244,6 +262,7 @@ function example() {
 
   return (
     <Taginput
+      label="Tags"
       value={tags}
       onChange={setTags}
       allowDuplicates
@@ -269,6 +288,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Tags"
         value={tags}
         onChange={setTags}
         confirmKeys={['Enter', 'Tab', ' ']}
@@ -291,14 +311,18 @@ Display modes for tags.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Block>
-    <Paragraph mb="1">Read-only:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor="info" />
-  </Block>
-  <Block>
-    <Paragraph mb="1">Disabled:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor="info" />
-  </Block>
+  <Taginput
+    label="Read-only"
+    defaultValue={['React', 'TypeScript']}
+    readonly
+    tagColor="info"
+  />
+  <Taginput
+    label="Disabled"
+    defaultValue={['React', 'TypeScript']}
+    disabled
+    tagColor="info"
+  />
 </Block>
 ```
 
@@ -310,6 +334,7 @@ Tags without the delete button.
 
 ```tsx live
 <Taginput
+  label="Tags"
   defaultValue={['Fixed', 'Tags']}
   closable={false}
   tagColor="primary"
@@ -485,6 +510,7 @@ function TaginputFormDemo() {
       }}
     >
       <Taginput
+        label="Tags"
         name="tags"
         defaultValue={['react', 'vue', 'angular']}
         placeholder="Add a tag…"

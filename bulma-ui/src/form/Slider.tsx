@@ -261,7 +261,7 @@ function stepFrom(
   // number they keep as it is. Next to a max written with more digits, the
   // fifteen can round a hair above it, as Chromium and WebKit hold it: with
   // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
-  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+  return kept(top);
 }
 
 /**
@@ -275,12 +275,19 @@ function highestStep(min: number, max: number, step: number): number {
 }
 
 /**
+ * `value` as browsers keep a number: a fraction to fifteen significant
+ * digits, and a whole number as it is.
+ */
+function kept(value: number): number {
+  return Number.isInteger(value) ? value : Number(value.toPrecision(15));
+}
+
+/**
  * `a + b`, with a fraction kept to the fifteen significant digits browsers
  * keep, so a float's error, as in 0.2 + 0.1, doesn't move it across a step.
  */
 function addKept(a: number, b: number): number {
-  const sum = a + b;
-  return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
+  return kept(a + b);
 }
 
 /**
@@ -315,7 +322,11 @@ function getTickPositions(
   if (marks && marks.length > 0) return marks;
   if (!ticks) return [];
   const positions: SliderMark[] = [];
-  const count = Math.round((max - min) / step);
+  // Counted up to the highest step the slider holds rather than to `max`, so
+  // when `max` falls between two steps the last one still gets its tick
+  // (#2109).
+  const top = highestStep(min, max, step);
+  const count = Math.round((top - min) / step);
   if (count > 100) {
     // Cap at 100 ticks to prevent perf issues
     const tickStep = (max - min) / 100;
@@ -324,8 +335,13 @@ function getTickPositions(
       positions.push({ value: min + i * tickStep });
     }
   } else {
-    // Skip first (i=0) and last (i=count) — no ticks at endpoints
-    for (let i = 1; i < count; i++) {
+    // Skip first (i=0), and the last step (i=count) when it is `max`, so
+    // there are no ticks at the endpoints. A last step within a millionth of
+    // a step of `max` counts as `max`: the gap is a float's error, as when
+    // `max` or `min` is worked out as `min + 3 * step` or 0.1 + 0.2, and a
+    // tick there would sit at the end of the track anyway.
+    const last = max - top > step / 1e6 ? count : count - 1;
+    for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
   }

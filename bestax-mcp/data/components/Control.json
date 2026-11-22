@@ -19,19 +19,19 @@
     },
     {
       "title": "With Icons (Left and Right)",
-      "code": "<Field>\n  <Control\n    hasIconsLeft\n    hasIconsRight\n    iconLeft={{ name: 'user' }}\n    iconRight={{ name: 'check' }}\n  >\n    <Input placeholder=\"With icons\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"With Icons\">\n  <Control\n    hasIconsLeft\n    hasIconsRight\n    iconLeft={{ name: 'user' }}\n    iconRight={{ name: 'check' }}\n  >\n    <Input placeholder=\"With icons\" />\n  </Control>\n</Field>"
     },
     {
       "title": "With Only Left Icon (Shortcut Props)",
-      "code": "<Field>\n  <Control hasIconsLeft iconLeftName=\"user\" iconLeftSize=\"small\">\n    <Input size=\"small\" placeholder=\"With left icon shortcut\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"Left Icon\">\n  <Control hasIconsLeft iconLeftName=\"user\" iconLeftSize=\"small\">\n    <Input size=\"small\" placeholder=\"With left icon shortcut\" />\n  </Control>\n</Field>"
     },
     {
       "title": "With Only Right Icon (Shortcut Props)",
-      "code": "<Field>\n  <Control hasIconsRight iconRightName=\"check\" iconRightSize=\"small\">\n    <Input size=\"small\" placeholder=\"With right icon shortcut\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"Right Icon\">\n  <Control hasIconsRight iconRightName=\"check\" iconRightSize=\"small\">\n    <Input size=\"small\" placeholder=\"With right icon shortcut\" />\n  </Control>\n</Field>"
     },
     {
       "title": "With Icons and Size Variations",
-      "code": "<Field>\n  <Control\n    hasIconsLeft\n    hasIconsRight\n    size=\"medium\"\n    iconLeft={{ name: 'user', size: 'medium' }}\n    iconRight={{ name: 'check', size: 'medium' }}\n  >\n    <Input size=\"medium\" placeholder=\"Icons left/right medium\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"Icons Medium\">\n  <Control\n    hasIconsLeft\n    hasIconsRight\n    size=\"medium\"\n    iconLeft={{ name: 'user', size: 'medium' }}\n    iconRight={{ name: 'check', size: 'medium' }}\n  >\n    <Input size=\"medium\" placeholder=\"Icons left/right medium\" />\n  </Control>\n</Field>"
     },
     {
       "title": "Loading State",

@@ -113,7 +113,7 @@ This example shows the `Media` component used with form inputs. The `Media.Conte
     />
   </Media.Left>
   <Media.Content>
-    <Field>
+    <Field label="Comment">
       <Control as="p">
         <TextArea placeholder="Add a comment..." />
       </Control>
@@ -263,7 +263,7 @@ In this variation, a button is placed below the input area within the `Media.Con
     />
   </Media.Left>
   <Media.Content>
-    <Field>
+    <Field label="Comment">
       <Control as="p">
         <TextArea placeholder="Add a comment..." />
       </Control>

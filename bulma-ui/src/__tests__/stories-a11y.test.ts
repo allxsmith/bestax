@@ -130,7 +130,7 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
     ],
     {
       'scrollable-region-focusable':
-        "The menu's panel scrolls, with the listbox inside it, and its options are reached from the combobox's input through aria-activedescendant, which the arrow keys move and scroll into view. axe skips the rule only when the box that scrolls is itself the combobox's popup, as the listbox is in Combobox's inline mode. A group's heading can stay scrolled out of view, which is #2268, not this rule's finding.",
+        "The menu's panel scrolls, with the listbox inside it, and its options are reached from the combobox's input through aria-activedescendant, which the arrow keys move and scroll into view, with its group's heading when it's the group's first option. axe skips the rule only when the box that scrolls is itself the combobox's popup, as the listbox is in Combobox's inline mode.",
     }
   ),
   // A range Slider's thumbs are 20px targets that can sit side by side.
