@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import Media from './Media';
 import { Image } from '../elements/Image';
 import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 import { IconButton } from '../elements/IconButton';
 import { LinkButton } from '../elements/LinkButton';
 import Field from '../form/Field';
@@ -38,34 +39,26 @@ export const Default: StoryObj<typeof Media> = {
             would be necessary.
           </p>
         </div>
-        <Level as="div" isMobile>
-          <Level.Left>
-            <Level.Item>
-              <IconButton
-                color="text"
-                size="small"
-                icon="reply"
-                aria-label="Reply"
-              />
-            </Level.Item>
-            <Level.Item>
-              <IconButton
-                color="text"
-                size="small"
-                icon="retweet"
-                aria-label="Retweet"
-              />
-            </Level.Item>
-            <Level.Item>
-              <IconButton
-                color="text"
-                size="small"
-                icon="heart"
-                aria-label="Like"
-              />
-            </Level.Item>
-          </Level.Left>
-        </Level>
+        <Buttons>
+          <IconButton
+            color="text"
+            size="small"
+            icon="reply"
+            aria-label="Reply"
+          />
+          <IconButton
+            color="text"
+            size="small"
+            icon="retweet"
+            aria-label="Retweet"
+          />
+          <IconButton
+            color="text"
+            size="small"
+            icon="heart"
+            aria-label="Like"
+          />
+        </Buttons>
       </Media.Content>
       <Media.Right>
         <button className="delete" aria-label="delete" />

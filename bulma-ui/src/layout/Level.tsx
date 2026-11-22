@@ -32,8 +32,9 @@ export interface LevelProps
   /**
    * Keeps the level's own items, and its `Level.Left` and `Level.Right`, in a
    * row on mobile (Bulma `is-mobile`), where they otherwise stack below
-   * tablet. Items inside `Level.Left` and `Level.Right` still stack there.
-   * Bulma doesn't let a level's items shrink, so a row that doesn't fit a
+   * tablet. Items inside `Level.Left` and `Level.Right` still stack there,
+   * as Bulma 1 draws them: for a row on a phone, put the items straight in
+   * the level. Bulma doesn't let a level's items shrink, so a row that doesn't fit a
    * 320px screen runs past its edge, where Bulma's default `overflow-x:
    * hidden` on the page cuts it off (WCAG 1.4.10 Reflow): keep it for a row
    * that fits.
@@ -105,7 +106,8 @@ export interface LevelLeftProps
 }
 
 /**
- * Left-aligned content.
+ * Left-aligned content. Its items stack below tablet, in a level with
+ * `isMobile` too.
  *
  * @function
  * @param {LevelLeftProps} props - Props for the LevelLeft component.
@@ -153,7 +155,8 @@ export interface LevelRightProps
 }
 
 /**
- * Right-aligned content.
+ * Right-aligned content. Its items stack below tablet, in a level with
+ * `isMobile` too.
  *
  * @function
  * @param {LevelRightProps} props - Props for the LevelRight component.
