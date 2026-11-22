@@ -55,6 +55,7 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
       'NoRepeat',
       'OverlayArrows',
       'RightToLeft',
+      'RotationControl',
       'SeveralInView',
       'Testimonials',
       'TransparentArrows',

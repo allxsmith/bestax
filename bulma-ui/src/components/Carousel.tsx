@@ -24,6 +24,7 @@ import { useSwipe } from '../helpers/useSwipe';
 import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { chain } from '../helpers/useHoverOpen';
 import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
+import { PauseIcon, PlayIcon } from '../helpers/rotationIcons';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -107,13 +108,24 @@ const focusSlot = (track: HTMLElement, slot: number) => {
 };
 
 /**
- * The words a Carousel writes for its arrows, indicators and items. Each is
- * English unless you give your own, and a word that's empty, or a function
- * that returns one, keeps the English. The role descriptions, "carousel" on
- * the region and "slide" on each item, take `aria-roledescription` on the
- * Carousel and on each CarouselItem.
+ * The words a Carousel writes for its arrows, indicators, items and the
+ * button that stops and starts autoplay. Each is English unless you give
+ * your own, and a word that's empty, or a function that returns one, keeps
+ * the English. The role descriptions, "carousel" on the region and "slide"
+ * on each item, take `aria-roledescription` on the Carousel and on each
+ * CarouselItem.
  */
 export interface CarouselLabels {
+  /**
+   * The name of the button that stops autoplay, while it's on.
+   * @defaultValue 'Stop slide rotation'
+   */
+  stopRotation?: string;
+  /**
+   * The name of the button that starts autoplay again, once it's stopped.
+   * @defaultValue 'Start slide rotation'
+   */
+  startRotation?: string;
   /**
    * The previous arrow's name.
    * @defaultValue 'Previous slide'
@@ -167,9 +179,31 @@ export interface CarouselProps
    * anywhere inside it, on an item, an arrow or an indicator, so nothing
    * moves while someone reads or works it. A browser that leaves focus on
    * an arrow or an indicator a click pressed keeps it waiting until focus
-   * moves on.
+   * moves on. Turn on `rotationControl` with it, for a button that stops
+   * it until pressed again.
    */
   autoplay?: boolean;
+  /**
+   * Show a button that stops autoplay and starts it again. Turn it on
+   * whenever you use `autoplay`, unless the page gives its own way to stop
+   * the carousel: WCAG asks for one when something moves by itself for more
+   * than five seconds. It's first in the carousel's tab order and drawn as
+   * the arrows are, at the top center of the slides, or the bottom center
+   * while the indicators sit over the slides at the top (`indicatorInside`
+   * with `indicatorPosition="top"`). With `arrowHover` it stays in view. It
+   * shows while `autoplay` is on and some item is out of view. Once
+   * pressed, autoplay stays stopped wherever the pointer and focus go, until
+   * it's pressed again, and through `autoplay` turning off and on, so a page
+   * that plays a carousel only while it's in view keeps the stop. Without
+   * `repeat`, autoplay rests at the last position and goes on once the
+   * carousel is moved back, unless it's stopped. While this prop is off, a
+   * stop doesn't apply. Focus on the button doesn't hold autoplay, as focus
+   * elsewhere in the carousel does, so pressing it starts autoplay at once,
+   * or once the pointer leaves with `pauseOnHover`, and the arrow keys don't
+   * move the carousel from it. Its names come from `labels`.
+   * @defaultValue false
+   */
+  rotationControl?: boolean;
   /** Auto-play interval in milliseconds. Default: 5000. */
   interval?: number;
   /** Pause auto-play on hover. Default: true. */
@@ -391,6 +425,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       autoplay = false,
       interval = 5000,
       pauseOnHover = true,
+      rotationControl = false,
       repeat = true,
       hasDrag = true,
       itemsToShow,
@@ -438,8 +473,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // The item (a child of the track) that holds focus, until focus leaves
     // the items for somewhere else
     const focusedItemRef = useRef<Element | undefined>(undefined);
-    // The arrows and the indicators, and the one of them that holds focus,
-    // until focus moves on to somewhere else
+    // The rotation button, the arrows and the indicators, and the one of
+    // them that holds focus, until focus moves on to somewhere else
+    const rotationRef = useRef<HTMLButtonElement>(null);
     const prevRef = useRef<HTMLButtonElement>(null);
     const nextRef = useRef<HTMLButtonElement>(null);
     const indicatorsRef = useRef<HTMLDivElement>(null);
@@ -448,6 +484,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [internalValue, setInternalValue] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
     const [isFocusInside, setIsFocusInside] = useState(false);
+    // Whether the rotation button stopped autoplay, until it's pressed
+    // again. It's the user's choice, kept while `autoplay` turns off and on,
+    // and it applies while `rotationControl` shows the button.
+    const [isStopped, setIsStopped] = useState(false);
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
     const [skipTransition, setSkipTransition] = useState(false);
@@ -455,6 +495,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const reducedMotion = usePrefersReducedMotion();
     // The words it writes, English unless the caller gives their own
     const words = {
+      stopRotation: labels?.stopRotation || 'Stop slide rotation',
+      startRotation: labels?.startRotation || 'Start slide rotation',
       previous: labels?.previous || 'Previous slide',
       next: labels?.next || 'Next slide',
       indicator: (slide: number) =>
@@ -623,10 +665,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // when it fires, rather than trusting the last focus event alone: a
     // browser moving focus off an element that went inert need not fire one,
     // and the pause would never end. A focus change still starts the timer
-    // over, so a slide gets the whole interval once focus leaves.
+    // over, so a slide gets the whole interval once focus leaves. The
+    // rotation button stops it until it's pressed again, and focus on it
+    // doesn't hold autoplay, so the button starts it at once.
+    const canGoPrev = looping || prevIndex !== undefined;
+    const canGoNext = looping || nextIndex !== undefined;
     const isPlaying =
       autoplay &&
-      (looping || nextIndex !== undefined) &&
+      !(rotationControl && isStopped) &&
+      canGoNext &&
       !(pauseOnHover && isHovered);
     const isRotating = isPlaying && !isFocusInside;
 
@@ -635,7 +682,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
       const timer = setInterval(() => {
         const root = carouselRef.current;
-        if (root?.contains(getActiveElementInTree(root))) return;
+        const active = getActiveElementInTree(root);
+        if (root?.contains(active) && active !== rotationRef.current) return;
         if (isFocusInside) setIsFocusInside(false);
         goToNextRef.current();
       }, interval);
@@ -651,9 +699,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const handleFocus = chain(
       onFocus,
       (e: React.FocusEvent<HTMLDivElement>) => {
-        setIsFocusInside(true);
         const target = e.target as HTMLElement;
+        setIsFocusInside(target !== rotationRef.current);
         focusedControlRef.current =
+          target === rotationRef.current ||
           target === prevRef.current ||
           target === nextRef.current ||
           indicatorsRef.current?.contains(target)
@@ -693,14 +742,20 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const isDragging = swipe.isSwiping;
     const dragOffset = swipe.offsetX;
 
-    // Keyboard navigation, from the carousel's own controls. Inside an item
+    // Keyboard navigation, from the arrows and the indicators. Not from the
+    // rotation button, whose focus doesn't hold autoplay, so a step from it
+    // would be followed by autoplay's own. Inside an item
     // the keys are its content's (a field's caret, a slider), and a step
     // from there could take the focused item out of view.
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         const node = carouselRef.current;
         const active = getActiveElementInTree(node);
-        if (!node?.contains(active) || slidesRef.current?.contains(active)) {
+        if (
+          !node?.contains(active) ||
+          slidesRef.current?.contains(active) ||
+          active === rotationRef.current
+        ) {
           return;
         }
 
@@ -789,10 +844,6 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [ref]
     );
 
-    // Can navigate
-    const canGoPrev = looping || prevIndex !== undefined;
-    const canGoNext = looping || nextIndex !== undefined;
-
     // Generate classes
     const carouselClasses = usePrefixedClassNames('carousel', {
       'is-overlay': overlayControls,
@@ -803,6 +854,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const classPrefix = useClassPrefix();
     const carouselContainerClass = usePrefixedClassNames('carousel-container');
     const carouselSlidesClass = usePrefixedClassNames('carousel-slides');
+    // The rotation button takes the arrows' look, at the top center, or the
+    // bottom center while the indicators sit over the slides at the top
+    const carouselRotationClass = usePrefixedClassNames(
+      'carousel-arrow',
+      'is-rotation',
+      {
+        'is-transparent': !arrowBackground,
+        'is-bottom':
+          indicator && indicatorInside && indicatorPosition === 'top',
+      }
+    );
     const carouselArrowPrevClass = usePrefixedClassNames(
       'carousel-arrow',
       'is-prev',
@@ -900,10 +962,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // The places the view can start, as a dependency of the effect below
     const positionsKey = positions.join();
 
-    // Hand focus on when the arrow or indicator holding it is disabled or
-    // goes away: Next on the last position without `repeat`, an indicator
-    // for a position a change of count took away, or every control once all
-    // the items fit. A browser drops focus from either to the page. Focus
+    // Hand focus on when the control holding it is disabled or goes away:
+    // Next on the last position without `repeat`, an indicator for a
+    // position a change of count took away, the rotation button once
+    // autoplay is off, or every control once all the items fit. A browser
+    // drops focus from any of them to the page. Focus
     // goes to the current indicator, which says where the view is and keeps
     // it there for an Enter still held down, else to an arrow that works,
     // else to the first item in view. As above, a layout effect runs
@@ -941,6 +1004,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       canMove,
       arrow,
       indicator,
+      autoplay,
+      rotationControl,
       positionsKey,
       shownIndex,
       cloneCount,
@@ -977,6 +1042,18 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             cursor: hasDrag ? (isDragging ? 'grabbing' : 'grab') : undefined,
           }}
         >
+          {/* First in the tab order, as the APG carousel pattern puts it */}
+          {autoplay && rotationControl && canMove && (
+            <Button
+              type="button"
+              ref={rotationRef}
+              className={carouselRotationClass}
+              onClick={() => setIsStopped(stopped => !stopped)}
+              aria-label={isStopped ? words.startRotation : words.stopRotation}
+            >
+              {isStopped ? <PlayIcon /> : <PauseIcon />}
+            </Button>
+          )}
           <div
             ref={slidesRef}
             className={carouselSlidesClass}
