@@ -75,12 +75,11 @@ export function bestaxPackagesOf({
       continue;
     }
     // A package.json holding nothing but how its files load
-    // (`{ "type": "module" }`) is no package, and the one around it decides,
-    // unless the run writes it.
+    // (`{ "type": "module" }`) is no package: the one around it decides, and
+    // a range the run writes into it installs nowhere.
     const keys = Object.keys(pkg);
-    if (!written && keys.length > 0 && keys.every(k => FORMAT_KEYS.has(k))) {
-      continue;
-    }
+    const formatOnly = keys.length > 0 && keys.every(k => FORMAT_KEYS.has(k));
+    if (formatOnly && !written) continue;
     const declared = SECTIONS.map(section => pkg[section]?.[NAME]).filter(
       range => range !== undefined
     );
@@ -89,7 +88,7 @@ export function bestaxPackagesOf({
     );
     packages.push({
       dir,
-      written,
+      written: written && !formatOnly,
       ...(declared.length > 0 && {
         floor: floors.includes(null)
           ? null

@@ -156,6 +156,22 @@ describe('readBestaxPackages and bestaxFloorFor', () => {
     );
   });
 
+  it('counts on nothing from a format-only manifest the run writes, which installs nothing', () => {
+    const dir = project({
+      'package.json': { name: 'app', ...bestax('^5.0.0') },
+      'src/esm/package.json': { type: 'module' },
+      'src/esm/a.tsx': '',
+    });
+    const target = path.join(dir, 'src/esm');
+    expect(
+      bestaxFloorFor(
+        path.join(target, 'a.tsx'),
+        readBestaxPackages([target]),
+        true
+      )
+    ).toBeUndefined();
+  });
+
   it('takes an empty manifest the run writes as the package', () => {
     const dir = project({ 'src/package.json': '{}', 'src/App.tsx': '' });
     const file = path.join(dir, 'src/App.tsx');
