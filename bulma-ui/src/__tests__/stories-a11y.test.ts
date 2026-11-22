@@ -34,37 +34,7 @@ const each = (file: string, stories: string[], rules: Record<string, Why>) =>
 
 /** The story file, `#`, and the story's export name. */
 const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
-  // Carousel's indicators are under the 24px target size.
-  ...each(
-    'components/Carousel.stories.tsx',
-    [
-      'ArrowOnHover',
-      'Autoplay',
-      'Controlled',
-      'Default',
-      'FontAwesomeIcons',
-      'IconSizes',
-      'IconVariants',
-      'IndicatorInsidePlain',
-      'IndicatorStyles',
-      'IndicatorTop',
-      'Labels',
-      'MaterialDesignIcons',
-      'NoArrows',
-      'NoDrag',
-      'NoRepeat',
-      'OverlayArrows',
-      'RightToLeft',
-      'SeveralInView',
-      'Testimonials',
-      'TransparentArrows',
-      'TransparentArrowsLight',
-      'WithImages',
-    ],
-    { 'target-size': 1926 }
-  ),
   'components/Carousel.stories.tsx#MaterialSymbols': {
-    'target-size': 1926,
     'label-content-name-mismatch':
       "axe can tell an icon font's ligature from text only once the font has loaded, so the arrows' Material Symbols names (arrow_back) can read as text the button shows, though the icon is aria-hidden.",
   },
