@@ -5,6 +5,10 @@ sidebar_position: 2
 description: Bestax's Accessibility Conformance Report, International Edition, based on VPAT® Version 2.5Rev, covering WCAG 2.2, the Revised Section 508 standards and EN 301 549.
 ---
 
+<!-- The tables below sit between prettier-ignore markers, so a row edit changes that row's
+     line alone and prettier re-pads no table: a re-padded table made every report change
+     conflict with every other. Keep the markers around a table you add. -->
+
 # Bestax Accessibility Conformance Report
 
 International Edition
@@ -79,6 +83,7 @@ or ask on [Discord](https://discord.gg/zehJrQGtKu).
 
 This report covers the degree of conformance for the following accessibility standard/guidelines:
 
+<!-- prettier-ignore-start -->
 | Standard/Guideline                                                                                                                                                                                        | Included In Report                                  |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | [Web Content Accessibility Guidelines 2.0](https://www.w3.org/TR/WCAG20/)                                                                                                                                 | Level A (Yes)<br/>Level AA (Yes)<br/>Level AAA (No) |
@@ -86,6 +91,7 @@ This report covers the degree of conformance for the following accessibility sta
 | [Web Content Accessibility Guidelines 2.2](https://www.w3.org/TR/WCAG22/)                                                                                                                                 | Level A (Yes)<br/>Level AA (Yes)<br/>Level AAA (No) |
 | [Revised Section 508 standards](https://www.access-board.gov/ict/) published January 18, 2017 and corrected January 22, 2018                                                                              | (Yes)                                               |
 | [EN 301 549](https://www.etsi.org/deliver/etsi_en/301500_301599/301549/03.02.01_60/en_301549v030201p.pdf) Accessibility requirements for ICT products and services, V3.1.1 (2019-11) and V3.2.1 (2021-03) | (Yes)                                               |
+<!-- prettier-ignore-end -->
 
 ## Terms
 
@@ -123,6 +129,7 @@ complete processes, and accessibility-supported ways of using technology as docu
 Notes: Electronic Docs, Software, Closed and Authoring Tool are Not Applicable throughout (see
 Notes, above), so each row answers for Web.
 
+<!-- prettier-ignore-start -->
 | Criteria                                                                                        | Conformance Level       | Remarks and Explanations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ----------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1.1.1 Non-text Content (Level A)                                                                | Web: Partially Supports | **Components:** An `Icon` is decorative unless it's given an `ariaLabel`, and `Image`, `Avatar` and `Card` take the alternative text the app gives them. `Card` falls back to "Card image" for an image URL with no `imageAlt`, a placeholder rather than a description ([#1750], next major). **bestax.io:** The site's images have text alternatives, which the axe pass checks on every page.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -157,12 +164,14 @@ Notes, above), so each row answers for Web.
 | 3.3.7 Redundant Entry (Level A, WCAG 2.2 only; Revised Section 508 and EN 301 549 do not apply) | Web: Supports           | **Components:** A process's criterion, the app's. **bestax.io:** The site has no multi-step processes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | 4.1.1 Parsing (Level A)                                                                         | Web: Supports           | For WCAG 2.0, 2.1, EN 301 549, and Revised 508 Standards, the September 2023 errata update indicates this criterion is always supported. See the [WCAG 2.0 Editorial Errata](https://www.w3.org/WAI/WCAG20/errata/) and the [WCAG 2.1 Editorial Errata](https://www.w3.org/WAI/WCAG21/errata/). WCAG 2.2 removed it as obsolete.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | 4.1.2 Name, Role, Value (Level A)                                                               | Web: Partially Supports | **Components:** Components expose their names, roles, states and values through native elements and ARIA. Known gaps, each waiting for the next major because it changes what a screen reader hears: `Switch` is announced as a checkbox ([#1969]); a non-editable `Numberinput` is a read-only field rather than a spin button ([#1997]); `Message`'s close button is named "delete" ([#1912]); a static `Button` takes focus ([#1872]); a step's state isn't in its name ([#1703]); `Carousel`'s indicators are a tab stop each and don't name the slides they control ([#1924]); the date pickers name their days by number alone ([#1456]); `Carousel`'s and `Navbar`'s default names include their role, which a screen reader then says twice ([#1932], [#1448]); the glyph inside an unnamed `Icon` with a role of its own, a ligature's text or an SVG, can name it or the control around it, which a development build warns about ([#2265]). **bestax.io:** The live code examples' editor has no name ([#2180]).                                                                                                                            |
+<!-- prettier-ignore-end -->
 
 ### Table 2: Success Criteria, Level AA
 
 Notes: Electronic Docs, Software, Closed and Authoring Tool are Not Applicable throughout (see
 Notes, above), so each row answers for Web.
 
+<!-- prettier-ignore-start -->
 | Criteria                                                                                                             | Conformance Level       | Remarks and Explanations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1.2.4 Captions (Live) (Level AA)                                                                                     | Web: Not Applicable     | **Components:** No component plays media. **bestax.io:** The site has no live media.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -189,6 +198,7 @@ Notes, above), so each row answers for Web.
 | 3.3.4 Error Prevention (Legal, Financial, Data) (Level AA)                                                           | Web: Not Applicable     | **Components:** A process's criterion, the app's. **bestax.io:** The site takes no legal, financial or personal data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | 3.3.8 Accessible Authentication (Minimum) (Level AA, WCAG 2.2 only; Revised Section 508 and EN 301 549 do not apply) | Web: Supports           | **Components:** `PasswordInput` allows pasting and password managers, and no component asks for a cognitive test. **bestax.io:** The site has no sign-in.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | 4.1.3 Status Messages (Level AA, WCAG 2.1 and 2.2; Revised Section 508 does not apply)                               | Web: Partially Supports | **Components:** `Toast`, `CopyButton`, `Command`, `TreeView` and the range pickers announce their messages through live regions without moving focus. A loading form field's spinner is only drawn: the app says the field is loading through its `message`, which a screen reader reads with the field rather than as a status message, by design. **bestax.io:** No known gaps.                                                                                                                                                                                                                                                                                                                                                                                                                       |
+<!-- prettier-ignore-end -->
 
 ### Table 3: Success Criteria, Level AAA
 
@@ -203,6 +213,7 @@ Notes: The WCAG tables above also cover Chapter 5's 501.1 and Chapter 6's 602.3.
 Notes: Each answer weighs the known gaps in the WCAG tables against the functional need. None has
 been tested with real assistive technology (see Evaluation Methods Used).
 
+<!-- prettier-ignore-start -->
 | Criteria                                                       | Conformance Level  | Remarks and Explanations                                                                                                                                                                                                                                                                                                                                                                  |
 | -------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 302.1 Without Vision                                           | Partially Supports | Components expose names, roles and states, which unit tests and axe check. Some names and roles are wrong until the next major (WCAG 4.1.2), and nothing has been tested with a real screen reader.                                                                                                                                                                                       |
@@ -214,6 +225,7 @@ been tested with real assistive technology (see Evaluation Methods Used).
 | 302.7 With Limited Manipulation                                | Partially Supports | The components work from the keyboard, with the gaps in WCAG 2.1.1. Some targets are under 24px (WCAG 2.5.8), and `Splitter`, `AppFrame`'s resizable column and a zoomed `Lightbox` need a drag with a pointer (WCAG 2.5.7, [#2197], [#2231]).                                                                                                                                            |
 | 302.8 With Limited Reach and Strength                          | Supports           | Bestax is used through the device's own input and needs no reach or strength of its own.                                                                                                                                                                                                                                                                                                  |
 | 302.9 With Limited Language, Cognitive, and Learning Abilities | Partially Supports | A plain `Toast` closes after two seconds by default, and a programmatic notification after three (WCAG 2.2.1, [#2196], [#2233]), an autoplaying `Carousel` can't be stopped (WCAG 2.2.2, [#1925]), and on the homepage a carousel plays on its own ([#2206]) and the pickers demo moves keyboard focus while it plays, by design.                                                         |
+<!-- prettier-ignore-end -->
 
 ### Chapter 4: Hardware
 
@@ -226,6 +238,7 @@ assistive technology through the browser, not through platform accessibility ser
 own, so the software rows in 502 and 503 don't apply to it, and its conformance is in the WCAG
 tables. It isn't an authoring tool.
 
+<!-- prettier-ignore-start -->
 | Criteria                                                                            | Conformance Level    | Remarks and Explanations                                                                              |
 | ----------------------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------- |
 | 501.1 Scope – Incorporation of WCAG 2.0 AA                                          | See WCAG 2.x section | See the WCAG tables.                                                                                  |
@@ -236,9 +249,11 @@ tables. It isn't an authoring tool.
 | 504.2.2 PDF Export                                                                  | Not Applicable       | Not an authoring tool.                                                                                |
 | 504.3 Prompts                                                                       | Not Applicable       | Not an authoring tool.                                                                                |
 | 504.4 Templates                                                                     | Not Applicable       | Not an authoring tool.                                                                                |
+<!-- prettier-ignore-end -->
 
 ### Chapter 6: Support Documentation and Services
 
+<!-- prettier-ignore-start -->
 | Criteria                                                         | Conformance Level    | Remarks and Explanations                                                                                                                                                                                                                                        |
 | ---------------------------------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 602.2 Accessibility and Compatibility Features                   | Supports             | The API pages on bestax.io have an Accessibility section on each component's keyboard support, names, roles and states, and forced colors, except the layout-only `Columns` and `Grid` parts, and the [accessibility statement](./index.md) describes the rest. |
@@ -246,6 +261,7 @@ tables. It isn't an authoring tool.
 | 602.4 Alternate Formats for Non-Electronic Support Documentation | Not Applicable       | There is no non-electronic documentation.                                                                                                                                                                                                                       |
 | 603.2 Information on Accessibility and Compatibility Features    | Supports             | Support happens in GitHub issues and on Discord, where answers can point to each component's Accessibility section and the accessibility statement.                                                                                                             |
 | 603.3 Accommodation of Communication Needs                       | Partially Supports   | Support is in writing, through GitHub issues and Discord. There's no phone, email or relay channel, so someone who can't use either has no way in.                                                                                                              |
+<!-- prettier-ignore-end -->
 
 ## EN 301 549 Report
 
@@ -256,6 +272,7 @@ Notes: The WCAG tables above also cover Clause 9, and Clauses 12.1.2 and 12.2.4.
 Notes: Each answer weighs the known gaps in the WCAG tables against the functional need, as in the
 Revised Section 508 Report's Chapter 3.
 
+<!-- prettier-ignore-start -->
 | Criteria                                                  | Conformance Level  | Remarks and Explanations                                                     |
 | --------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------- |
 | 4.2.1 Usage without vision                                | Partially Supports | As 302.1.                                                                    |
@@ -269,9 +286,11 @@ Revised Section 508 Report's Chapter 3.
 | 4.2.9 Minimize photosensitive seizure triggers            | Supports           | Nothing flashes (WCAG 2.3.1).                                                |
 | 4.2.10 Usage with limited cognition, language or learning | Partially Supports | As 302.9.                                                                    |
 | 4.2.11 Privacy                                            | Supports           | No accessibility feature exposes private information.                        |
+<!-- prettier-ignore-end -->
 
 ### Chapter 5: Generic Requirements
 
+<!-- prettier-ignore-start -->
 | Criteria                                                        | Conformance Level | Remarks and Explanations                                                                                                                                  |
 | --------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 5.1 Closed functionality (5.1.2 to 5.1.6)                       | Not Applicable    | Bestax works with the browser and assistive technology the user brings, so it has no closed functionality.                                                |
@@ -283,6 +302,7 @@ Revised Section 508 Report's Chapter 3.
 | 5.7 Key repeat                                                  | Not Applicable    | Bestax has no physical keyboard; key repeat is the system's.                                                                                              |
 | 5.8 Double-strike key acceptance                                | Not Applicable    | Bestax has no physical keyboard.                                                                                                                          |
 | 5.9 Simultaneous user actions                                   | Supports          | Nothing needs two actions at once.                                                                                                                        |
+<!-- prettier-ignore-end -->
 
 ### Chapter 6: ICT with Two-Way Voice Communication
 
@@ -314,6 +334,7 @@ not apply.
 
 ### Chapter 12: Documentation and Support Services
 
+<!-- prettier-ignore-start -->
 | Criteria                                                       | Conformance Level    | Remarks and Explanations                                      |
 | -------------------------------------------------------------- | -------------------- | ------------------------------------------------------------- |
 | 12.1.1 Accessibility and compatibility features                | Supports             | As 602.2.                                                     |
@@ -321,6 +342,7 @@ not apply.
 | 12.2.2 Information on accessibility and compatibility features | Supports             | As 603.2.                                                     |
 | 12.2.3 Effective communication                                 | Partially Supports   | As 603.3.                                                     |
 | 12.2.4 Accessible documentation                                | See WCAG 2.x section | As 12.1.2.                                                    |
+<!-- prettier-ignore-end -->
 
 ### Chapter 13: ICT Providing Relay or Emergency Service Access
 

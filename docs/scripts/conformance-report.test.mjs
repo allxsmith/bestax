@@ -258,6 +258,20 @@ describe('the conformance report', () => {
     expect([...cited].sort()).toEqual([...linked].sort());
   });
 
+  it('keeps every table between prettier-ignore markers', () => {
+    // Prettier pads a table's columns to its widest cell, so one row edit
+    // otherwise rewrites the whole table and conflicts with every other.
+    let ignoring = false;
+    const outside = [];
+    REPORT.split('\n').forEach((line, index) => {
+      if (line === '<!-- prettier-ignore-start -->') ignoring = true;
+      else if (line === '<!-- prettier-ignore-end -->') ignoring = false;
+      else if (line.startsWith('|') && !ignoring) outside.push(index + 1);
+    });
+    expect(outside).toEqual([]);
+    expect(ignoring).toBe(false);
+  });
+
   it('keeps the template’s title, edition and service mark notice', () => {
     expect(REPORT).toContain('# Bestax Accessibility Conformance Report');
     expect(REPORT).toContain('International Edition');
