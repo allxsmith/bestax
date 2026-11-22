@@ -1,3 +1,12 @@
+## [1.18.92](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.91...bestax-mcp@1.18.92) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cross a range Slider's track with its ticks, and every size's own ([611db14](https://github.com/allxsmith/bestax/commit/611db14de8d99da8052ddc07085191ffeec6281e)), closes [#2101](https://github.com/allxsmith/bestax/issues/2101)
+* **bulma-ui:** place a single Slider's ticks from the baseline, not the theme's sizes ([2ccf6af](https://github.com/allxsmith/bestax/commit/2ccf6afbf4b8d1622e046fb4862b697ab104c9e7))
+* **bulma-ui:** say what a single Slider's ticks are matched to, and test them on the track ([2ede672](https://github.com/allxsmith/bestax/commit/2ede672a2f1fe38944c97885b6441c6948e7970f)), closes [#2295](https://github.com/allxsmith/bestax/issues/2295)
+
 ## [1.18.91](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.90...bestax-mcp@1.18.91) (2026-11-21)
 
 
