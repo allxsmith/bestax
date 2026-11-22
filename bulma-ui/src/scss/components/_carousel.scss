@@ -599,6 +599,16 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
     }
   }
 
+  // A row of lines or bars that wraps sits 24px below the one above, center
+  // to center, as a row of dots or circles does through its gap.
+  &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
+    row-gap: calc(24px - #{cv.getVar("carousel-indicator-line-height")});
+  }
+
+  &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
+    row-gap: calc(24px - #{cv.getVar("carousel-indicator-bar-height")});
+  }
+
   &.#{iv.$class-prefix}is-indicator-circles {
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-circle-size");
@@ -790,6 +800,14 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
     &.#{iv.$class-prefix}is-indicator-bars .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-bar-width-mobile");
       height: cv.getVar("carousel-indicator-bar-height-mobile");
+    }
+
+    &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
+      row-gap: calc(24px - #{cv.getVar("carousel-indicator-line-height-mobile")});
+    }
+
+    &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
+      row-gap: calc(24px - #{cv.getVar("carousel-indicator-bar-height-mobile")});
     }
   }
 }

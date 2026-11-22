@@ -127,31 +127,80 @@ describe.each([
     );
   });
 
-  it('gives every style a gap a build sets, as it did', () => {
-    const { rules: built } = rulesOf(
+  /** The rules of the partial built with `config` for its variables. */
+  const builtWith = (config: string) =>
+    rulesOf(
       compileSource(
         `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-         @use 'components/carousel' with (
-           $carousel-indicator-gap: 4px,
-           $carousel-indicator-gap-mobile: 3px
-         );`
+         @use 'components/carousel' with (${config});`
       )
+    ).rules;
+  /** Each value a rule whose list has `selector` gives `property`. */
+  const on = (built: CSSStyleRule[], selector: string, property: string) =>
+    built
+      .filter(rule => rule.selectorText.split(', ').includes(selector))
+      .map(rule => rule.style.getPropertyValue(property))
+      .filter(Boolean);
+  const styleRoot = (style: string) =>
+    `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
+
+  it('gives every style a gap a build sets, as it did', () => {
+    const built = builtWith(
+      '$carousel-indicator-gap: 4px, $carousel-indicator-gap-mobile: 3px'
     );
-    const on = (selector: string, property: string) =>
-      built
-        .filter(rule => rule.selectorText.split(', ').includes(selector))
-        .map(rule => rule.style.getPropertyValue(property))
-        .filter(Boolean);
-    expect(on(p('carousel'), '--bulma-carousel-indicator-gap')).toEqual([
+    expect(on(built, p('carousel'), '--bulma-carousel-indicator-gap')).toEqual([
       '4px',
     ]);
-    expect(on(p('carousel'), '--bulma-carousel-indicator-gap-mobile')).toEqual([
-      '3px',
-    ]);
+    expect(
+      on(built, p('carousel'), '--bulma-carousel-indicator-gap-mobile')
+    ).toEqual(['3px']);
     for (const style of ['circles', 'lines', 'bars']) {
-      const selector = `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
-      expect(on(selector, '--bulma-carousel-indicator-gap')).toEqual([]);
-      expect(on(selector, '--bulma-carousel-indicator-gap-mobile')).toEqual([]);
+      for (const gap of ['gap', 'gap-mobile']) {
+        expect(
+          on(built, styleRoot(style), `--bulma-carousel-indicator-${gap}`)
+        ).toEqual([]);
+      }
+    }
+  });
+
+  it('keeps the other gap’s per-style defaults when a build sets one of the two', () => {
+    const wide = builtWith('$carousel-indicator-gap: 4px');
+    const phone = builtWith('$carousel-indicator-gap-mobile: 3px');
+    for (const style of ['circles', 'lines', 'bars']) {
+      const root = styleRoot(style);
+      expect(on(wide, root, '--bulma-carousel-indicator-gap')).toEqual([]);
+      expect(
+        on(wide, root, '--bulma-carousel-indicator-gap-mobile')
+      ).toHaveLength(1);
+      expect(on(phone, root, '--bulma-carousel-indicator-gap')).toHaveLength(1);
+      expect(on(phone, root, '--bulma-carousel-indicator-gap-mobile')).toEqual(
+        []
+      );
+    }
+  });
+
+  it('puts a wrapped row of lines or bars 24px below the one above, center to center', () => {
+    const row = (style: string) =>
+      `${styleRoot(style)} ${p('carousel-indicator')}`;
+    const mobileRowGap = (selector: string) =>
+      nested
+        .filter(
+          ({ rule, within }) =>
+            within.startsWith('@media screen and (max-width') &&
+            rule.selectorText === selector
+        )
+        .map(({ rule }) => rule.style.getPropertyValue('row-gap'))
+        .find(Boolean);
+    for (const [style, height] of [
+      ['lines', 'line-height'],
+      ['bars', 'bar-height'],
+    ]) {
+      expect(declared(row(style), 'row-gap')).toBe(
+        `calc(24px - var(--bulma-carousel-indicator-${height}))`
+      );
+      expect(mobileRowGap(row(style))).toBe(
+        `calc(24px - var(--bulma-carousel-indicator-${height}-mobile))`
+      );
     }
   });
 
