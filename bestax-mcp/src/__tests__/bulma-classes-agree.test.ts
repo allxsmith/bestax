@@ -36,6 +36,13 @@ import { DATA_DIR } from '../data.js';
 const table: BulmaClassTable = JSON.parse(
   readFileSync(join(DATA_DIR, 'bulma-classes.json'), 'utf8')
 );
+/**
+ * The lookup answers for the bestax-bulma release the index documents, so
+ * the planner is told the project gets that one.
+ */
+const indexed: string = JSON.parse(
+  readFileSync(join(DATA_DIR, 'catalog.json'), 'utf8')
+).generatedFrom.version;
 
 type Outcome =
   | {
@@ -248,6 +255,7 @@ function planned(
     soleChildOf,
     text,
     classesAround,
+    bestaxFloor: indexed,
   });
   if (result.conversion) {
     const { target, props, className } = result.conversion;
