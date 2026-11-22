@@ -524,6 +524,7 @@ export const TEXT_TRANSFORMS = [
   'lowercase',
   'uppercase',
   'italic',
+  'underlined',
 ] as const;
 export const TEXT_WEIGHTS = [
   'light',
@@ -3304,7 +3305,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   {
     why: 'a modifier of markup this source leaves alone, or one bestax has no prop for',
     match:
-      /^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
+      /^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-up|is-wrapped)$/,
   },
 ];
 
