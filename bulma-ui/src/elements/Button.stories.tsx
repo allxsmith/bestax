@@ -89,7 +89,7 @@ const meta: Meta<typeof Button> = {
     isDisabled: {
       control: 'boolean',
       description:
-        'Applies disabled styling (use with disabled for HTML attribute).',
+        'Disables the button: the disabled attribute on a <button>, and aria-disabled with the same look on a link.',
     },
     // Helper props (from useBulmaClasses)
     textColor: {
@@ -321,14 +321,34 @@ export const Hovered: Story = {
   },
 };
 
-// Disabled (using both isDisabled and disabled)
+// Disabled: a `<button>`, and a link, which takes `aria-disabled` and the same
+// look in place of the `disabled` attribute
 export const Disabled: Story = {
   args: {
     color: 'warning',
     isDisabled: true,
-    disabled: true,
     children: 'Disabled Button',
   },
+  render: args => (
+    <Buttons>
+      <Button {...args} />
+      <Button
+        color={args.color}
+        size={args.size}
+        isLight={args.isLight}
+        isOutlined={args.isOutlined}
+        isInverted={args.isInverted}
+        isRounded={args.isRounded}
+        isStatic={args.isStatic}
+        isLoading={args.isLoading}
+        isDisabled={args.isDisabled}
+        as="a"
+        href="#next"
+      >
+        Disabled Link
+      </Button>
+    </Buttons>
+  ),
 };
 
 // Text and Background Color

@@ -15,7 +15,11 @@
 // button, which has no fill to lose.
 import * as sass from 'sass';
 import path from 'path';
-import type { ReactElement } from 'react';
+import {
+  forwardRef,
+  type ButtonHTMLAttributes,
+  type ReactElement,
+} from 'react';
 import { render } from '@testing-library/react';
 import { Button, type ButtonProps } from '../Button';
 import { LinkButton } from '../LinkButton';
@@ -145,6 +149,58 @@ const COLORS = [
   'danger',
 ];
 
+/**
+ * What marks a link with `isDisabled`: `is-disabled` and `aria-disabled`,
+ * with no `disabled` attribute, which a disabled `<button>` has.
+ */
+const DISABLED_LINK =
+  '.is-disabled[aria-disabled=true]:not(:where([disabled]))';
+/** Every rule that draws a disabled link, and what it declares. */
+const DISABLED_LINK_RULES: [string, Record<string, string>][] = [
+  [
+    `.button${DISABLED_LINK}`,
+    {
+      cursor: 'not-allowed',
+      opacity: 'var(--bulma-button-disabled-opacity)',
+    },
+  ],
+  [
+    `.button${DISABLED_LINK}:not(:where(.is-inverted, .is-ghost, .is-static))`,
+    { 'background-color': 'var(--bulma-button-disabled-background-color)' },
+  ],
+  [
+    `.button${DISABLED_LINK}:not(:where(.is-outlined, .is-ghost, .is-static))`,
+    { 'border-color': 'var(--bulma-button-disabled-border-color)' },
+  ],
+  [
+    `.button${DISABLED_LINK}:not(:where(.is-ghost, .is-static, .is-loading))`,
+    { 'box-shadow': 'var(--bulma-button-disabled-shadow)' },
+  ],
+  ...COLORS.map((name): [string, Record<string, string>] => [
+    `.button.is-${name}${DISABLED_LINK}`,
+    {
+      'background-color': `var(--bulma-${name})`,
+      'border-color': `var(--bulma-${name})`,
+      'box-shadow': 'none',
+    },
+  ]),
+  [
+    `.button.is-outlined${DISABLED_LINK}`,
+    { 'background-color': 'transparent', 'box-shadow': 'none' },
+  ],
+  [
+    `.button.is-text${DISABLED_LINK}`,
+    {
+      'background-color': 'transparent',
+      'border-color': 'transparent',
+      'box-shadow': 'none',
+    },
+  ],
+];
+const drawsDisabledLinks = (rule: Rule) =>
+  !rule.context.length &&
+  DISABLED_LINK_RULES.some(([selector]) => selector === rule.selector);
+
 const colored = (name: string, prefix = '') =>
   `.${prefix}button.${prefix}is-${name}.${prefix}is-${name}:not(.${prefix}is-outlined)`;
 
@@ -152,8 +208,10 @@ const GHOST_FOCUS =
   '.button.is-ghost:not(.is-loading):focus-visible, .button.is-ghost:not(.is-loading).is-focused';
 const STATIC_FOCUS =
   '.button.is-static:not(.is-loading):focus-visible, .button.is-static:not(.is-loading).is-focused';
-/** The rule outside forced colors, which names both. */
-const OWN_FOCUS = `${GHOST_FOCUS}, ${STATIC_FOCUS}`;
+/** A disabled link, whose disabled look takes its focus border and shadow. */
+const DISABLED_LINK_FOCUS = `.button${DISABLED_LINK}:not(.is-loading):focus-visible, .button${DISABLED_LINK}:not(.is-loading).is-focused`;
+/** The rule outside forced colors, which names all three. */
+const OWN_FOCUS = `${GHOST_FOCUS}, ${STATIC_FOCUS}, ${DISABLED_LINK_FOCUS}`;
 const SELECTED = '.button.is-selected.is-selected:not(.is-loading)';
 /** A selected button's forced-colors outline color, in the page's text color. */
 const SELECTED_FOCUS = `${SELECTED}:focus-visible, ${SELECTED}.is-focused`;
@@ -417,7 +475,7 @@ describe('colored buttons in forced colors', () => {
     );
   });
 
-  it("holds these borders, the focus outlines, the outlined buttons' lightness, the selected look and the disabled one, and nothing else", () => {
+  it("holds these borders, the focus outlines, the outlined buttons' lightness, the selected look, the disabled one and the disabled link one, and nothing else", () => {
     expect(
       PLAIN.filter(
         rule =>
@@ -425,7 +483,8 @@ describe('colored buttons in forced colors', () => {
           !borders(rule) &&
           !lightnesses(rule) &&
           !selects(rule) &&
-          !disables(rule)
+          !disables(rule) &&
+          !drawsDisabledLinks(rule)
       )
     ).toEqual([]);
   });
@@ -963,7 +1022,7 @@ describe('disabled buttons in forced colors', () => {
         );
       });
 
-      it("draws a link with isDisabled, which Bulma doesn't dim, in GrayText", () => {
+      it('draws a link with isDisabled, which has no disabled attribute, at full strength in GrayText', () => {
         const { getByRole } = inPrefix(
           <Button as="a" href="#save" isDisabled>
             Save
@@ -971,8 +1030,8 @@ describe('disabled buttons in forced colors', () => {
         );
         const link = getByRole('link', { name: 'Save' });
         expect(link).not.toHaveAttribute('disabled');
-        expect(opacity(link, false)).toBeUndefined();
-        expect(opacity(link, true)).toBeUndefined();
+        expect(opacity(link, false)).toBe('0.5');
+        expect(opacity(link, true)).toBe('1');
         expect(resolve(link, 'color', false)?.toLowerCase()).not.toBe(
           'graytext'
         );
@@ -1049,6 +1108,258 @@ describe('disabled buttons in forced colors', () => {
         expect(resolve(el, 'background-color', true)?.toLowerCase()).toBe(
           'graytext'
         );
+      });
+    });
+  });
+});
+
+// Bulma draws a disabled button by its `disabled` attribute, which a link
+// can't take, so `Button` writes `is-disabled` on a link with `isDisabled`,
+// and Bulma draws nothing for that class (#1898). The partial draws it the
+// way Bulma draws the attribute. These render each variant as a disabled
+// `<button>` and as a disabled link, resolve the look of each across Bulma's
+// CSS and the partials, in either order and under a class prefix, and hold
+// the link to the button. The button, which also gets `is-disabled` from
+// `isDisabled`, is held to what Bulma alone gives it, so its look doesn't
+// change.
+describe('disabled links', () => {
+  it('holds these rules and declarations, keyed on aria-disabled, outside forced colors', () => {
+    expect(
+      PLAIN.filter(
+        rule => rule.selector.includes(DISABLED_LINK) && !outlines(rule)
+      ).map(rule => [rule.context.join(' '), rule.selector, rule.declarations])
+    ).toEqual(
+      DISABLED_LINK_RULES.map(([selector, declarations]) => [
+        '',
+        selector,
+        declarations,
+      ])
+    );
+  });
+
+  /** Each property, with the shorthands that can set it. */
+  const LOOK: [string, string[]][] = [
+    ['opacity', ['opacity']],
+    ['background-color', ['background-color', 'background']],
+    ['border-color', ['border-color', 'border']],
+    ['box-shadow', ['box-shadow']],
+    ['cursor', ['cursor']],
+  ];
+
+  /** The props that pick a button's look, which a link takes too. */
+  type Look = Pick<
+    ButtonProps,
+    | 'color'
+    | 'isLight'
+    | 'isOutlined'
+    | 'isInverted'
+    | 'isStatic'
+    | 'isFocused'
+    | 'isHovered'
+    | 'isLoading'
+  >;
+  const VARIANTS: [string, Look][] = [
+    ['a plain one', {}],
+    ...COLORS.map((color): [string, Look] => [
+      `a ${color} one`,
+      { color: color as ButtonProps['color'] },
+    ]),
+    ['a light colored one', { color: 'primary', isLight: true }],
+    ['an outlined one', { isOutlined: true }],
+    ['a colored outlined one', { color: 'link', isOutlined: true }],
+    ['an inverted one', { isInverted: true }],
+    ['a colored inverted one', { color: 'primary', isInverted: true }],
+    ['a text one', { color: 'text' }],
+    ['a ghost one', { color: 'ghost' }],
+    ['a static one', { isStatic: true }],
+    ['a colored static one', { color: 'danger', isStatic: true }],
+    ['a focused colored one', { color: 'info', isFocused: true }],
+    ['a hovered text one', { color: 'text', isHovered: true }],
+    ['a loading one', { isLoading: true }],
+    ['a loading colored one', { color: 'success', isLoading: true }],
+  ];
+
+  describe.each([
+    ['no prefix', '', 'bulma.css'],
+    ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+  ])('with %s', (_name, prefix, bulmaFile) => {
+    const partials = compileSource(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'elements/button';
+       @use 'elements/linkbutton';`
+    );
+    const bulma = bulmaCss(bulmaFile);
+
+    /** What `css` gives `el` for one property of the look. */
+    const lookOf = (
+      el: Element,
+      css: string,
+      property: string,
+      forcedColors = false
+    ) => {
+      const [, names] = LOOK.find(([name]) => name === property)!;
+      // A shorthand sets the longhand to what jsdom splits out of it. One it
+      // can't split, such as Bulma's ghost `background: var(…)`, counts as
+      // setting the longhand to its whole value.
+      return cascade(
+        el,
+        css,
+        names,
+        (style, p) =>
+          (p === property
+            ? style.getPropertyValue(p)
+            : style.getPropertyValue(property) || style.getPropertyValue(p)
+          ).trim() || undefined,
+        { forcedColors }
+      );
+    };
+
+    const inPrefix = (ui: ReactElement) =>
+      render(<ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>);
+
+    describe.each([
+      ['Bulma first', bulma + partials],
+      ['the partials first', partials + bulma],
+    ])('and %s', (_order, css) => {
+      it.each(VARIANTS)(
+        'draws %s as a link the way Bulma draws it as a disabled button',
+        (_variant, props) => {
+          const { getByRole } = inPrefix(
+            <div>
+              <Button {...props} isDisabled>
+                Save
+              </Button>
+              <Button {...props} as="a" href="#save" isDisabled>
+                Save
+              </Button>
+            </div>
+          );
+          const button = getByRole('button', { name: 'Save' });
+          const link = getByRole('link', { name: 'Save' });
+          expect(button).toHaveAttribute('disabled');
+          expect(link).not.toHaveAttribute('disabled');
+          // Bulma's sheet first, then the linked one: the resolver keeps one
+          // parsed sheet, so switching back and forth parses each again.
+          const own = LOOK.map(([property]) => [
+            property,
+            lookOf(button, bulma, property),
+          ]);
+          expect(
+            LOOK.map(([property]) => [property, lookOf(button, css, property)])
+          ).toEqual(own);
+          expect(
+            LOOK.map(([property]) => [property, lookOf(link, css, property)])
+          ).toEqual(own);
+          // In forced colors the GrayText edge wins over the colored rules,
+          // which weigh as much and come first. A loading link's edge there is
+          // `_loader.scss`'s, which this sheet leaves out.
+          if (!props.isLoading) {
+            expect(lookOf(link, css, 'border-color', true)?.toLowerCase()).toBe(
+              'graytext'
+            );
+          }
+        }
+      );
+
+      it('leaves a <button> whose disabled a caller turned off as Bulma draws it', () => {
+        const { getByRole } = inPrefix(
+          <Button color="primary" isDisabled disabled={false}>
+            Save
+          </Button>
+        );
+        const button = getByRole('button', { name: 'Save' });
+        expect(button).not.toHaveAttribute('disabled');
+        expect(button).toHaveClass(`${prefix}is-disabled`);
+        const own = LOOK.map(([property]) => [
+          property,
+          lookOf(button, bulma, property),
+        ]);
+        expect(
+          LOOK.map(([property]) => [property, lookOf(button, css, property)])
+        ).toEqual(own);
+      });
+
+      it('draws a component of your own that renders a <button> the way Bulma draws a disabled one', () => {
+        const OwnButton = forwardRef<
+          HTMLButtonElement,
+          ButtonHTMLAttributes<HTMLButtonElement>
+        >((props, ref) => <button ref={ref} {...props} />);
+        const { getAllByRole } = inPrefix(
+          <div>
+            <Button color="primary" isDisabled>
+              Save
+            </Button>
+            <Button color="primary" as={OwnButton} isDisabled>
+              Save
+            </Button>
+          </div>
+        );
+        const [button, own] = getAllByRole('button', { name: 'Save' });
+        expect(own).not.toHaveAttribute('disabled');
+        expect(own).toHaveAttribute('aria-disabled', 'true');
+        const look = LOOK.map(([property]) => [
+          property,
+          lookOf(button, bulma, property),
+        ]);
+        expect(
+          LOOK.map(([property]) => [property, lookOf(own, css, property)])
+        ).toEqual(look);
+      });
+
+      it('leaves a raw is-disabled class with no aria-disabled as Bulma draws it', () => {
+        const { getByRole } = inPrefix(
+          <Button as="a" href="#save" className={`${prefix}is-disabled`}>
+            Save
+          </Button>
+        );
+        const link = getByRole('link', { name: 'Save' });
+        expect(link).toHaveClass(`${prefix}is-disabled`);
+        expect(link).not.toHaveAttribute('aria-disabled');
+        const own = LOOK.map(([property]) => [
+          property,
+          lookOf(link, bulma, property),
+        ]);
+        expect(
+          LOOK.map(([property]) => [property, lookOf(link, css, property)])
+        ).toEqual(own);
+      });
+
+      it('rings a focused disabled link, whose disabled look takes its focus border and shadow', () => {
+        const { getByRole } = inPrefix(
+          <Button color="primary" as="a" href="#save" isDisabled isFocused>
+            Save
+          </Button>
+        );
+        const link = getByRole('link', { name: 'Save' });
+        const outlineStyle = cascade(
+          link,
+          css,
+          ['outline-style', 'outline'],
+          (style, p) =>
+            (
+              style.getPropertyValue('outline-style') ||
+              style.getPropertyValue(p)
+            ).trim() || undefined,
+          { forcedColors: false }
+        );
+        expect(outlineStyle).toBe('var(--bulma-focus-style)');
+        expect(lookOf(link, css, 'box-shadow')).toBe('none');
+      });
+
+      it('leaves an enabled link as Bulma draws it', () => {
+        const { getByRole } = inPrefix(
+          <Button color="primary" as="a" href="#save">
+            Save
+          </Button>
+        );
+        const link = getByRole('link', { name: 'Save' });
+        const own = LOOK.map(([property]) => [
+          property,
+          lookOf(link, bulma, property),
+        ]);
+        expect(
+          LOOK.map(([property]) => [property, lookOf(link, css, property)])
+        ).toEqual(own);
       });
     });
   });
