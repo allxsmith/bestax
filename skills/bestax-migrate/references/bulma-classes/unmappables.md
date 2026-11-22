@@ -292,9 +292,14 @@ and `Pagination.Ellipsis` render a bare `<li>` of their own, so each converts on
 thing inside a bare `<li>`, which it takes the place of, `key` and all. A class or an attribute
 on the `<li>`, or anything beside the element in it, keeps it as markup. A `.pagination-link`'s
 `is-current` becomes `active` only beside an `aria-current` of its own, since `active` renders
-`aria-current="page"` otherwise; without one it stays a class. And `Pagination.Ellipsis` writes
-a `className` it's given in place of `.pagination-ellipsis`, so another class on it keeps it as
-markup with `attr:className`.
+`aria-current="page"` otherwise; without one it stays a class. And `Pagination.Ellipsis` keeps
+`.pagination-ellipsis` beside a `className` from bestax-bulma 5.78.4 on, where an older release
+writes the `className` in its place, so another class on it converts only where the run shows the
+project gets 5.78.4 or later: the package around the file declares `@allxsmith/bestax-bulma` at a
+range that can't resolve below it in `dependencies` or `devDependencies`, or declares none and the
+run adds it. Otherwise, under `--no-deps` too, it stays markup with `attr:className`. The run
+doesn't read an override (`overrides`, `resolutions`, `pnpm.overrides`), so check one that pins
+bestax-bulma lower by hand.
 
 A menu item with a nested list is the same rule from inside: its nested `<ul>` becomes a
 `Menu.List`, which renders `.menu-list` unless another `Menu.List` is around it. So the item

@@ -131,12 +131,12 @@ which the frame renders: don't wrap the items in a `Tooltip` of your own.
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                                                                                                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                |
-| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                   |
-| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                               |
+| Prop                         | Type                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                                                                  |
+| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack, so put a phone row's items straight in the level; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                                                                     |
+| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                                                                                 |
 
 A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
 navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it

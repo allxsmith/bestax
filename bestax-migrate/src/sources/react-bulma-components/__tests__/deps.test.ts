@@ -25,7 +25,7 @@ describe('updateDependencies', () => {
     });
     const deps = next!.dependencies as Record<string, string>;
     expect(deps['react-bulma-components']).toBeUndefined();
-    expect(deps['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(deps['@allxsmith/bestax-bulma']).toBe('^5.78.4');
     expect(deps.react).toBe('^18.0.0');
     expect(todos.every(t => t.rule === 'deps')).toBe(true);
   });
