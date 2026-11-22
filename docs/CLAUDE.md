@@ -72,8 +72,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   built site). The scan
   scrolls each page so its live examples mount, and checks those too. When it fails on a
   page's own markup or an example's code, fix it there (name the input, give the image its
-  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it or
-  the reason axe is wrong. The scan reports an exemption that covered nothing, and the fix for
+  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it, the
+  reason axe is wrong, or the gap the site keeps by design. The scan reports an exemption that covered nothing, and the fix for
   its issue removes it.
 - **Docusaurus's own behavior stays as shipped.** A finding that comes from what Docusaurus,
   its classic theme, Infima or DocSearch do out of the box (a search shortcut, a theme
