@@ -15,7 +15,7 @@ The `Image` component wraps images, iframes, or custom content in a Bulma-styled
 <!-- /bestax:generated overview -->
 
 :::info
-Use `Image` for consistent responsive image containers, or to embed arbitrary media (like iframes) with Bulma styling.
+Use `Image` for consistent responsive image containers, or to hold other content (like iframes) at a ratio with Bulma styling.
 :::
 
 ---
@@ -111,7 +111,7 @@ You can use Bulma spacing helpers like `m` to add margin around the image for be
 
 ### With Iframe
 
-The `Image` component can wrap arbitrary children, such as iframes, to provide responsive aspect ratios and Bulma styling for embedded media. Give the child `className="has-ratio"`: Bulma stretches an `<img>` over the ratio by itself, and any other child only when it carries that class.
+The `Image` component can wrap arbitrary children, such as iframes, to provide responsive aspect ratios and Bulma styling for embedded content. Give the child `className="has-ratio"`: Bulma stretches an `<img>` over the ratio by itself, and any other child only when it carries that class.
 
 ```tsx live
 <Image size="16by9">
@@ -119,15 +119,11 @@ The `Image` component can wrap arbitrary children, such as iframes, to provide r
     className="has-ratio"
     width="640"
     height="360"
-    src="https://www.youtube.com/embed/YE7VzlLtp-4"
-    frameBorder="0"
-    allowFullScreen
-    title="Big Buck Bunny"
+    srcDoc="<!doctype html><html lang='en'><style>html{color-scheme:light dark;background:Canvas;color:CanvasText}body{margin:0;height:100vh;box-sizing:border-box;padding:1rem;border:2px dashed;display:grid;place-items:center;text-align:center;font:1.25rem system-ui,sans-serif}</style><p>This frame keeps a 16:9 ratio at any width.</p></html>"
+    title="A frame that keeps a 16:9 ratio"
   />
 </Image>
 ```
-
-The video is Big Buck Bunny, © 2008 Blender Foundation (www.bigbuckbunny.org), shared under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and embedded from Blender's own YouTube channel.
 
 ### With Custom Child
 
@@ -170,7 +166,7 @@ Combine the `textColor` and `bgColor` props to style the image container for bra
 
 - **Alt Text:** Give each image an `alt` that says what it shows, or `alt=""` for a decorative one, which a screen reader then skips. A development build warns about an `<img>` with no `alt`.
 - **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.
-- **Custom Content:** When embedding iframes or custom children, ensure accessibility via proper ARIA labeling or content.
+- **Custom Content:** Give an iframe a `title` that says what it shows. Video or audio you embed needs its own captions and description; `Image` adds none.
 
 :::warning
 Do not use `Image` for decorative images without `alt=""`, unless purely presentational.

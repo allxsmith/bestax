@@ -236,9 +236,9 @@ async function main() {
     await context.addInitScript(mode => {
       localStorage.setItem('theme', mode);
     }, theme);
-    // Requests to any other host are aborted. What they'd load (a YouTube
-    // player in an example, a font or image off a CDN) is someone else's
-    // markup, and loading it would make the result depend on the network.
+    // Requests to any other host are aborted. What they'd load (a font or
+    // image off a CDN) isn't the build under test, and loading it would make
+    // the result depend on the network.
     await context.route(
       url => new URL(url).origin !== base,
       route => route.abort()
