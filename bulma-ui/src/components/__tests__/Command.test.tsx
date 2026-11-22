@@ -381,6 +381,37 @@ describe('the keys', () => {
     expect(highlighted()).toBe('New issue');
   });
 
+  it("brings a group's heading into view with its first item (#2268)", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    /** The group headings each key press scrolled into view. */
+    const headings = () => {
+      const shown = (scrollIntoView.mock.contexts as Element[])
+        .filter(element => element.classList.contains('command-group-label'))
+        .map(element => element.textContent);
+      scrollIntoView.mockClear();
+      return shown;
+    };
+    try {
+      render(<Command actions={ACTIONS} />);
+      // Its first item, under the first heading, is highlighted from the start.
+      expect(headings()).toEqual(['Navigation']);
+      key('ArrowUp');
+      expect(highlighted()).toBe('Dark mode');
+      expect(headings()).toEqual([]);
+      key('ArrowDown');
+      expect(highlighted()).toBe('Go to dashboard');
+      expect(headings()).toEqual(['Navigation']);
+      key('ArrowDown');
+      expect(headings()).toEqual([]);
+      key('ArrowDown');
+      expect(highlighted()).toBe('New issue');
+      expect(headings()).toEqual(['Actions']);
+    } finally {
+      delete (Element.prototype as Partial<Element>).scrollIntoView;
+    }
+  });
+
   it('hands Home, End, Left and Right back to the field', () => {
     render(<Command actions={ACTIONS} />);
     for (const name of ['Home', 'End', 'ArrowLeft', 'ArrowRight']) {

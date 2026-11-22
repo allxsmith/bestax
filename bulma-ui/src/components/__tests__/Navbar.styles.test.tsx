@@ -18,6 +18,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import {
   cascade,
   customProperty,
+  declaredFor,
   rulesOf as styleRulesOf,
 } from '../../__tests__/css-cascade';
 import {
@@ -50,6 +51,12 @@ const bulmaCss = (file = 'bulma.css') =>
   fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
 const FORCED = '@media (forced-colors: active)';
+
+// The media queries Bulma's `-touch` and `-desktop` fixed classes apply in.
+const BREAKPOINT = {
+  '-touch': '@media screen and (max-width: 1023px)',
+  '-desktop': '@media screen and (min-width: 1024px)',
+} as const;
 
 interface Rule {
   /** The at-rules around it, outermost first, as written. */
@@ -606,7 +613,7 @@ describe('the Navbar partial', () => {
       // An active or selected link item or link.
       const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 9).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 15).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
         [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
@@ -626,12 +633,23 @@ describe('the Navbar partial', () => {
         ],
         [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-top))`, []],
         [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-bottom))`, []],
+        // The same three for Bulma's classes that fix it at a breakpoint.
+        ...(['-touch', '-desktop'] as const).flatMap(suffix => {
+          const at = [BREAKPOINT[suffix]];
+          const top = `.${prefix}navbar.${prefix}is-fixed-top${suffix}`;
+          const bottom = `.${prefix}navbar.${prefix}is-fixed-bottom${suffix}`;
+          return [
+            [`:where(${top}, ${bottom})`, at],
+            [`:where(html:has(${top}))`, at],
+            [`:where(html:has(${bottom}))`, at],
+          ];
+        }),
       ]);
       // Then the colored hero's navbar, at the top level but for the menu's
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(9, -1 - extra);
+      const hero = rules.slice(15, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -657,13 +675,15 @@ describe('the Navbar partial', () => {
       expect(rules[5].declarations).toEqual({
         outline: '1px solid CanvasText',
       });
-      expect(rules[6].declarations).toEqual(LOCK_MARGINS);
-      expect(rules[7].declarations).toEqual({
-        'scroll-padding-top': 'var(--bulma-navbar-height)',
-      });
-      expect(rules[8].declarations).toEqual({
-        'scroll-padding-bottom': 'var(--bulma-navbar-height)',
-      });
+      for (const first of [6, 9, 12]) {
+        expect(rules[first].declarations).toEqual(LOCK_MARGINS);
+        expect(rules[first + 1].declarations).toEqual({
+          'scroll-padding-top': 'var(--bulma-navbar-height)',
+        });
+        expect(rules[first + 2].declarations).toEqual({
+          'scroll-padding-bottom': 'var(--bulma-navbar-height)',
+        });
+      }
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([
@@ -811,6 +831,52 @@ describe.each([
     expect(scrollPadding(css(appFrame), 'top')).toBe(HEADER);
     expect(scrollPadding(css('', appFrame), 'top')).toBe(HEADER);
   });
+});
+
+// Bulma's `-touch` and `-desktop` classes fix a navbar below and from its
+// breakpoint only, and a navbar fixed that way takes the lock's margins and
+// pads the page's scroll there, and nowhere else (#2259). jsdom evaluates no
+// media query, so this reads each declaration with the block it sits in,
+// from Bulma's sheet and the partial: Bulma sets no margin on such a navbar,
+// so the margins hold at no weight wherever its sheet loads.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('a navbar fixed at one breakpoint, with %s', (_label, prefix, bulmaFile) => {
+  const SCROLL = ['scroll-padding-top', 'scroll-padding-bottom'];
+  const MARGINS = ['margin-left', 'margin-right'];
+
+  it.each([
+    ['top', '-touch'],
+    ['bottom', '-touch'],
+    ['top', '-desktop'],
+    ['bottom', '-desktop'],
+  ] as const)(
+    'gives a navbar fixed to the %s with the %s class its margins and the page its padding at that breakpoint',
+    (side, suffix) => {
+      const css = bulmaCss(bulmaFile) + compile(prefix);
+      const { getByRole } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar
+            aria-label="Site"
+            className={`${prefix}is-fixed-${side}${suffix}`}
+          />
+        </ConfigProvider>
+      );
+      expect(declaredFor(document.documentElement, css, SCROLL)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: [
+          `scroll-padding-${side}: var(--bulma-navbar-height)`,
+        ],
+      });
+      expect(declaredFor(getByRole('navigation'), css, MARGINS)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: Object.entries(LOCK_MARGINS).map(
+          ([property, value]) => `${property}: ${value}`
+        ),
+      });
+    }
+  );
 });
 
 // Bulma's hero sets the colors its navbar's items take on hover and when

@@ -1389,8 +1389,9 @@ full-page Loading, takes the page's scrollbar away and pads `<html>` by the room
 page doesn't shift. An element fixed to the window is placed against the window, which grows by
 that room, so the padding doesn't reach it. While the lock is on, it sets the room it padded on
 `<html>` as `--bulma-scroll-lock-offset-right`, or `--bulma-scroll-lock-offset-left` where the
-scrollbar was on the left. A `fixed` Navbar, the toast and notification stacks and an Affix add
-them to their offsets, so they stay put. A fixed element of the app's own does the same, with a
+scrollbar was on the left. A `fixed` Navbar, or one Bulma's `-touch` or `-desktop` fixed classes
+fix at their breakpoint, the toast and notification stacks and an Affix add them to their offsets,
+so they stay put. A fixed element of the app's own does the same, with a
 `0px` fallback for when no lock is on:
 
 ```css

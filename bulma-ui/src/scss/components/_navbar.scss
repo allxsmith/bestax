@@ -27,8 +27,8 @@
 // current page, isn't a link item. It reads the classes Bulma highlights, so a
 // hand-written `.is-active` link gets it too.
 //
-// A navbar fixed to the top or the bottom of the window (`Navbar fixed`)
-// spans it. While an overlay locks the page, the window takes back the room
+// A navbar fixed to the top or the bottom of the window (`Navbar fixed`, or
+// Bulma's `-touch` and `-desktop` classes at their breakpoint) spans it. While an overlay locks the page, the window takes back the room
 // the page's scrollbar had, and the lock pads the page by it, so a margin of
 // that room on each side keeps the navbar over the page as the scrollbar
 // goes. Outside a lock the margins are 0. A margin adds to the insets that
@@ -164,20 +164,36 @@ $-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-lin
   }
 }
 
-:where(
-    .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top,
-    .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom
-  ) {
-  margin-left: $extras-scroll-lock-offset-left;
-  margin-right: $extras-scroll-lock-offset-right;
+// A navbar fixed to the top or the bottom by the modifier class with the
+// suffix given: its scroll-lock margins and the page's scroll padding.
+@mixin -fixed-navbar($suffix: '') {
+  $top: '.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top#{$suffix}';
+  $bottom: '.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom#{$suffix}';
+
+  :where(#{$top}, #{$bottom}) {
+    margin-left: $extras-scroll-lock-offset-left;
+    margin-right: $extras-scroll-lock-offset-right;
+  }
+
+  :where(html:has(#{$top})) {
+    scroll-padding-top: cv.getVar('navbar-height');
+  }
+
+  :where(html:has(#{$bottom})) {
+    scroll-padding-bottom: cv.getVar('navbar-height');
+  }
 }
 
-:where(html:has(.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top)) {
-  scroll-padding-top: cv.getVar('navbar-height');
+@include -fixed-navbar;
+
+// Bulma's `-touch` and `-desktop` classes fix a navbar below and from its
+// breakpoint only, the desktop one unless an app moves `$navbar-breakpoint`.
+@include mx.touch {
+  @include -fixed-navbar('-touch');
 }
 
-:where(html:has(.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom)) {
-  scroll-padding-bottom: cv.getVar('navbar-height');
+@include mx.desktop {
+  @include -fixed-navbar('-desktop');
 }
 
 // A navbar with no color of its own in a hero with one. The colors are

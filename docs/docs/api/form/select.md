@@ -293,20 +293,22 @@ For multi-control rows like select + input + button, drop down to manual `Field`
 A common pattern: a small select acting as a unit picker (currency, country code), an expanded input, and a submit button.
 
 ```tsx live
-<Field hasAddons>
-  <Control>
-    <Select aria-label="Currency">
-      <option>$</option>
-      <option>£</option>
-      <option>€</option>
-    </Select>
-  </Control>
-  <Control isExpanded>
-    <Input type="text" placeholder="Amount of money" />
-  </Control>
-  <Control>
-    <Button>Transfer</Button>
-  </Control>
+<Field label="Amount" labelProps={{ htmlFor: 'transfer-amount' }}>
+  <Field hasAddons>
+    <Control>
+      <Select aria-label="Currency">
+        <option>$</option>
+        <option>£</option>
+        <option>€</option>
+      </Select>
+    </Control>
+    <Control isExpanded>
+      <Input id="transfer-amount" type="text" placeholder="Amount of money" />
+    </Control>
+    <Control>
+      <Button>Transfer</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
@@ -315,19 +317,21 @@ A common pattern: a small select acting as a unit picker (currency, country code
 Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dropdown grow to fill the row.
 
 ```tsx live
-<Field hasAddons>
-  <Control isExpanded>
-    <Select autoComplete="country" isFullwidth aria-label="Country">
-      <option>United States</option>
-      <option>United Kingdom</option>
-      <option>Canada</option>
-      <option>France</option>
-      <option>Germany</option>
-    </Select>
-  </Control>
-  <Control>
-    <Button color="primary">Choose</Button>
-  </Control>
+<Field label="Country" labelProps={{ htmlFor: 'fullwidth-country' }}>
+  <Field hasAddons>
+    <Control isExpanded>
+      <Select autoComplete="country" id="fullwidth-country" isFullwidth>
+        <option>United States</option>
+        <option>United Kingdom</option>
+        <option>Canada</option>
+        <option>France</option>
+        <option>Germany</option>
+      </Select>
+    </Control>
+    <Control>
+      <Button color="primary">Choose</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
