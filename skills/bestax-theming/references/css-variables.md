@@ -409,6 +409,12 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
 
+`--bulma-carousel-indicator-gap` and `--bulma-carousel-indicator-gap-mobile` default to the gap
+that puts the indicators 24px apart, center to center, the spacing WCAG asks for around a target
+smaller than 24px: `calc(24px - <the mark's width>)` for the dots, the circles and a phone's bars,
+and the lines' and a wider screen's bars' own `0.5rem` and `0.375rem`. A gap set narrower puts them
+closer than that. A Sass build that sets `$carousel-indicator-gap` gets it on every style.
+
 In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply: a disabled arrow draws
 at full strength in the system's color for a disabled control, with `arrowHover` under the pointer.
 
