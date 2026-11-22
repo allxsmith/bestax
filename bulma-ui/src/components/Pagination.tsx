@@ -6,7 +6,10 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
+import {
+  warnDeprecatedColorProp,
+  warnTextHelperColorProp,
+} from '../helpers/colorDeprecations';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 /**
@@ -406,9 +409,19 @@ export interface PaginationListProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
   className?: string | undefined;
-  /** Text color for the list. */
+  /**
+   * Text color for the list. It renders nothing while a `color` prop is
+   * present, even an undefined one.
+   */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the list. */
+  /**
+   * Renders the text color helper (`has-text-<color>`), not a modifier:
+   * Bulma ships no pagination list color CSS. It takes the place of
+   * `textColor`, which renders nothing while this prop is present, even as
+   * `undefined`. Passing it logs a console warning in development.
+   * @deprecated Use `textColor` instead. This prop will be removed in the
+   * next major version.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the list. */
@@ -431,6 +444,7 @@ export const PaginationList: React.FC<PaginationListProps> = ({
   children,
   ...props
 }) => {
+  warnTextHelperColorProp('Pagination.List', props);
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -460,10 +474,20 @@ export interface PaginationLinkProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
   className?: string | undefined;
-  /** Bulma color modifier. */
+  /**
+   * Renders the text color helper (`has-text-<color>`), not a modifier:
+   * Bulma ships no pagination link color CSS. It takes the place of
+   * `textColor`, which renders nothing while this prop is present, even as
+   * `undefined`. Passing it logs a console warning in development.
+   * @deprecated Use `textColor` instead. This prop will be removed in the
+   * next major version.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
-  /** Text color. */
+  /**
+   * Text color. It renders nothing while a `color` prop is present, even an
+   * undefined one.
+   */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -493,6 +517,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
   children,
   ...props
 }) => {
+  warnTextHelperColorProp('Pagination.Link', props);
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

@@ -46,7 +46,12 @@ function example() {
 
   return (
     <Block>
-      <Taginput value={tags} onChange={setTags} placeholder="Add a tag..." />
+      <Taginput
+        value={tags}
+        onChange={setTags}
+        label="Tags"
+        placeholder="Add a tag..."
+      />
       <Paragraph mt="2" textColor="grey">
         Tags: {tags.join(', ')}
       </Paragraph>
@@ -79,6 +84,7 @@ function example() {
 
   return (
     <Taginput
+      label="Frameworks"
       value={tags}
       onChange={setTags}
       data={suggestions}
@@ -111,6 +117,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Categories"
         value={tags}
         onChange={setTags}
         data={categories}
@@ -135,31 +142,37 @@ Tags with different color variants.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Taginput
+    label="Primary"
     defaultValue={['Primary']}
     tagColor="primary"
     placeholder="Primary tags..."
   />
   <Taginput
+    label="Success"
     defaultValue={['Success']}
     tagColor="success"
     placeholder="Success tags..."
   />
   <Taginput
+    label="Info"
     defaultValue={['Info']}
     tagColor="info"
     placeholder="Info tags..."
   />
   <Taginput
+    label="Warning"
     defaultValue={['Warning']}
     tagColor="warning"
     placeholder="Warning tags..."
   />
   <Taginput
+    label="Danger"
     defaultValue={['Danger']}
     tagColor="danger"
     placeholder="Danger tags..."
   />
   <Taginput
+    label="Dark"
     defaultValue={['Dark']}
     tagColor="dark"
     placeholder="Dark tags..."
@@ -176,23 +189,27 @@ Tag inputs in different sizes.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Taginput
+    label="Small"
     defaultValue={['Small']}
     size="small"
     tagColor="primary"
     placeholder="Small..."
   />
   <Taginput
+    label="Normal"
     defaultValue={['Normal']}
     tagColor="primary"
     placeholder="Normal..."
   />
   <Taginput
+    label="Medium"
     defaultValue={['Medium']}
     size="medium"
     tagColor="primary"
     placeholder="Medium..."
   />
   <Taginput
+    label="Large"
     defaultValue={['Large']}
     size="large"
     tagColor="primary"
@@ -216,6 +233,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Tags"
         value={tags}
         onChange={setTags}
         maxTags={3}
@@ -244,6 +262,7 @@ function example() {
 
   return (
     <Taginput
+      label="Tags"
       value={tags}
       onChange={setTags}
       allowDuplicates
@@ -269,6 +288,7 @@ function example() {
   return (
     <Block>
       <Taginput
+        label="Tags"
         value={tags}
         onChange={setTags}
         confirmKeys={['Enter', 'Tab', ' ']}
@@ -291,14 +311,18 @@ Display modes for tags.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Block>
-    <Paragraph mb="1">Read-only:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor="info" />
-  </Block>
-  <Block>
-    <Paragraph mb="1">Disabled:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor="info" />
-  </Block>
+  <Taginput
+    label="Read-only"
+    defaultValue={['React', 'TypeScript']}
+    readonly
+    tagColor="info"
+  />
+  <Taginput
+    label="Disabled"
+    defaultValue={['React', 'TypeScript']}
+    disabled
+    tagColor="info"
+  />
 </Block>
 ```
 
@@ -310,6 +334,7 @@ Tags without the delete button.
 
 ```tsx live
 <Taginput
+  label="Tags"
   defaultValue={['Fixed', 'Tags']}
   closable={false}
   tagColor="primary"
@@ -485,6 +510,7 @@ function TaginputFormDemo() {
       }}
     >
       <Taginput
+        label="Tags"
         name="tags"
         defaultValue={['react', 'vue', 'angular']}
         placeholder="Add a tag…"
@@ -510,6 +536,7 @@ function TaginputFormDemo() {
 - While the counter shows, it describes the input through `aria-describedby`, so a screen reader hears the count, like "3 / 3" at the limit.
 - Tags are keyboard navigable
 - Each tag's remove button is named "Remove" and the tag's text, the `field` of an object tag. With `ariaCloseLabel`, every button takes that one name, as for a translation, and is described by its tag's text, so it still says which tag it removes. With a `tagTemplate` it has the one name and no description
+- Each remove button is Bulma's small delete button, with a box at least 24px square around its circle that takes presses too, as [`Delete`](../elements/delete.md#accessibility) has.
 - When the last tag's remove button has focus and takes its tag off, as from the keyboard, focus first moves to the remove button before it, or to the input when no tag is left, so it doesn't drop to the page. Any other tag's remove button keeps focus
 - With `data`, the input is a `role="combobox"` with `aria-autocomplete="list"` and `aria-haspopup="listbox"`. Its `aria-expanded` is true only while the suggestion list is on screen, and while it is, `aria-controls` points at the list. While no suggestion matches there's no list, so it stays false. Without `data` there's never a list, so the input stays a plain text field
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted suggestion as the arrow keys or the mouse move it

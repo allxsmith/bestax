@@ -37,11 +37,26 @@ export default function useDemoLoop({ active, wrapperRef, run }) {
     if (!active || !inView || paused || reducedMotion) return undefined;
 
     const token = { cancelled: false };
+    // Sleeps under way, which a teardown cuts short, so a run unwinds (and
+    // its `finally` runs) as the loop stops rather than when it wakes.
+    const pending = new Set();
 
     const sleep = ms =>
-      new Promise((resolve, reject) =>
-        setTimeout(() => (token.cancelled ? reject(CANCELLED) : resolve()), ms)
-      );
+      new Promise((resolve, reject) => {
+        if (token.cancelled) {
+          reject(CANCELLED);
+          return;
+        }
+        const id = setTimeout(() => {
+          pending.delete(cancel);
+          resolve();
+        }, ms);
+        const cancel = () => {
+          clearTimeout(id);
+          reject(CANCELLED);
+        };
+        pending.add(cancel);
+      });
 
     const loop = async () => {
       for (;;) {
@@ -55,6 +70,7 @@ export default function useDemoLoop({ active, wrapperRef, run }) {
 
     return () => {
       token.cancelled = true;
+      pending.forEach(cancel => cancel());
     };
   }, [active, inView, paused, reducedMotion, run]);
 

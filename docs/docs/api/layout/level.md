@@ -49,13 +49,15 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
       </SubTitle>
     </Level.Item>
     <Level.Item>
-      <Field hasAddons>
-        <Control>
-          <Input type="text" placeholder="Find a post" />
-        </Control>
-        <Control>
-          <Button>Search</Button>
-        </Control>
+      <Field label="Search posts" labelProps={{ htmlFor: 'level-find-post' }}>
+        <Field hasAddons>
+          <Control>
+            <Input id="level-find-post" type="text" placeholder="Find a post" />
+          </Control>
+          <Control>
+            <Button>Search</Button>
+          </Control>
+        </Field>
       </Field>
     </Level.Item>
   </Level.Left>

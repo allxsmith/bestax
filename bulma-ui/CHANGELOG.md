@@ -1,3 +1,50 @@
+## [5.79.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.1...@allxsmith/bestax-bulma@5.79.2) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** bring a group's heading into view with its first option in Combobox and Command ([dffbf27](https://github.com/allxsmith/bestax/commit/dffbf2716884a3cc22ac8af39fcb9bdce24e4803)), closes [#2268](https://github.com/allxsmith/bestax/issues/2268)
+* **bulma-ui:** give a small or thin Switch a 24px target without changing its look ([0acc9f6](https://github.com/allxsmith/bestax/commit/0acc9f6905ff9611a8e681659ad850c23aea9514)), closes [#1972](https://github.com/allxsmith/bestax/issues/1972)
+* **bulma-ui:** pad the page and keep the margins for a navbar fixed at one breakpoint ([93ec20a](https://github.com/allxsmith/bestax/commit/93ec20a0cdc7383be9175aa43235c46a6aecfc09)), closes [#2259](https://github.com/allxsmith/bestax/issues/2259)
+
+## [5.79.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.0...@allxsmith/bestax-bulma@5.79.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** count a Slider's last step as max within a millionth of a step ([a817778](https://github.com/allxsmith/bestax/commit/a81777888133ff42a255a16196a7d20b61fa7f9b))
+* **bulma-ui:** deprecate the color prop on Pagination's and Field's parts ([878e265](https://github.com/allxsmith/bestax/commit/878e265c159c13af0ddd01e6d1c73f56b04c2a6f)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+* **bulma-ui:** draw a Slider's last step tick when max is a little past it ([f696dcd](https://github.com/allxsmith/bestax/commit/f696dcd3c46bdbd78e72a8aa94956eb08fef6841)), closes [#2109](https://github.com/allxsmith/bestax/issues/2109)
+* **bulma-ui:** skip a Slider's last tick when it sits at the end of the track ([6f908ee](https://github.com/allxsmith/bestax/commit/6f908eec1c97123acb771b71f44c432cb8d2273c))
+* **bulma-ui:** skip the end tick when a Slider's max is a float's error past a step ([644defa](https://github.com/allxsmith/bestax/commit/644defa48ee1ecd4e7a117ab98c81aaf47ecc27a))
+* **docs:** stop the homepage form-controls demo moving keyboard focus ([6f66b5a](https://github.com/allxsmith/bestax/commit/6f66b5a03d87a352391ad03a212d93fa392b9557))
+* **eslint-plugin:** flag the deprecated color prop on Pagination's and Field's parts ([488798b](https://github.com/allxsmith/bestax/commit/488798b684b08a7301592e8d5906e2fe8dfb3d73)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+
+# [5.79.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.10...@allxsmith/bestax-bulma@5.79.0) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add the space before a calendar day's content only when it has some ([f015782](https://github.com/allxsmith/bestax/commit/f015782128ffc2fdd1b32d1601318c5a13f3bb3d)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** keep a calendar day's number and content two words in its text ([41e607b](https://github.com/allxsmith/bestax/commit/41e607b6e52678f666818306fae01e82c1c71fe8)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** preview an iconName Rate's half star in the hover color ([c999e77](https://github.com/allxsmith/bestax/commit/c999e775e35ae5d04538eecf9284ca3e8f81e2b1)), closes [#2012](https://github.com/allxsmith/bestax/issues/2012)
+* **docs:** let the keyboard reach a wide Markdown table that scrolls sideways ([0173852](https://github.com/allxsmith/bestax/commit/01738521587f2de71bec7ef742163f113ff7874c))
+
+
+### Features
+
+* **bulma-ui:** hand getDayLabel the day's number as its cell shows it ([b9a64b3](https://github.com/allxsmith/bestax/commit/b9a64b37ec97d3abb529692667367b5f2aea3505)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+
+## [5.78.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.9...@allxsmith/bestax-bulma@5.78.10) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give every delete button a 24px target, drawn as before ([16a61fc](https://github.com/allxsmith/bestax/commit/16a61fc7b016750418de41a7ec1bf896855666b8)), closes [#2198](https://github.com/allxsmith/bestax/issues/2198)
+* **bulma-ui:** give the floating close the target, and keep dangerouslySetInnerHTML working ([93a1805](https://github.com/allxsmith/bestax/commit/93a1805e99a2969152310dffc79fa6bba55318e8))
+* **bulma-ui:** keep a focused control clear of a fixed Navbar ([2fc3ebd](https://github.com/allxsmith/bestax/commit/2fc3ebd5225820a7a94e5fc71c2a7e165603b064)), closes [#2193](https://github.com/allxsmith/bestax/issues/2193)
+* **bulma-ui:** warn in development about an open Sidebar with no name ([eb243af](https://github.com/allxsmith/bestax/commit/eb243af9f17f230a7e74729ea5c9070e8b05f87c)), closes [#2261](https://github.com/allxsmith/bestax/issues/2261)
+
 ## [5.78.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.8...@allxsmith/bestax-bulma@5.78.9) (2026-11-20)
 
 

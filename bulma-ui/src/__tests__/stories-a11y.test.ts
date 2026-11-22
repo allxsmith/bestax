@@ -113,27 +113,13 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   'skill-examples/Overview.stories.tsx#Overview': {
     'link-in-text-block': 1858,
   },
-  // A calendar's month cells show a short name (#2209), and a day with
-  // content is named in a different order from what it shows (#2210).
-  'form/Calendar.stories.tsx#FullWidth': {
-    'label-content-name-mismatch': 2210,
-  },
-  'form/Calendar.stories.tsx#LoadingEachMonth': {
-    'label-content-name-mismatch': 2210,
-  },
+  // A calendar's month cells show a short name (#2209).
   'form/Calendar.stories.tsx#MonthAndYear': {
     'label-content-name-mismatch': 2209,
   },
-  'form/Calendar.stories.tsx#Prices': { 'label-content-name-mismatch': 2210 },
   'form/DateInput.stories.tsx#InlineMonthPicker': {
     'label-content-name-mismatch': 2209,
   },
-  // The clear button is a 20px target beside the chevron.
-  ...each('form/Cascader.stories.tsx', ['Controlled', 'RightToLeft'], {
-    'target-size': 2198,
-  }),
-  'form/TreeSelect.stories.tsx#RightToLeft': { 'target-size': 2198 },
-  // The menu's scroll box can't take focus.
   ...each(
     'form/Combobox.stories.tsx',
     [
@@ -142,7 +128,10 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
       'MultipleWithTags',
       'SearchableSelect',
     ],
-    { 'scrollable-region-focusable': 2205 }
+    {
+      'scrollable-region-focusable':
+        "The menu's panel scrolls, with the listbox inside it, and its options are reached from the combobox's input through aria-activedescendant, which the arrow keys move and scroll into view, with its group's heading when it's the group's first option. axe skips the rule only when the box that scrolls is itself the combobox's popup, as the listbox is in Combobox's inline mode.",
+    }
   ),
   // A range Slider's thumbs are 20px targets that can sit side by side.
   ...each(

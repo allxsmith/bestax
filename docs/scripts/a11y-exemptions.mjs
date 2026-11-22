@@ -29,17 +29,6 @@ export default [
   // Unchecked on the blog's pages, where every post and list shows the
   // author's social links.
   { rule: 'target-size', pages: ['/blog*'], issue: 2218 },
-  // Wide tables that scroll without taking focus.
-  {
-    rule: 'scrollable-region-focusable',
-    pages: [
-      '/docs/api/components/modal',
-      '/docs/api/components/panel',
-      '/docs/api/components/tabs',
-      '/docs/api/helpers/usebulmaclasses',
-    ],
-    issue: 2219,
-  },
 
   // The library's own open issues, showing in the live examples. Most have
   // stories exempt for them in bulma-ui's stories-a11y.test.ts too.
@@ -47,15 +36,6 @@ export default [
     rule: 'target-size',
     pages: ['/docs/api/components/carousel'],
     issue: 1926,
-  },
-  {
-    rule: 'target-size',
-    pages: [
-      '/docs/api/elements/delete',
-      '/docs/api/form/cascader',
-      '/docs/api/form/treeselect',
-    ],
-    issue: 2198,
   },
   { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
   // Label in name, in the examples.
@@ -66,13 +46,11 @@ export default [
   },
   {
     rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/form/datetime/dateinput'],
+    pages: [
+      '/docs/api/form/datetime/calendar',
+      '/docs/api/form/datetime/dateinput',
+    ],
     issue: 2209,
-  },
-  {
-    rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/form/datetime/calendar', '/docs/guides/library/form'],
-    issue: 2210,
   },
   {
     rule: 'label-content-name-mismatch',
