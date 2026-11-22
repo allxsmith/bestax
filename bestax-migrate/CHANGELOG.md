@@ -1,3 +1,21 @@
+# [2.40.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.39.0...bestax-migrate@2.40.0) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** find the typography helpers by underline ([082ec07](https://github.com/allxsmith/bestax/commit/082ec07b6b45f2280a8b43576fc5b192e57170d9)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+* **bulma-ui:** give a blank day's hidden box only the base cell class ([58eae58](https://github.com/allxsmith/bestax/commit/58eae58f0c65e0cdeefafca6f0ccffb728e84006)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** keep a date grid's blank days as empty cells, so days stay under their weekday ([e1f7448](https://github.com/allxsmith/bestax/commit/e1f7448b8fecc203eb5324f94f0ddfdb7bba60e4)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** mark a blank day's hidden box as another month's ([428938c](https://github.com/allxsmith/bestax/commit/428938cdce4e8aeb7efc18df7537560459a7883b)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** pad the page's scroll for a spaced fixed Navbar's taller height ([2987e38](https://github.com/allxsmith/bestax/commit/2987e38fcfb525d994581295655b1526c54cb101)), closes [#2273](https://github.com/allxsmith/bestax/issues/2273) [#2258](https://github.com/allxsmith/bestax/issues/2258)
+* **create-bestax:** teach textTransform="underlined" for a link in running text ([11e7c16](https://github.com/allxsmith/bestax/commit/11e7c162005cc288035780a7367667fb7790dd05)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma's is-underlined to textTransform="underlined" ([e8d7dfc](https://github.com/allxsmith/bestax/commit/e8d7dfc274f9f46b1c8f4088a5229c7fc250426d)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+* **bulma-ui:** add underlined to the textTransform helper prop ([c9d4a2d](https://github.com/allxsmith/bestax/commit/c9d4a2d166454cfba15c246c7f9a81e8262f7a6f)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+
 # [2.39.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.38.7...bestax-migrate@2.39.0) (2026-11-22)
 
 
