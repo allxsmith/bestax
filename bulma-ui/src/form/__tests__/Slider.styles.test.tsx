@@ -300,9 +300,13 @@ describe.each([
   ] as const)(
     'centres a %s range slider’s ticks on its track',
     (_name, size) => {
-      const { ticks } = ticksOf(
+      const { slider, ticks } = ticksOf(
         <Slider range ticks step={10} defaultValue={[20, 70]} size={size} />
       );
+      // The track is centred in the slider, and the ticks sit there too.
+      const track = slider.querySelector(`.${prefix}slider-track`)!;
+      expect(getComputedStyle(track).top).toBe('50%');
+      expect(getComputedStyle(track).transform).toBe('translateY(-50%)');
       expect(getComputedStyle(ticks).top).toBe('50%');
     }
   );
@@ -327,18 +331,23 @@ describe.each([
     ['medium', 'medium', 'var(--bulma-slider-track-height-medium)'],
     ['large', 'large', 'var(--bulma-slider-track-height-large)'],
   ] as const)(
-    'gives the ticks a %s single slider’s own track height',
+    'places a %s single slider’s ticks by the height its track is drawn at',
     (_name, size, height) => {
       const { slider, ticks } = ticksOf(<Slider ticks step={10} size={size} />);
-      expect(
-        getComputedStyle(slider).getPropertyValue('--slider-size-track-height')
-      ).toBe(height);
-      // The input the track is drawn on takes the same height.
+      const own = getComputedStyle(slider).getPropertyValue(
+        '--slider-size-track-height'
+      );
+      expect(own).toBe(height);
+      // The ticks go up half that height from the bottom edge, falling back
+      // to the default track's, and the input the track is drawn on is that
+      // height.
+      expect(getComputedStyle(ticks).top.replace(/\s+/g, ' ')).toContain(
+        '- var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
+      );
       const input = slider.querySelector(`.${prefix}slider-input`)!;
       expect(getComputedStyle(input).height).toBe(
-        height || 'var(--bulma-slider-track-height)'
+        own || 'var(--bulma-slider-track-height)'
       );
-      expect(ticks).toBeInTheDocument();
     }
   );
 });

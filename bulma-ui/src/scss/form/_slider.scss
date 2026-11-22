@@ -272,15 +272,15 @@ $slider-vertical-height: 200px !default;
 }
 
 // --- Ticks ---
-// We overlay the ticks on the input by matching its position exactly.
-// The input is the first child in flow; ticks overlay it via the same
-// padding offset, then each tick centers itself on the track midpoint.
-// That's matched to the default track, whose bottom edge is the top padding,
-// half the thumb and its height down. The input sits on the line's baseline,
-// so a size's track keeps that bottom edge and grows or shrinks upward from
-// it, and the ticks go up half its height from there, which the sizes set as
-// `--slider-size-track-height`. A range slider and a vertical one place
-// theirs below.
+// The ticks overlay a single slider's input, and each tick centers itself on
+// the line the ticks sit on. The input is the first child in flow, on the
+// line's baseline, which with the default thumb, track and type is the top
+// padding, half the thumb and the track's height down. A theme that changes
+// the thumb or the track, or a type that moves the baseline, leaves the ticks
+// off the track (#2295). A size's track keeps that bottom edge and grows or
+// shrinks upward from it, so the ticks go up half its height from there,
+// which the sizes set as `--slider-size-track-height`. A range slider and a
+// vertical one place theirs below.
 .#{iv.$class-prefix}slider-ticks {
   position: absolute;
   left: 0;
