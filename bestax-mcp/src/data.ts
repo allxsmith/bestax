@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import type { BulmaClassTable } from './bulma-classes.js';
 
 /** Bumped by the generator when the shape changes incompatibly. */
-export const SUPPORTED_SCHEMA_VERSION = 2;
+export const SUPPORTED_SCHEMA_VERSION = 3;
 
 export interface PropRow {
   name: string;
