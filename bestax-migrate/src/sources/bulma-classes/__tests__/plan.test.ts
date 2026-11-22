@@ -3151,6 +3151,51 @@ describe('plan', () => {
         'attr:className',
       ]);
     });
+
+    it("converts an ellipsis's other classes only where the project gets 5.78.4 (#2178)", () => {
+      const ellipsis = (bestaxFloor?: string) =>
+        plan(
+          facts(
+            'span',
+            'pagination-ellipsis mt-2',
+            {},
+            {
+              soleChildOf: li(),
+              text: '…',
+              ...(bestaxFloor !== undefined && { bestaxFloor }),
+            }
+          )
+        );
+      for (const floor of ['5.78.4', '5.80.0', '6.0.0']) {
+        expect(ellipsis(floor).conversion).toMatchObject({
+          target: 'Pagination.Ellipsis',
+          className: 'mt-2',
+        });
+      }
+      for (const floor of [undefined, '5.78.3', '5.78.4-rc.1', '5.0.0']) {
+        const refused = ellipsis(floor);
+        expect(refused.conversion).toBeNull();
+        expect(rules(refused)).toEqual(['attr:className']);
+        expect(refused.todos[0].message).toContain('5.78.4');
+      }
+      // A class a condition adds is the same: it lands in `className`.
+      const conditional = (bestaxFloor?: string) =>
+        plan(
+          facts(
+            'span',
+            'pagination-ellipsis',
+            {},
+            {
+              soleChildOf: li(),
+              text: '…',
+              conditional: [['has-text-grey']],
+              ...(bestaxFloor !== undefined && { bestaxFloor }),
+            }
+          )
+        );
+      expect(conditional('5.78.4').conversion).not.toBeNull();
+      expect(conditional().conversion).toBeNull();
+    });
   });
 
   it('writes a tabIndex string as the number every target types it as', () => {

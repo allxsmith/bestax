@@ -1,3 +1,39 @@
+## [5.79.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.4...@allxsmith/bestax-bulma@5.79.5) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say Pagination.Ellipsis keeps its class beside a className from 5.78.4 ([fc4cd0f](https://github.com/allxsmith/bestax/commit/fc4cd0f0f23a24e665c50a95695d633182b10711))
+* **bestax-migrate:** count on no release from a format-only package.json the run writes ([a0744ad](https://github.com/allxsmith/bestax/commit/a0744adea4f7fa2a038757911642143cd980c89e))
+* **bulma-ui:** give a Numberinput stepper's buttons 24px targets without changing its look ([3ad6d2e](https://github.com/allxsmith/bestax/commit/3ad6d2e99f4fdb202f5f2096dff9150988e4bd5d)), closes [#1974](https://github.com/allxsmith/bestax/issues/1974)
+* **bulma-ui:** keep a vertical Slider with a size the slider's height ([726d07c](https://github.com/allxsmith/bestax/commit/726d07c2d9e471456d0122830ecf1c0ddf8183c4)), closes [#2293](https://github.com/allxsmith/bestax/issues/2293)
+* **create-bestax:** have the form skill label grouped and addon rows on screen ([bc19f89](https://github.com/allxsmith/bestax/commit/bc19f89db67e3fe2248afe29f4df723ac8bcdfa5)), closes [#2279](https://github.com/allxsmith/bestax/issues/2279)
+* **docs:** frame a page of its own in the Image iframe example, not a film ([13d9f59](https://github.com/allxsmith/bestax/commit/13d9f5968accb5fe73ecbf2c1217d239fe4c16ba))
+* **docs:** give the live code editor a focus ring and a named group ([f4cc71f](https://github.com/allxsmith/bestax/commit/f4cc71f280e5226464b14493af6041051eeef563)), closes [#2180](https://github.com/allxsmith/bestax/issues/2180)
+* **docs:** hold every live editor to a ring and a group name that is always text ([0674963](https://github.com/allxsmith/bestax/commit/067496394f3a81e1a12d4bbf492b6bcecf1f4535))
+
+
+### Features
+
+* **bestax-migrate:** convert an ellipsis's other classes where the project gets bestax-bulma 5.78.4 ([004d176](https://github.com/allxsmith/bestax/commit/004d176bbab0748dcd6e4395454a5940df9cf7ac)), closes [#2181](https://github.com/allxsmith/bestax/issues/2181) [#2178](https://github.com/allxsmith/bestax/issues/2178)
+
+## [5.79.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.3...@allxsmith/bestax-bulma@5.79.4) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a link Button with isDisabled the way Bulma draws a disabled button ([98fa850](https://github.com/allxsmith/bestax/commit/98fa850477d4655c6d5e664fbe8e66db75e5c16e)), closes [#1898](https://github.com/allxsmith/bestax/issues/1898)
+* **bulma-ui:** ring a selected toggle Tabs.Item link in its text color, inside the tab ([61dfb93](https://github.com/allxsmith/bestax/commit/61dfb93fd6a515d27c4ef557e6fc6eb5434cbb3a)), closes [#1945](https://github.com/allxsmith/bestax/issues/1945)
+
+## [5.79.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.2...@allxsmith/bestax-bulma@5.79.3) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cross a range Slider's track with its ticks, and every size's own ([611db14](https://github.com/allxsmith/bestax/commit/611db14de8d99da8052ddc07085191ffeec6281e)), closes [#2101](https://github.com/allxsmith/bestax/issues/2101)
+* **bulma-ui:** place a single Slider's ticks from the baseline, not the theme's sizes ([2ccf6af](https://github.com/allxsmith/bestax/commit/2ccf6afbf4b8d1622e046fb4862b697ab104c9e7))
+* **bulma-ui:** say what a single Slider's ticks are matched to, and test them on the track ([2ede672](https://github.com/allxsmith/bestax/commit/2ede672a2f1fe38944c97885b6441c6948e7970f)), closes [#2295](https://github.com/allxsmith/bestax/issues/2295)
+
 ## [5.79.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.1...@allxsmith/bestax-bulma@5.79.2) (2026-11-21)
 
 
