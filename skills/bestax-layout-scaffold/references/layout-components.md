@@ -323,12 +323,14 @@ The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` 
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
 (Bulma offsets the page from it); the library adds no helper. Set it statically —
 `<html class="has-navbar-fixed-top">` in `index.html` — reserving a `classList.add` effect for
-a navbar that mounts conditionally. **With `isSpaced`, add `has-spaced-navbar-fixed-top` too**
-(`<html class="has-navbar-fixed-top has-spaced-navbar-fixed-top">`): from desktop up the spaced
-navbar is taller than the plain class pads the page for, and there the spaced class pads it for
-the taller navbar, so with the plain class alone the top of the page sits under the navbar. A
-`fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
-beside it with `isSpaced`.
+a navbar that mounts conditionally. **With `isSpaced`, the page needs more room from desktop up**,
+where the spaced navbar is taller than the plain class pads for. Bulma's
+`has-spaced-navbar-fixed-top` is meant to give it, but it reads `--bulma-navbar-padding-vertical`,
+which Bulma sets on the navbar only, so on its own it sets the page's padding to 0. Add the class
+and register the variable on `:root` with the navbar's padding
+(`:root { --bulma-navbar-padding-vertical: 1rem; }`, Bulma's default), or pad the page yourself.
+A `fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
+beside it with `isSpaced`, on the same terms.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile
