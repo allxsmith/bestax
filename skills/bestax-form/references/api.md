@@ -141,7 +141,9 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 `color`, `size`, `checked`/`defaultChecked`, `onChange`, `isRounded`, `isThin`, `isOutlined`,
 `passiveType`, plus RTL support. It's a native checkbox, so a screen reader calls it one and Space
-toggles it. Pass `role="switch"` to have it announced as a switch.
+toggles it. Pass `role="switch"` to have it announced as a switch. A small switch, or a thin one
+with no text, takes the rest of its 24px target from a transparent band right below it, so leave
+room under it: stacked flush on another switch or a control, it keeps the smaller target it draws.
 
 ## File — `form/File.tsx`
 

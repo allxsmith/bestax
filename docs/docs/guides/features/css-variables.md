@@ -438,8 +438,9 @@ An overlay that locks the page's scrolling, such as a [`Modal`](../../api/compon
 `Sidebar` with its overlay or a full-page `Loading`, takes the page's scrollbar away and pads
 `<html>` by the room it took, so the page doesn't shift. An element fixed to the window is placed
 against the window, which grows by that room, so the padding doesn't reach it, and an element fixed
-to the right edge would move by the scrollbar's width. A `fixed` Navbar, the toast and notification
-stacks and an `Affix` make up for it, and your own fixed elements can too.
+to the right edge would move by the scrollbar's width. A `fixed` Navbar, or one Bulma's `-touch` or
+`-desktop` fixed classes fix at their breakpoint, the toast and notification stacks and an `Affix`
+make up for it, and your own fixed elements can too.
 
 While the lock is on, it sets the room it padded on `<html>` as `--bulma-scroll-lock-offset-right`,
 or `--bulma-scroll-lock-offset-left` where the scrollbar was on the left. Add it to the element's

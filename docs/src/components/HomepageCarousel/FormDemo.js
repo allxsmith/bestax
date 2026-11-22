@@ -9,7 +9,7 @@ import {
   Box,
 } from '@allxsmith/bestax-bulma';
 import useDemoLoop, { CANCELLED } from './useDemoLoop';
-import { dispatchClick, dispatchNativeInput } from './demoEvents';
+import { dispatchClick, dispatchKey, dispatchNativeInput } from './demoEvents';
 
 // Rendered inside the shadow root, so its styles ship with it.
 const DEMO_CSS = `
@@ -22,6 +22,22 @@ const DEMO_CSS = `
   .form-demo .switch-row {
     display: block;
     margin-bottom: 1rem;
+  }
+  /* The field's focused look while the demo types into it, drawn here so
+     the demo never takes the reader's focus (#2204). */
+  .form-demo.is-typing .input {
+    border-color: hsl(
+      var(--bulma-input-focus-h),
+      var(--bulma-input-focus-s),
+      var(--bulma-input-focus-l)
+    );
+    box-shadow: var(--bulma-input-focus-shadow-size)
+      hsla(
+        var(--bulma-input-focus-h),
+        var(--bulma-input-focus-s),
+        var(--bulma-input-focus-l),
+        var(--bulma-input-focus-shadow-alpha)
+      );
   }
 `;
 
@@ -67,7 +83,8 @@ const STATIC = {
 /**
  * Value-driven, looping demos for the advanced form controls — the controls
  * fill themselves out (typing, toggling, sweeping, rating, tagging) with no
- * cursor, just the actions. Pauses on hover so the visitor can take over.
+ * cursor, just the actions. Pauses on hover, and while focus is inside it, so
+ * the visitor can take over.
  * `kind`: 'autocomplete' | 'switch' | 'number' | 'slider' | 'rate' | 'tags'.
  */
 export default function FormDemo({ kind, active }) {
@@ -75,15 +92,33 @@ export default function FormDemo({ kind, active }) {
   const [value, setValue] = useState(INITIAL[kind]);
   const valueRef = useRef(setValue);
   valueRef.current = setValue;
+  const [typing, setTyping] = useState(false);
+  const [focusInside, setFocusInside] = useState(false);
 
-  // Don't stay frozen mid-script when the carousel moves on
+  // Don't stay frozen mid-script when the carousel moves on, or leave open a
+  // suggestion list the demo opened: only a click outside the field closes
+  // it otherwise. A slide that goes out of view can drop focus without a
+  // blur, so the focus pause ends too, unless focus is still in the demo.
   useEffect(() => {
-    if (!active) setValue(INITIAL[kind]);
+    if (!active) {
+      setValue(INITIAL[kind]);
+      const wrapper = wrapperRef.current;
+      const input = wrapper?.querySelector('input');
+      if (kind === 'autocomplete' && input) dispatchKey(input, 'Escape');
+      if (!wrapper?.contains(wrapper.getRootNode().activeElement)) {
+        setFocusInside(false);
+      }
+    }
   }, [active, kind]);
 
   const run = useCallback(
     async ({ sleep }) => {
       const set = v => valueRef.current(v);
+
+      // A run stopped mid-script, as the demo scrolled away, can leave the
+      // suggestion list open.
+      const field = wrapperRef.current?.querySelector('input');
+      if (kind === 'autocomplete' && field) dispatchKey(field, 'Escape');
 
       // Let the slide transition settle before the show starts
       await sleep(900);
@@ -94,18 +129,23 @@ export default function FormDemo({ kind, active }) {
           if (!wrapper) throw CANCELLED;
           const input = wrapper.querySelector('input');
           if (!input) throw CANCELLED;
-          input.focus({ preventScroll: true });
-          await sleep(400);
-          // Type through the native setter so the dropdown opens like real typing
-          for (const text of ['B', 'Ba']) {
-            dispatchNativeInput(input, text);
-            await sleep(450);
+          // Looks focused without taking focus, which would move the
+          // reader's own (#2204). The dropdown opens on the typing alone.
+          setTyping(true);
+          try {
+            await sleep(400);
+            // Type through the native setter so the dropdown opens like real typing
+            for (const text of ['B', 'Ba']) {
+              dispatchNativeInput(input, text);
+              await sleep(450);
+            }
+            await sleep(800);
+            const item = wrapper.querySelector('.dropdown-item');
+            if (item) dispatchClick(item);
+            await sleep(2000);
+          } finally {
+            setTyping(false);
           }
-          await sleep(800);
-          const item = wrapper.querySelector('.dropdown-item');
-          if (item) dispatchClick(item);
-          await sleep(2000);
-          input.blur();
           set('');
           break;
         }
@@ -175,7 +215,9 @@ export default function FormDemo({ kind, active }) {
   );
 
   const { reducedMotion, hoverProps } = useDemoLoop({
-    active,
+    // A visitor who tabs or clicks into a control takes it over, as hovering
+    // does, so the loop doesn't change it under them.
+    active: active && !focusInside,
     wrapperRef,
     run,
   });
@@ -183,7 +225,24 @@ export default function FormDemo({ kind, active }) {
   const shown = reducedMotion ? STATIC[kind] : value;
 
   return (
-    <div ref={wrapperRef} className="form-demo" {...hoverProps}>
+    <div
+      ref={wrapperRef}
+      className={typing ? 'form-demo is-typing' : 'form-demo'}
+      {...hoverProps}
+      onFocus={() => setFocusInside(true)}
+      onBlur={event => {
+        // Another window taking focus leaves the control the page's active
+        // element, so the visitor still has it.
+        const wrapper = event.currentTarget;
+        const stillFocused = wrapper.getRootNode().activeElement;
+        if (
+          !wrapper.contains(event.relatedTarget) &&
+          !wrapper.contains(stillFocused)
+        ) {
+          setFocusInside(false);
+        }
+      }}
+    >
       <style>{DEMO_CSS}</style>
       <Box>
         {kind === 'autocomplete' && (

@@ -28,7 +28,9 @@ This is the self-contained inventory of the color/size/variant props that matter
    re-expose it as **`textColor`** / **`bgColor`**. `Box`/`Card`/`Section` ship no `is-<color>`
    rule — their `color` _is_ the text helper (`has-text-<color>`; narrowed to the 6 on
    `Box`/`Card`), so `color` and `textColor` are the same lever there (prefer `textColor`; it
-   takes precedence when both are set). `Tag` and `Td`/`Th` have
+   takes precedence when both are set). `Pagination.List`, `Pagination.Link`, `Field.Label` and
+   `Field.Body` render their `color` as the text helper too, but there it wins over `textColor`,
+   even passed as `undefined`; it's deprecated on them, so use `textColor`. `Tag` and `Td`/`Th` have
    **no text-color prop** — wrap content in `<Span textColor="…">`. `Input` has none either and
    the wrapper trick can't work (it renders a native `<input>`; a child can't color its value):
    recolor via the upstream `--bulma-text-strong-l`, since Bulma re-declares `--bulma-input-*` on
