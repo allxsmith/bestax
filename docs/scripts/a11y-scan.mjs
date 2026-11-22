@@ -274,7 +274,7 @@ async function main() {
     for (const line of describeFailures(failing)) console.log(line);
     for (const { exemption, pattern } of stale) {
       console.log(
-        `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If its issue is fixed, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
+        `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If the violation it covered is gone, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
       );
     }
     for (const path of unsettled) {

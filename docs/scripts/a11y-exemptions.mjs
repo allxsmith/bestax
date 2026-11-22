@@ -21,14 +21,20 @@ export default [
     rule: 'label-content-name-mismatch',
     pages: ['/*'],
     targets: ['.DocSearch'],
-    issue: 2216,
+    reason:
+      "DocSearch's own button, whose name leaves out the shortcut it shows; the site keeps it as DocSearch ships it, by design",
   },
   // Unchecked on every page: links in running text are marked by color alone,
   // site-wide.
   { rule: 'link-in-text-block', pages: ['/*'], issue: 2203 },
   // Unchecked on the blog's pages, where every post and list shows the
   // author's social links.
-  { rule: 'target-size', pages: ['/blog*'], issue: 2218 },
+  {
+    rule: 'target-size',
+    pages: ['/blog*'],
+    reason:
+      "the author's social links are the Docusaurus blog theme's own markup, which the site keeps as it ships, by design",
+  },
 
   // The library's own open issues, showing in the live examples. Most have
   // stories exempt for them in bulma-ui's stories-a11y.test.ts too.
