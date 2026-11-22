@@ -3759,12 +3759,12 @@
     "LevelLeft": {
       "component": "Level",
       "path": "Level.Left",
-      "purpose": "Left-aligned content."
+      "purpose": "Left-aligned content. Its items stack below tablet, in a level with `isMobile` too."
     },
     "LevelRight": {
       "component": "Level",
       "path": "Level.Right",
-      "purpose": "Right-aligned content."
+      "purpose": "Right-aligned content. Its items stack below tablet, in a level with `isMobile` too."
     },
     "LightboxTrigger": {
       "component": "Lightbox",
