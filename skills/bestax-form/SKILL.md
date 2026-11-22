@@ -63,19 +63,26 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 - `hasAddons` — `true | 'centered' | 'right'`, attached controls (input + button).
 
 ```tsx
-<Field hasAddons>
-  <Control isExpanded>
-    <InputBase placeholder="Search" aria-label="Search" />
-  </Control>
-  <Control>
-    <Button color="primary">Go</Button>
-  </Control>
+<Field label="Email" labelProps={{ htmlFor: 'notify-email' }}>
+  <Field hasAddons>
+    <Control isExpanded>
+      <InputBase id="notify-email" type="email" autoComplete="email" />
+    </Control>
+    <Control>
+      <Button color="primary">Notify me</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
-A `grouped` or `hasAddons` Field names none of its controls, and a placeholder disappears once
-the user types, so give each input in the row an `aria-label`, or a visible label on an outer
-`Field` (`references/patterns.md`, "Grouped controls and addons").
+A `grouped` or `hasAddons` Field names none of its controls, so give each input in the row a
+label on screen (a placeholder isn't one: it goes once the user types). An addon row takes it on
+an outer `Field` with `labelProps={{ htmlFor }}` and a matching `id`, as above (in a component
+that renders more than once, make the `id` with `useId`); a grouped row, a
+`<label className="label" htmlFor>` inside each `Control`. An `aria-label` is enough for a
+search box whose button says what it does, and for a second control in an addon row whose main
+input the outer label names, such as a country-code `Select` (`references/patterns.md`,
+"Grouped controls and addons").
 
 ### Sections via Fieldset
 
@@ -392,8 +399,9 @@ for the expected classes/states, and say plainly that the visual pass is still o
       inputs, and `Field` + single-control composition do it on their own. A composed labeled
       `Field` names a control with an `id` of its own, or one in an inner `Field`, only when its
       `labelProps={{ htmlFor }}` matches that `id`, and a multi-control `Field`'s controls are
-      labeled individually (`aria-label`, `aria-labelledby`, or a `<label htmlFor>` matching
-      each control's `id`).
+      labeled individually: a label on screen (an outer `Field` for an addon row, a
+      `<label htmlFor>` in each `Control` of a grouped row), with an `aria-label` only for a
+      search box or a second control beside an addon row's labeled input.
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`, and
       `aria-invalid` marks the control.

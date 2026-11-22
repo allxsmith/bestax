@@ -141,31 +141,57 @@ Notes:
 
 ## Grouped controls and addons
 
+An addon row with its label on an outer `Field` is the example in `SKILL.md`, under "Layout via
+Field".
+
 ```tsx
-// Search box: input + button attached.
+// Two controls on one row, each with its own label.
+<Field grouped>
+  <Control>
+    <label className="label" htmlFor="first-name">
+      First name
+    </label>
+    <InputBase id="first-name" autoComplete="given-name" />
+  </Control>
+  <Control>
+    <label className="label" htmlFor="last-name">
+      Last name
+    </label>
+    <InputBase id="last-name" autoComplete="family-name" />
+  </Control>
+</Field>
+
+// A search box whose button says what it does.
 <Field hasAddons>
   <Control isExpanded>
-    <InputBase placeholder="Search" aria-label="Search" />
+    <InputBase type="search" aria-label="Search" />
   </Control>
   <Control>
     <Button color="primary">Search</Button>
   </Control>
 </Field>
-
-// Two controls on one row.
-<Field grouped>
-  <Control>
-    <InputBase placeholder="First" aria-label="First name" autoComplete="given-name" />
-  </Control>
-  <Control>
-    <InputBase placeholder="Last" aria-label="Last name" autoComplete="family-name" />
-  </Control>
-</Field>
 ```
 
-A `grouped` or `hasAddons` Field names none of the controls it holds, and a placeholder
-disappears once the user types, so each input above carries an `aria-label`. For a visible
-label instead, see the last item below.
+A `grouped` or `hasAddons` Field names none of the controls it holds, so give each input in
+the row a label on screen (a placeholder isn't one: it goes once the user types).
+
+- **Addon row:** a `hasAddons` Field lays out everything it holds in its row, a `label` included,
+  so the label goes on an outer `Field`. Wire it with `labelProps={{ htmlFor }}` and a matching
+  `id` on the input: the inner `Field` starts its own scope, so without them the label shows
+  and names nothing. The label needs an `id` too, `labelProps={{ htmlFor, id }}`, when the row
+  holds an `Autocomplete`, `Combobox` or `Taginput` (whose list points `aria-labelledby` at it;
+  a `Combobox`'s `htmlFor` names its field's `id`) or a range `Slider` (whose thumbs do). A
+  second control beside the labeled input, such as a country-code `Select`, takes an
+  `aria-label`.
+- **Grouped row:** each `Control` holds a `<label className="label">` whose `htmlFor` points at
+  its input. A convenience input's own `label` renders nothing inside a `Field` (a grouped row,
+  an addon row or an outer labeled `Field`), so it can't stand in for one. An input and the
+  button that sends it read better as an addon row with an outer label: in a labeled grouped row
+  the button lines up with the labels, not the inputs.
+- **Search box:** an `aria-label` alone is enough when its button says what it does.
+
+In a component that renders more than once, make each `id` with `useId` rather than a fixed
+string.
 
 A show-password button is not an addon recipe: use `PasswordInput`, whose button sits inside
 the field. Never put it in `iconRight`, since Bulma gives control icons `pointer-events: none`
@@ -184,10 +210,6 @@ Recipes built on addons, each written out in full in the docs:
 - **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
   `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
   not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.
-- To label an addon row, put the label on an outer `Field` with `labelProps={{ htmlFor, id }}`
-  and a matching `id` on the input. The label's `id` names an `Autocomplete`'s or `Taginput`'s
-  suggestion list or a range `Slider`'s thumbs, which point `aria-labelledby` at it. A label
-  inside the `hasAddons` field sits in the row beside the controls.
 
 ## Horizontal field with explicit label/body
 
