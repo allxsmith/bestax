@@ -638,6 +638,12 @@ export const TextTransform: Story = {
           equal...
         </p>
       </Content>
+      <Content textTransform="underlined">
+        <p>
+          We hold these truths to be self-evident, that all men are created
+          equal...
+        </p>
+      </Content>
     </>
   ),
 };

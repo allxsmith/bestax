@@ -40,6 +40,24 @@ describe('useTypographyClasses', () => {
     );
   });
 
+  it.each([
+    'capitalized',
+    'lowercase',
+    'uppercase',
+    'italic',
+    'underlined',
+  ] as const)(
+    "renders textTransform '%s' as Bulma's own class, prefixed under a class prefix",
+    textTransform => {
+      expect(renderUseTypographyClasses({ textTransform })).toBe(
+        `is-${textTransform}`
+      );
+      expect(renderUseTypographyClasses({ textTransform }, 'bestax-')).toBe(
+        `bestax-is-${textTransform}`
+      );
+    }
+  );
+
   it('suffixes only textSize and textAlign with the viewport', () => {
     expect(
       renderUseTypographyClasses({

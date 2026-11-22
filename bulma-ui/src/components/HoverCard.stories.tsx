@@ -146,7 +146,14 @@ export const InRunningText: Story = {
   render: () => (
     <Paragraph>
       Reviewed by{' '}
-      <HoverCard appendToBody trigger={<Link href="#ada">Ada Lovelace</Link>}>
+      <HoverCard
+        appendToBody
+        trigger={
+          <Link href="#ada" textTransform="underlined">
+            Ada Lovelace
+          </Link>
+        }
+      >
         <ProfilePreview />
       </HoverCard>{' '}
       and merged the same day.

@@ -33,7 +33,15 @@ export interface BulmaTypographyProps extends BulmaViewportProps {
   textSize?: (typeof validTextSizes)[number];
   /** Text alignment (e.g., 'centered', 'left'). */
   textAlign?: (typeof validAlignments)[number];
-  /** Text transformation (e.g., 'uppercase', 'italic'). */
+  /**
+   * Text transformation (e.g., 'uppercase', 'italic'). `'underlined'` draws
+   * an underline, which a link inside a sentence needs in Bulma's default
+   * colors, so that more than its color sets it apart from the words around
+   * it (WCAG 1.4.1). It takes one
+   * value, so to underline text that also takes another transform, add
+   * Bulma's `is-underlined` class through `className`, with your class
+   * prefix in front if you set one.
+   */
   textTransform?: (typeof validTextTransforms)[number];
   /** Text weight (e.g., 'light', 'bold'). */
   textWeight?: (typeof validTextWeights)[number];
