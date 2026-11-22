@@ -6,7 +6,12 @@
 // fill until then. These pin that look in each published sheet, and the rules
 // that draw it in the partial, with no prefix and under one.
 import { compileSheet } from '../../__tests__/compile-scss';
-import { bulmaCss, compilePartial, rulesOf } from '../../__tests__/css-cascade';
+import {
+  bulmaCss,
+  compilePartial,
+  compileSource,
+  rulesOf,
+} from '../../__tests__/css-cascade';
 import { varsOn } from '../../__tests__/contrast';
 
 /** The indicator variables each sheet declares on the carousel. */
@@ -19,6 +24,11 @@ const DEFAULTS = {
     'var(--bulma-carousel-indicator-border-color)',
   '--bulma-carousel-indicator-border-width': '2px',
   '--bulma-carousel-indicator-line-border-width': '1px',
+  // The dots 24px apart, center to center, the least target size (#1926).
+  '--bulma-carousel-indicator-gap':
+    'calc(24px - var(--bulma-carousel-indicator-size))',
+  '--bulma-carousel-indicator-gap-mobile':
+    'calc(24px - var(--bulma-carousel-indicator-size-mobile))',
 };
 
 describe.each([
@@ -82,6 +92,67 @@ describe.each([
     expect(declared(`${item}:hover`, 'background-color')).toBe(
       'var(--bulma-carousel-indicator-background-hover)'
     );
+  });
+
+  // The indicators sat closer together than the 24px target size allows
+  // (#1926). The gaps default to what puts the dots, the circles and a
+  // phone's bars 24px apart, center to center, and the lines and a wider
+  // screen's bars, already that far apart, as they were. A row too long for
+  // the carousel wraps rather than squeezing them closer.
+  it('sets each style’s default gap at the carousel’s own weight, and wraps a long row', () => {
+    const gaps = (style: string) => {
+      const selector = `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
+      return [
+        declared(selector, '--bulma-carousel-indicator-gap'),
+        declared(selector, '--bulma-carousel-indicator-gap-mobile'),
+      ];
+    };
+    expect(gaps('circles')).toEqual([
+      'calc(24px - var(--bulma-carousel-indicator-circle-size))',
+      'calc(24px - var(--bulma-carousel-indicator-circle-size))',
+    ]);
+    expect(gaps('lines')).toEqual(['0.5rem', '0.375rem']);
+    expect(gaps('bars')).toEqual([
+      '0.5rem',
+      'calc(24px - var(--bulma-carousel-indicator-bar-width-mobile))',
+    ]);
+    // The row reads the variables, whatever a theme sets them to.
+    const row = `${p('carousel')} ${p('carousel-indicator')}`;
+    expect(declared(row, 'gap')).toBe('var(--bulma-carousel-indicator-gap)');
+    expect(declared(row, 'flex-wrap')).toBe('wrap');
+    expect(declared(item, 'flex-shrink')).toBe('0');
+    // The marks draw at their own sizes, as before.
+    expect(declared(item, 'width')).toBe(
+      'var(--bulma-carousel-indicator-size)'
+    );
+  });
+
+  it('gives every style a gap a build sets, as it did', () => {
+    const { rules: built } = rulesOf(
+      compileSource(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'components/carousel' with (
+           $carousel-indicator-gap: 4px,
+           $carousel-indicator-gap-mobile: 3px
+         );`
+      )
+    );
+    const on = (selector: string, property: string) =>
+      built
+        .filter(rule => rule.selectorText.split(', ').includes(selector))
+        .map(rule => rule.style.getPropertyValue(property))
+        .filter(Boolean);
+    expect(on(p('carousel'), '--bulma-carousel-indicator-gap')).toEqual([
+      '4px',
+    ]);
+    expect(on(p('carousel'), '--bulma-carousel-indicator-gap-mobile')).toEqual([
+      '3px',
+    ]);
+    for (const style of ['circles', 'lines', 'bars']) {
+      const selector = `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
+      expect(on(selector, '--bulma-carousel-indicator-gap')).toEqual([]);
+      expect(on(selector, '--bulma-carousel-indicator-gap-mobile')).toEqual([]);
+    }
   });
 
   it('fills the current indicator in the current color, with no ring', () => {
