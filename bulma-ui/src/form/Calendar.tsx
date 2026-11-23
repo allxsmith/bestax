@@ -162,10 +162,10 @@ interface CalendarBaseProps
    * years keep plain digits. On a server render that is the server's, so the server and the browser
    * can name the month and the weekdays in different languages: give a
    * locale, here or through a `LocaleProvider`, where the two can differ.
-   * A tag `Intl` refuses, such as `"en_US"`, throws `Intl`'s `RangeError`
-   * when the Calendar formats with it, inside a `LocaleProvider` too. A
-   * provider given that tag drops it with a development warning instead.
-   * Write tags with a hyphen, `"en-US"`.
+   * A `LocaleProvider` drops a tag `Intl` refuses, such as `"en_US"`, with
+   * a development warning, but this `locale` isn't checked, and formatting
+   * with such a tag can throw `Intl`'s `RangeError`. Write tags with a
+   * hyphen, `"en-US"`.
    */
   locale?: string;
   /**
