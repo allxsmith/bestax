@@ -623,13 +623,14 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   }
 
   // A row of lines or bars that wraps sits 24px below the one above, center
-  // to center, as a row of dots or circles does through its gap.
+  // to center, as a row of dots or circles does through its gap, and never
+  // closer than that gap, so marks drawn 24px tall or taller don't touch.
   &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
-    row-gap: calc(24px - #{cv.getVar("carousel-indicator-line-height")});
+    row-gap: max(#{cv.getVar("carousel-indicator-gap")}, calc(24px - #{cv.getVar("carousel-indicator-line-height")}));
   }
 
   &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
-    row-gap: calc(24px - #{cv.getVar("carousel-indicator-bar-height")});
+    row-gap: max(#{cv.getVar("carousel-indicator-gap")}, calc(24px - #{cv.getVar("carousel-indicator-bar-height")}));
   }
 
   &.#{iv.$class-prefix}is-indicator-circles {
@@ -834,11 +835,11 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
     }
 
     &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
-      row-gap: calc(24px - #{cv.getVar("carousel-indicator-line-height-mobile")});
+      row-gap: max(#{cv.getVar("carousel-indicator-gap-mobile")}, calc(24px - #{cv.getVar("carousel-indicator-line-height-mobile")}));
     }
 
     &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
-      row-gap: calc(24px - #{cv.getVar("carousel-indicator-bar-height-mobile")});
+      row-gap: max(#{cv.getVar("carousel-indicator-gap-mobile")}, calc(24px - #{cv.getVar("carousel-indicator-bar-height-mobile")}));
     }
   }
 }

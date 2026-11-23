@@ -183,7 +183,7 @@ describe.each([
     }
   });
 
-  it('puts a wrapped row of lines or bars 24px below the one above, center to center', () => {
+  it('puts a wrapped row of lines or bars 24px below the one above, center to center, and no closer than their gap', () => {
     const row = (style: string) =>
       `${styleRoot(style)} ${p('carousel-indicator')}`;
     const mobileRowGap = (selector: string) =>
@@ -200,10 +200,10 @@ describe.each([
       ['bars', 'bar-height'],
     ]) {
       expect(declared(row(style), 'row-gap')).toBe(
-        `calc(24px - var(--bulma-carousel-indicator-${height}))`
+        `max(var(--bulma-carousel-indicator-gap), 24px - var(--bulma-carousel-indicator-${height}))`
       );
       expect(mobileRowGap(row(style))).toBe(
-        `calc(24px - var(--bulma-carousel-indicator-${height}-mobile))`
+        `max(var(--bulma-carousel-indicator-gap-mobile), 24px - var(--bulma-carousel-indicator-${height}-mobile))`
       );
     }
   });
