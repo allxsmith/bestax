@@ -30,7 +30,7 @@ $carousel-indicator-size-mobile: 8px !default;
 // The gap between the dots, `-target-gap` written out so the API page's
 // table shows it. A gap set narrower puts the dots closer than 24px. The
 // other styles default to gaps of their own while these are left at their
-// defaults (see `is-indicator-circles` below).
+// defaults (see "Each style's default gap" below).
 $carousel-indicator-gap: max(0.5rem, calc(24px - #{cv.getVar("carousel-indicator-size")})) !default;
 $carousel-indicator-gap-mobile: max(0.375rem, calc(24px - #{cv.getVar("carousel-indicator-size-mobile")})) !default;
 $carousel-indicator-circle-size: 12px !default;
