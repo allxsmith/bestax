@@ -184,14 +184,13 @@ export const AllColors: Story = {
 };
 
 export const InlineWithText: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
-  },
   render: () => (
     <p>
-      This is a paragraph with an <Link href="#">inline link</Link> in the
-      middle of the text.
+      This is a paragraph with an{' '}
+      <Link href="#" textTransform="underlined">
+        inline link
+      </Link>{' '}
+      in the middle of the text.
     </p>
   ),
   name: 'Inline with Text',

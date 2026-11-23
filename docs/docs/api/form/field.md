@@ -52,9 +52,14 @@ Use the `Field` component to group a `Checkbox` with a custom label containing a
 <Field label="Agreement">
   <Checkbox>
     I have read and agree to the{' '}
-    <a href="#" target="_blank" rel="noopener noreferrer">
+    <Link
+      href="#"
+      target="_blank"
+      rel="noopener noreferrer"
+      textTransform="underlined"
+    >
       terms and conditions
-    </a>
+    </Link>
     .
   </Checkbox>
 </Field>
