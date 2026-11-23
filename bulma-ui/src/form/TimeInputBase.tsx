@@ -161,6 +161,10 @@ export interface TimeInputBaseProps
    * for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around
    * the picker, and with neither, `Intl` uses the runtime's own locale and
    * the wheels keep plain digits and AM and PM.
+   * A tag `Intl` refuses, such as `"en_US"`, throws `Intl`'s `RangeError`
+   * when the picker formats with it, inside a `LocaleProvider` too. A
+   * provider given that tag drops it with a development warning instead.
+   * Write tags with a hyphen, `"en-US"`.
    */
   locale?: string;
   /**
