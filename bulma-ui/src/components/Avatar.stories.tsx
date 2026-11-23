@@ -161,6 +161,7 @@ export const Clickable: Story = {
     return (
       <Avatar
         name="Ada Lovelace"
+        initials="AL"
         alt="AL, Ada Lovelace"
         href="https://bestax.io"
       />
