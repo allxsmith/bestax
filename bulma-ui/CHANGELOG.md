@@ -1,3 +1,16 @@
+# [5.81.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.80.1...@allxsmith/bestax-bulma@5.81.0) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** name rotationControl in the carousel TODO ([4d162d9](https://github.com/allxsmith/bestax/commit/4d162d9186315f13d05c6f5bc47ef908f1266fcc))
+* **bulma-ui:** give a range Slider's thumbs a 24px target, drawn the same size ([5d21faf](https://github.com/allxsmith/bestax/commit/5d21faf50ddce7995f44af6b8d28f96c8c9c8290)), closes [#2195](https://github.com/allxsmith/bestax/issues/2195)
+
+
+### Features
+
+* **bulma-ui:** add rotationControl, a Carousel button that stops autoplay ([48aa92c](https://github.com/allxsmith/bestax/commit/48aa92c156f21202ca41a7b2ce906cb49cb24082)), closes [#1925](https://github.com/allxsmith/bestax/issues/1925)
+
 ## [5.80.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.80.0...@allxsmith/bestax-bulma@5.80.1) (2026-11-23)
 
 
