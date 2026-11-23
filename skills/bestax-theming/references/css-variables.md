@@ -1133,6 +1133,11 @@ colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacit
 system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
 has a hairline in the page's color as long as `--bulma-slider-track-height`.
 
+At the stock thumb sizes, a range Slider's thumb at the default or small size (not a circle one)
+takes presses on a box 24px square around the circle it draws. There `--bulma-slider-thumb-border`
+draws the ring as an outline inside that box, and `--bulma-slider-thumb-shadow` is cast by the box,
+so a shadow starts a little further out than the circle's edge.
+
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
