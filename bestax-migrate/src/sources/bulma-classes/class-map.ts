@@ -338,10 +338,13 @@ export interface RootEntry {
    */
   readonly rendersText?: string;
   /**
-   * The target writes a given `className` in place of its own class, so the
-   * element converts only with no other class.
+   * The bestax-bulma release from which the target keeps its own class beside
+   * a `className` it's given (`5.78.4`). An older one writes the `className`
+   * in place of its class, so with another class the element converts only
+   * where the run shows the project gets this release or later
+   * (`ElementFacts.bestaxFloor`).
    */
-  readonly classNameReplaces?: boolean;
+  readonly classNameSince?: string;
   /** Props the target needs to render this class at all (`variant="lines"`). */
   readonly writes?: readonly PropWrite[];
   /**
@@ -524,6 +527,7 @@ export const TEXT_TRANSFORMS = [
   'lowercase',
   'uppercase',
   'italic',
+  'underlined',
 ] as const;
 export const TEXT_WEIGHTS = [
   'light',
@@ -2446,7 +2450,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     },
     ownProps: ['color', 'textColor', 'bgColor', 'active', 'disabled'],
   },
-  // It renders its own `…`, and a `className` it's given replaces its class.
+  // It renders its own `…`, and keeps its class beside a `className` from
+  // bestax-bulma 5.78.4 on; an older release writes the `className` in its
+  // place.
   'pagination-ellipsis': {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
@@ -2456,7 +2462,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     noHelpers: true,
     parent: { tag: 'li' },
     rendersText: '\u2026',
-    classNameReplaces: true,
+    classNameSince: '5.78.4',
     ownProps: [],
   },
   // `Panel`'s `color` renders `has-text-<color>` as well as `is-<color>`, and it
@@ -3304,7 +3310,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   {
     why: 'a modifier of markup this source leaves alone, or one bestax has no prop for',
     match:
-      /^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-underlined|is-up|is-wrapped)$/,
+      /^(?:has-addons-.+|has-dropdown(?:-up)?|has-fixed-size|has-icons-(?:left|right)|has-name|has-(?:spaced-)?navbar-fixed-(?:top|bottom)(?:-desktop)?|has-shadow|is-arrowless|is-boxed|is-center|is-current|is-delete|is-disabled|is-empty|is-expanded|is-fixed-(?:top|bottom)(?:-desktop)?|is-flexible|is-grouped(?:-.+)?|is-halfheight|is-horizontal|is-left|is-(?:lower|upper)-(?:alpha|roman)|is-responsive|is-selected|is-tab|is-toggle(?:-rounded)?|is-transparent|is-up|is-wrapped)$/,
   },
 ];
 

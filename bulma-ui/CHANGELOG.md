@@ -1,3 +1,40 @@
+# [5.80.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.5...@allxsmith/bestax-bulma@5.80.0) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** find the typography helpers by underline ([082ec07](https://github.com/allxsmith/bestax/commit/082ec07b6b45f2280a8b43576fc5b192e57170d9)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+* **bulma-ui:** give a blank day's hidden box only the base cell class ([58eae58](https://github.com/allxsmith/bestax/commit/58eae58f0c65e0cdeefafca6f0ccffb728e84006)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** keep a date grid's blank days as empty cells, so days stay under their weekday ([e1f7448](https://github.com/allxsmith/bestax/commit/e1f7448b8fecc203eb5324f94f0ddfdb7bba60e4)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** mark a blank day's hidden box as another month's ([428938c](https://github.com/allxsmith/bestax/commit/428938cdce4e8aeb7efc18df7537560459a7883b)), closes [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** pad the page's scroll for a spaced fixed Navbar's taller height ([2987e38](https://github.com/allxsmith/bestax/commit/2987e38fcfb525d994581295655b1526c54cb101)), closes [#2273](https://github.com/allxsmith/bestax/issues/2273) [#2258](https://github.com/allxsmith/bestax/issues/2258)
+* **create-bestax:** teach textTransform="underlined" for a link in running text ([11e7c16](https://github.com/allxsmith/bestax/commit/11e7c162005cc288035780a7367667fb7790dd05)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma's is-underlined to textTransform="underlined" ([e8d7dfc](https://github.com/allxsmith/bestax/commit/e8d7dfc274f9f46b1c8f4088a5229c7fc250426d)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+* **bulma-ui:** add underlined to the textTransform helper prop ([c9d4a2d](https://github.com/allxsmith/bestax/commit/c9d4a2d166454cfba15c246c7f9a81e8262f7a6f)), closes [#2297](https://github.com/allxsmith/bestax/issues/2297)
+
+## [5.79.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.4...@allxsmith/bestax-bulma@5.79.5) (2026-11-22)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say Pagination.Ellipsis keeps its class beside a className from 5.78.4 ([fc4cd0f](https://github.com/allxsmith/bestax/commit/fc4cd0f0f23a24e665c50a95695d633182b10711))
+* **bestax-migrate:** count on no release from a format-only package.json the run writes ([a0744ad](https://github.com/allxsmith/bestax/commit/a0744adea4f7fa2a038757911642143cd980c89e))
+* **bulma-ui:** give a Numberinput stepper's buttons 24px targets without changing its look ([3ad6d2e](https://github.com/allxsmith/bestax/commit/3ad6d2e99f4fdb202f5f2096dff9150988e4bd5d)), closes [#1974](https://github.com/allxsmith/bestax/issues/1974)
+* **bulma-ui:** keep a vertical Slider with a size the slider's height ([726d07c](https://github.com/allxsmith/bestax/commit/726d07c2d9e471456d0122830ecf1c0ddf8183c4)), closes [#2293](https://github.com/allxsmith/bestax/issues/2293)
+* **create-bestax:** have the form skill label grouped and addon rows on screen ([bc19f89](https://github.com/allxsmith/bestax/commit/bc19f89db67e3fe2248afe29f4df723ac8bcdfa5)), closes [#2279](https://github.com/allxsmith/bestax/issues/2279)
+* **docs:** frame a page of its own in the Image iframe example, not a film ([13d9f59](https://github.com/allxsmith/bestax/commit/13d9f5968accb5fe73ecbf2c1217d239fe4c16ba))
+* **docs:** give the live code editor a focus ring and a named group ([f4cc71f](https://github.com/allxsmith/bestax/commit/f4cc71f280e5226464b14493af6041051eeef563)), closes [#2180](https://github.com/allxsmith/bestax/issues/2180)
+* **docs:** hold every live editor to a ring and a group name that is always text ([0674963](https://github.com/allxsmith/bestax/commit/067496394f3a81e1a12d4bbf492b6bcecf1f4535))
+
+
+### Features
+
+* **bestax-migrate:** convert an ellipsis's other classes where the project gets bestax-bulma 5.78.4 ([004d176](https://github.com/allxsmith/bestax/commit/004d176bbab0748dcd6e4395454a5940df9cf7ac)), closes [#2181](https://github.com/allxsmith/bestax/issues/2181) [#2178](https://github.com/allxsmith/bestax/issues/2178)
+
 ## [5.79.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.3...@allxsmith/bestax-bulma@5.79.4) (2026-11-22)
 
 

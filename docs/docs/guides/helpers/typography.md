@@ -227,6 +227,11 @@ Control text transformation using the `textTransform` prop.
 | `textTransform="lowercase"`   | `is-lowercase`   | All lowercase                        |
 | `textTransform="uppercase"`   | `is-uppercase`   | ALL UPPERCASE                        |
 | `textTransform="italic"`      | `is-italic`      | Italic text                          |
+| `textTransform="underlined"`  | `is-underlined`  | Underlined text                      |
+
+A link inside a sentence takes `textTransform="underlined"`: outside a `Notification` or
+`Message`, Bulma draws links without an underline, so in a sentence a link would differ from
+the words around it by color alone (WCAG 1.4.1).
 
 ### Text Transformation Examples
 
@@ -248,8 +253,12 @@ function TextTransformExamples() {
         uppercase text - ALL LETTERS BECOME UPPERCASE
       </Content>
 
-      <Content textTransform="italic">
+      <Content textTransform="italic" mb="3">
         Italic text - This text appears in italics
+      </Content>
+
+      <Content textTransform="underlined">
+        Underlined text - This text is underlined
       </Content>
     </Box>
   );
