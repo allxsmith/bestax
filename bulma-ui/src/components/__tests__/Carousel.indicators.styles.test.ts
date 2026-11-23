@@ -24,11 +24,12 @@ const DEFAULTS = {
     'var(--bulma-carousel-indicator-border-color)',
   '--bulma-carousel-indicator-border-width': '2px',
   '--bulma-carousel-indicator-line-border-width': '1px',
-  // The dots 24px apart, center to center, the least target size (#1926).
+  // The dots 24px apart, center to center, the least target size (#1926),
+  // and dots drawn wider no closer than the gaps they had.
   '--bulma-carousel-indicator-gap':
-    'calc(24px - var(--bulma-carousel-indicator-size))',
+    'max(0.5rem,24px - var(--bulma-carousel-indicator-size))',
   '--bulma-carousel-indicator-gap-mobile':
-    'calc(24px - var(--bulma-carousel-indicator-size-mobile))',
+    'max(0.375rem,24px - var(--bulma-carousel-indicator-size-mobile))',
 };
 
 describe.each([
@@ -95,10 +96,10 @@ describe.each([
   });
 
   // The indicators sat closer together than the 24px target size allows
-  // (#1926). The gaps default to what puts the dots, the circles and a
-  // phone's bars 24px apart, center to center, and the lines and a wider
-  // screen's bars, already that far apart, as they were. A row too long for
-  // the carousel wraps rather than squeezing them closer.
+  // (#1926). Each style's gaps default to what puts its marks 24px apart,
+  // center to center, and to no less than the gaps they had, so a mark drawn
+  // wider doesn't come closer. A row too long for the carousel wraps rather
+  // than squeezing them closer.
   it('sets each style’s default gap at the carousel’s own weight, and wraps a long row', () => {
     const gaps = (style: string) => {
       const selector = `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
@@ -108,13 +109,16 @@ describe.each([
       ];
     };
     expect(gaps('circles')).toEqual([
-      'calc(24px - var(--bulma-carousel-indicator-circle-size))',
-      'calc(24px - var(--bulma-carousel-indicator-circle-size))',
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-circle-size))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-circle-size))',
     ]);
-    expect(gaps('lines')).toEqual(['0.5rem', '0.375rem']);
+    expect(gaps('lines')).toEqual([
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-line-width))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-line-width-mobile))',
+    ]);
     expect(gaps('bars')).toEqual([
-      '0.5rem',
-      'calc(24px - var(--bulma-carousel-indicator-bar-width-mobile))',
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-bar-width))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-bar-width-mobile))',
     ]);
     // The row reads the variables, whatever a theme sets them to.
     const row = `${p('carousel')} ${p('carousel-indicator')}`;

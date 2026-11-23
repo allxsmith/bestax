@@ -17,14 +17,22 @@ $carousel-arrow-offset: 1rem !default;
 $carousel-arrow-offset-mobile: 0.5rem !default;
 $carousel-arrow-disabled-opacity: 0.3 !default;
 
+// The gap between indicators `$width` wide (a variable's name) that puts
+// them 24px apart, center to center, the least target size WCAG asks for,
+// and at least `$least`, so a mark drawn wider than 24px less `$least` keeps
+// that much room rather than touching the next.
+@function -target-gap($least, $width) {
+  @return max($least, calc(24px - #{cv.getVar($width)}));
+}
+
 $carousel-indicator-size: 10px !default;
 $carousel-indicator-size-mobile: 8px !default;
-// The gap between the dots: as wide as puts them 24px apart, center to
-// center, the least target size WCAG asks for. A gap set narrower puts the
-// indicators under it. The other styles default to gaps of their own while
-// these are left at their defaults (see `is-indicator-circles` below).
-$carousel-indicator-gap: calc(24px - #{cv.getVar("carousel-indicator-size")}) !default;
-$carousel-indicator-gap-mobile: calc(24px - #{cv.getVar("carousel-indicator-size-mobile")}) !default;
+// The gap between the dots, `-target-gap` written out so the API page's
+// table shows it. A gap set narrower puts the dots closer than 24px. The
+// other styles default to gaps of their own while these are left at their
+// defaults (see `is-indicator-circles` below).
+$carousel-indicator-gap: max(0.5rem, calc(24px - #{cv.getVar("carousel-indicator-size")})) !default;
+$carousel-indicator-gap-mobile: max(0.375rem, calc(24px - #{cv.getVar("carousel-indicator-size-mobile")})) !default;
 $carousel-indicator-circle-size: 12px !default;
 $carousel-indicator-line-width: 30px !default;
 $carousel-indicator-line-width-mobile: 20px !default;
@@ -116,9 +124,9 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 // Whether a build left the gaps at their defaults, which the other indicator
 // styles' own defaults wait on.
 $-gap-is-default: $carousel-indicator-gap ==
-  calc(24px - #{cv.getVar("carousel-indicator-size")});
+  -target-gap(0.5rem, "carousel-indicator-size");
 $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
-  calc(24px - #{cv.getVar("carousel-indicator-size-mobile")});
+  -target-gap(0.375rem, "carousel-indicator-size-mobile");
 
 .#{iv.$class-prefix}carousel {
   @include cv.register-vars(
@@ -595,35 +603,22 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
     @include cv.register-var("carousel-indicator-border-color", cv.getVar("border"));
   }
 
-  // Each style's default gap, at the carousel's own weight as the circle's
-  // ring color is: the circles 24px apart, center to center, as the dots
-  // are, the lines as they were, and the bars as they were, except on a
-  // phone, where they too sit 24px apart. Only while a build leaves the gaps
-  // at their defaults: a gap a build sets applies to every style.
-  &:where(.#{iv.$class-prefix}is-indicator-circles) {
-    @if $-gap-is-default {
-      @include cv.register-var("carousel-indicator-gap", calc(24px - #{cv.getVar("carousel-indicator-circle-size")}));
-    }
-    @if $-gap-mobile-is-default {
-      @include cv.register-var("carousel-indicator-gap-mobile", calc(24px - #{cv.getVar("carousel-indicator-circle-size")}));
-    }
-  }
-
-  &:where(.#{iv.$class-prefix}is-indicator-lines) {
-    @if $-gap-is-default {
-      @include cv.register-var("carousel-indicator-gap", 0.5rem);
-    }
-    @if $-gap-mobile-is-default {
-      @include cv.register-var("carousel-indicator-gap-mobile", 0.375rem);
-    }
-  }
-
-  &:where(.#{iv.$class-prefix}is-indicator-bars) {
-    @if $-gap-is-default {
-      @include cv.register-var("carousel-indicator-gap", 0.5rem);
-    }
-    @if $-gap-mobile-is-default {
-      @include cv.register-var("carousel-indicator-gap-mobile", calc(24px - #{cv.getVar("carousel-indicator-bar-width-mobile")}));
+  // Each style's default gap, from its own mark's width, as the dots' is
+  // from theirs, at the carousel's own weight as the circle's ring color is.
+  // Only while a build leaves the gaps at their defaults: a gap a build sets
+  // applies to every style.
+  @each $style, $width, $width-mobile in (
+    ("circles", "carousel-indicator-circle-size", "carousel-indicator-circle-size"),
+    ("lines", "carousel-indicator-line-width", "carousel-indicator-line-width-mobile"),
+    ("bars", "carousel-indicator-bar-width", "carousel-indicator-bar-width-mobile")
+  ) {
+    &:where(.#{iv.$class-prefix}is-indicator-#{$style}) {
+      @if $-gap-is-default {
+        @include cv.register-var("carousel-indicator-gap", -target-gap(0.5rem, $width));
+      }
+      @if $-gap-mobile-is-default {
+        @include cv.register-var("carousel-indicator-gap-mobile", -target-gap(0.375rem, $width-mobile));
+      }
     }
   }
 
