@@ -36,7 +36,11 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
   prop suffixes), `css-imports.ts` (the stylesheet-import pass), `bestax-import.ts` (seeding,
   building and merging the bestax-bulma import), `deps-common.ts` (the manifest steps after
-  the source package is handled), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
+  the source package is handled), `manifests.ts` (the package.json files a run touches, and
+  which of them the manifest step writes), `bestax-floor.ts` (the oldest bestax-bulma release a
+  file can count on, from the range its package declares or the one the run adds, for a
+  conversion that waits for a release: `Pagination.Ellipsis` keeps its class beside a
+  `className` only from 5.78.4, #2178), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
   stylesheet transform, parameterised by the source package's own specifiers). What stays
   per-source is the data — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a
   `transform.ts` that orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
@@ -119,8 +123,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
   the extension of the module an HTML page becomes, and which depend on Next.js, where that
-  module imports no stylesheet, read once per run from every package.json the run touches, and
-  the folders the run starts from, where an `index.html` with pages beside it is `HomePage`) and `transform.ts` (finds the elements, reads a
+  module imports no stylesheet, and what bestax-bulma each declares, read once per run from every
+  package.json the run touches, and the folders the run starts from, where an `index.html` with pages beside it is `HomePage`) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render

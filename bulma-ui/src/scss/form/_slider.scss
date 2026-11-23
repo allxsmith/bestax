@@ -272,15 +272,26 @@ $slider-vertical-height: 200px !default;
 }
 
 // --- Ticks ---
-// We overlay the ticks on the input by matching its position exactly.
-// The input is the first child in flow; ticks overlay it via the same
-// padding offset, then each tick centers itself on the track midpoint.
+// The ticks overlay a single slider's input, and each tick centers itself on
+// the line the ticks sit on. The input is the first child in flow, so its
+// track's bottom edge sits on the line's baseline, which with Bulma's type is
+// the top padding, half the default thumb and the default track down. Those
+// are the Sass defaults, not the theme's variables, since a theme that
+// changes the thumb or the track moves no baseline. A type that moves the
+// baseline, or a Sass build with other defaults, leaves the ticks off the
+// track (#2295). The track grows or
+// shrinks upward from that edge, so the ticks go up half its height from
+// there: the size's, which the sizes set as `--slider-size-track-height`, or
+// the theme's track height. A range slider and a vertical one place theirs
+// below.
 .#{iv.$class-prefix}slider-ticks {
   position: absolute;
   left: 0;
   right: 0;
-  // Match the input's track center: top padding + half thumb size + half track height.
-  top: calc(0.5rem + cv.getVar("slider-thumb-size") / 2 + cv.getVar("slider-track-height") / 2);
+  top: calc(
+    0.5rem + #{$slider-thumb-size} / 2 + #{$slider-track-height} -
+      var(--slider-size-track-height, #{cv.getVar("slider-track-height")}) / 2
+  );
   height: 0;
   pointer-events: none;
 }
@@ -381,6 +392,12 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // The track is centered in the slider, so its ticks are too. They hung
+  // below it, placed for the single slider's track (#2101).
+  .#{iv.$class-prefix}slider-ticks {
+    top: 50%;
+  }
+
   // Ensure the wrapper has enough height for thumbs
   min-height: cv.getVar("slider-thumb-size");
 }
@@ -397,7 +414,6 @@ $slider-vertical-height: 200px !default;
   .#{iv.$class-prefix}slider-input {
     writing-mode: vertical-lr;
     direction: rtl;
-    height: 100%;
     width: cv.getVar("slider-track-height");
     background: linear-gradient(
       to top,
@@ -406,6 +422,16 @@ $slider-vertical-height: 200px !default;
       cv.getVar("slider-track-color") var(--slider-progress, 0%),
       cv.getVar("slider-track-color") 100%
     );
+  }
+
+  // A size gives the input its track's height, a horizontal track's
+  // thickness, in rules that weigh as much as the one above and come later,
+  // so a vertical slider with a size shrank to that height when the rule
+  // above set it (#2293). A vertical input runs the slider's height at every
+  // size, so it's set here, where it outweighs them, as the vertical range
+  // slider's rule below does.
+  &:not(.#{iv.$class-prefix}is-range) .#{iv.$class-prefix}slider-input {
+    height: 100%;
   }
 
   // Vertical output tooltip — positioned via inline left/right style
@@ -494,8 +520,14 @@ $slider-vertical-height: 200px !default;
   }
 }
 
-// Sizes
+// Sizes. Each tells the ticks its track's height, which a single slider's
+// ticks are placed by (see Ticks, above). The small size tells a range
+// slider's thumbs their size too, which their target is grown from (see Range
+// thumbs' target, below).
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-small {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-small")};
+  --slider-size-thumb-size: #{cv.getVar("slider-thumb-size-small")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-small");
 
@@ -512,6 +544,8 @@ $slider-vertical-height: 200px !default;
 }
 
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-medium {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-medium")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-medium");
 
@@ -528,6 +562,8 @@ $slider-vertical-height: 200px !default;
 }
 
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-large {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-large")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-large");
 
@@ -596,6 +632,87 @@ $slider-vertical-height: 200px !default;
       height: calc(cv.getVar("slider-thumb-size-large") * 1.2);
     }
   }
+}
+
+// --- Range thumbs' target ---
+// A range slider's inputs take no presses, so its thumbs are its only
+// targets, and two of them can sit side by side, where spacing can't make up
+// for a thumb under WCAG 2.5.8's 24px minimum (#2195). So a thumb drawn
+// smaller than that takes presses on a box 24px square: it grows by a
+// transparent border, the band, and draws its circle inside it as before, the
+// ring an outline drawn inward where the border drew it, and the fill clipped
+// a pixel inside the ring, so none of it shows past the ring's edge. The
+// shadow is cast by the grown box, so it shows a little further out, and a
+// thumb travels the track less the box, so it stops the band short of each
+// end. The inputs keep their length, since a longer one would reach past the
+// slider's box, and the value bubble follows the box (`Slider.tsx`).
+// Chromium and Safari draw a thumb at its size, so the default and small
+// sizes' thumbs are banded. Firefox draws a thumb's border outside its width,
+// so only its small thumb, drawn 20px, is. A medium or large thumb is 24px or
+// more, and so is a circle thumb at the default size, so those are left as
+// they were. A sized circle thumb waits on #2324.
+$-banded: ".#{iv.$class-prefix}is-range:not(.#{iv.$class-prefix}is-circle):not(.#{iv.$class-prefix}is-medium):not(.#{iv.$class-prefix}is-large)";
+$-banded-moz: ".#{iv.$class-prefix}is-range.#{iv.$class-prefix}is-small:not(.#{iv.$class-prefix}is-circle)";
+$-input: ".#{iv.$class-prefix}slider-input.#{iv.$class-prefix}slider-input";
+
+.#{iv.$class-prefix}slider#{$-banded} {
+  --slider-thumb-drawn: var(--slider-size-thumb-size, #{cv.getVar("slider-thumb-size")});
+  --slider-thumb-band: max(0px, (24px - var(--slider-thumb-drawn)) / 2);
+
+  #{$-input} {
+    &::-webkit-slider-thumb {
+      width: calc(var(--slider-thumb-drawn) + 2 * var(--slider-thumb-band));
+      height: calc(var(--slider-thumb-drawn) + 2 * var(--slider-thumb-band));
+      padding: 1px;
+      border: var(--slider-thumb-band) solid transparent;
+      background-clip: content-box;
+      outline: 2px solid cv.getVar("slider-thumb-border");
+      outline-offset: calc(-2px - var(--slider-thumb-band));
+      transition-property: transform, outline-color, outline-width, outline-offset, box-shadow;
+    }
+
+    &::-webkit-slider-thumb:hover {
+      outline-color: cv.getVar("slider-fill-color");
+    }
+
+    // The focus ring ran 3px out from the circle, a spread shadow, which the
+    // grown box would push out by the band. Focused, the outline draws that
+    // ring from the circle's edge instead, and an inset shadow the circle's.
+    &:focus::-webkit-slider-thumb {
+      outline: 3px solid hsla(cv.getVar("primary-h"), cv.getVar("primary-s"), 50%, 0.3);
+      outline-offset: calc(-1 * var(--slider-thumb-band));
+      box-shadow: inset 0 0 0 2px cv.getVar("slider-fill-color");
+    }
+  }
+}
+
+// Firefox's thumb is its width, a pixel of padding and the 2px ring each side.
+.#{iv.$class-prefix}slider#{$-banded-moz} #{$-input} {
+  --slider-moz-thumb-band: max(0px, (20px - var(--slider-thumb-drawn)) / 2);
+
+  &::-moz-range-thumb {
+    width: calc(var(--slider-thumb-drawn) + 2px);
+    height: calc(var(--slider-thumb-drawn) + 2px);
+    padding: 1px;
+    border: var(--slider-moz-thumb-band) solid transparent;
+    background-clip: content-box;
+    outline: 2px solid cv.getVar("slider-thumb-border");
+    outline-offset: calc(-2px - var(--slider-moz-thumb-band));
+    transition-property: transform, outline-color, box-shadow;
+  }
+
+  &::-moz-range-thumb:hover,
+  &:focus::-moz-range-thumb {
+    outline-color: cv.getVar("slider-fill-color");
+  }
+}
+
+// A horizontal range slider's inputs stand 24px tall, as tall as the box its
+// thumbs press on, which is what axe measures of them. They're transparent
+// and take no presses, so it shows nothing. A vertical one's inputs paint its
+// track (#2325), so they keep their width.
+.#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range:not(.#{iv.$class-prefix}is-vertical) #{$-input} {
+  height: max(24px, var(--slider-size-track-height, #{cv.getVar("slider-track-height")}));
 }
 
 // High Contrast Mode support
@@ -670,6 +787,47 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // A range thumb draws its ring as an outline, inside the band that grows
+  // its target (see Range thumbs' target, above), so the ring takes the
+  // colors the other thumbs' border does here.
+  .#{iv.$class-prefix}slider#{$-banded} #{$-input} {
+    &::-webkit-slider-thumb,
+    &::-webkit-slider-thumb:hover {
+      outline-color: ButtonText;
+    }
+
+    &:focus::-webkit-slider-thumb {
+      outline: 2px solid Highlight;
+      outline-offset: calc(-2px - var(--slider-thumb-band));
+      box-shadow: none;
+    }
+  }
+
+  .#{iv.$class-prefix}slider#{$-banded-moz} #{$-input} {
+    &::-moz-range-thumb,
+    &::-moz-range-thumb:hover {
+      outline-color: ButtonText;
+    }
+
+    &:focus::-moz-range-thumb {
+      outline-color: Highlight;
+    }
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled#{$-banded} #{$-input} {
+    &::-webkit-slider-thumb,
+    &::-webkit-slider-thumb:hover {
+      outline-color: GrayText;
+    }
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled#{$-banded-moz} #{$-input} {
+    &::-moz-range-thumb,
+    &::-moz-range-thumb:hover {
+      outline-color: GrayText;
+    }
+  }
+
   // A disabled slider is drawn in GrayText, so its usual opacity would only
   // halve that, and in range mode only on the thumbs. It draws at full
   // strength here, the track and thumbs alike.
@@ -718,14 +876,13 @@ $slider-vertical-height: 200px !default;
   // across the track's band, sets it apart from the track and from the fill
   // alike. It's half the line's width, so close ticks still leave most of
   // the track showing, and the band is the default track's height, centered
-  // on the tick as the ticks are centered on that track. Forced colors drops
+  // on the tick as the tick is centered on the track. Forced colors drops
   // a gradient, so the tick opts out and paints its line from its color,
   // GrayText while disabled, and its label goes back to the user's palette.
-  // A horizontal range slider's ticks hang below its track (#2101), so they
-  // keep the plain line; its `:not()` goes once they cross it.
-  .#{iv.$class-prefix}slider:not(.#{iv.$class-prefix}is-range)
-    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint),
-  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+  // A range slider's ticks cross its track too, so every slider gets it.
+  // `has-ticks`, on every slider that draws a tick, weighs it as much as the
+  // disabled line's rule above, which it follows, so it's drawn there too.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}has-ticks
     .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
     forced-color-adjust: none;
     background:

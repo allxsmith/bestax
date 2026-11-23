@@ -73,7 +73,8 @@ const SCHEMES: Record<string, Vars> = schemesOf(
 
 const PANEL = compile(`@use 'bulma/sass/components/panel';`);
 const PANEL_RULES = topRules(PANEL);
-const PARTIAL = varsOn(topRules(partial()), '.panel');
+const PARTIAL_RULES = topRules(partial());
+const PARTIAL = varsOn(PARTIAL_RULES, '.panel');
 
 /** The heading's colors, as Bulma's `.panel-heading` writes them. */
 const HEADING = {
@@ -445,7 +446,7 @@ describe('Panel active block contrast', () => {
    */
   const cue = (scheme: string, color: string, withPartial = true) => {
     const partialVars = varsOn(
-      topRules(partial()),
+      PARTIAL_RULES,
       `.panel.is-${color}.has-text-${color}`
     );
     return substitute(

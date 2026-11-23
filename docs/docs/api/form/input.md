@@ -186,8 +186,14 @@ Add icons via the `iconLeftName` / `iconRightName` shortcuts on `<Input>`.
 
 ```tsx live
 <>
-  <Input iconLeftName="user" iconRightName="check" placeholder="With icons" />
   <Input
+    label="Username"
+    iconLeftName="user"
+    iconRightName="check"
+    placeholder="With icons"
+  />
+  <Input
+    label="Email"
     iconLeftName="envelope"
     iconRightName="exclamation-triangle"
     placeholder="Another input"
@@ -204,6 +210,7 @@ Match the input size to the icon size via the `size` + `iconLeftSize` / `iconRig
 ```tsx live
 <>
   <Input
+    label="Small"
     size="small"
     iconLeftName="user"
     iconLeftSize="small"
@@ -212,11 +219,13 @@ Match the input size to the icon size via the `size` + `iconLeftSize` / `iconRig
     placeholder="Icons left/right small"
   />
   <Input
+    label="Normal"
     iconLeftName="user"
     iconRightName="check"
     placeholder="Icons left/right normal"
   />
   <Input
+    label="Medium"
     size="medium"
     iconLeftName="user"
     iconLeftSize="medium"
@@ -225,6 +234,7 @@ Match the input size to the icon size via the `size` + `iconLeftSize` / `iconRig
     placeholder="Icons left/right medium"
   />
   <Input
+    label="Large"
     size="large"
     iconLeftName="user"
     iconLeftSize="large"
@@ -291,18 +301,20 @@ A field the design shows with no label still needs one for screen readers. Keep 
 
 For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.
 
-A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: an `aria-label`, as these examples do, or a visible label on an outer `Field`, as [Copy Button](#copy-button) does.
+A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: a visible label on an outer `Field`, wired to it with `labelProps={{ htmlFor }}` and a matching `id`, as these examples do, or an `aria-label`, as the country code `Select` below has.
 
 #### Input + Button
 
 ```tsx live
-<Field hasAddons>
-  <Control isExpanded>
-    <Input placeholder="Find a repository" aria-label="Find a repository" />
-  </Control>
-  <Control>
-    <Button color="info">Search</Button>
-  </Control>
+<Field label="Repository" labelProps={{ htmlFor: 'addons-repository' }}>
+  <Field hasAddons>
+    <Control isExpanded>
+      <Input id="addons-repository" placeholder="Find a repository" />
+    </Control>
+    <Control>
+      <Button color="info">Search</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
@@ -311,40 +323,44 @@ A `hasAddons` Field names none of the controls it holds, and a placeholder disap
 A static button draws a fixed prefix or suffix, such as an email domain. `isStatic` only styles it, so render it `as="span"`, which Tab skips and a screen reader reads as text.
 
 ```tsx live
-<Field hasAddons>
-  <Control isExpanded>
-    <Input placeholder="Your email" aria-label="Email username" />
-  </Control>
-  <Control>
-    <Button as="span" isStatic>
-      @gmail.com
-    </Button>
-  </Control>
+<Field label="Email" labelProps={{ htmlFor: 'addons-email-username' }}>
+  <Field hasAddons>
+    <Control isExpanded>
+      <Input id="addons-email-username" placeholder="Your email" />
+    </Control>
+    <Control>
+      <Button as="span" isStatic>
+        @gmail.com
+      </Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
 #### Select + Input + Button
 
 ```tsx live
-<Field hasAddons>
-  <Control>
-    <Select autoComplete="tel-country-code" aria-label="Country code">
-      <option>+1</option>
-      <option>+44</option>
-      <option>+33</option>
-    </Select>
-  </Control>
-  <Control isExpanded>
-    <Input
-      autoComplete="tel-national"
-      type="tel"
-      placeholder="Your phone number"
-      aria-label="Phone number"
-    />
-  </Control>
-  <Control>
-    <Button color="primary">Call</Button>
-  </Control>
+<Field label="Phone number" labelProps={{ htmlFor: 'addons-phone' }}>
+  <Field hasAddons>
+    <Control>
+      <Select autoComplete="tel-country-code" aria-label="Country code">
+        <option>+1</option>
+        <option>+44</option>
+        <option>+33</option>
+      </Select>
+    </Control>
+    <Control isExpanded>
+      <Input
+        autoComplete="tel-national"
+        id="addons-phone"
+        type="tel"
+        placeholder="Your phone number"
+      />
+    </Control>
+    <Control>
+      <Button color="primary">Call</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
@@ -509,13 +525,15 @@ Use `<Field grouped>` to lay multiple controls out on a single row with consiste
 #### Expanded Input + Button
 
 ```tsx live
-<Field grouped>
-  <Control isExpanded>
-    <Input placeholder="Find a repository" aria-label="Find a repository" />
-  </Control>
-  <Control>
-    <Button color="info">Search</Button>
-  </Control>
+<Field label="Repository" labelProps={{ htmlFor: 'grouped-repository' }}>
+  <Field grouped>
+    <Control isExpanded>
+      <Input id="grouped-repository" placeholder="Find a repository" />
+    </Control>
+    <Control>
+      <Button color="info">Search</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 

@@ -52,6 +52,11 @@ const meta: Meta<typeof Carousel> = {
       control: 'boolean',
       description: 'Pause auto-play on hover',
     },
+    rotationControl: {
+      control: 'boolean',
+      description:
+        'Show a button that stops auto-play until pressed again, first in the tab order. Turn it on with autoplay. Default: false',
+    },
     repeat: {
       control: 'boolean',
       description: 'Loop back to first slide after last',
@@ -169,7 +174,7 @@ const meta: Meta<typeof Carousel> = {
     labels: {
       control: false,
       description:
-        'The words it writes for its arrows, indicators and items, for another language: previous, next, indicator(slide) and item(current, total). English unless given',
+        'The words it writes for its arrows, indicators, items and rotation button, for another language: stopRotation, startRotation, previous, next, indicator(slide) and item(current, total). English unless given',
     },
   },
 };
@@ -239,6 +244,36 @@ export const Autoplay: Story = {
           while focus is in it.
         </Paragraph>
         <Carousel autoplay interval={3000}>
+          {heroColors.map((color, i) => (
+            <CarouselItem key={i}>
+              <Hero color={color} size="medium">
+                <Hero.Body textAlign="centered">
+                  <Title as="p">
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </Title>
+                </Hero.Body>
+              </Hero>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * Auto-playing carousel with `rotationControl`, whose button at the top stops
+ * it until pressed again. Turn it on whenever you use autoplay.
+ */
+export const RotationControl: Story = {
+  render: function RotationControlExample() {
+    return (
+      <Block p="5">
+        <Paragraph mb="4" className="help">
+          Auto-advances every 3 seconds. The button at its top stops it until
+          pressed again.
+        </Paragraph>
+        <Carousel autoplay interval={3000} rotationControl>
           {heroColors.map((color, i) => (
             <CarouselItem key={i}>
               <Hero color={color} size="medium">

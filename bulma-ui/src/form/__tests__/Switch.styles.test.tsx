@@ -96,7 +96,7 @@ const outranks = (a: number[], b: number[]) => {
 };
 
 /**
- * The value `property` gets on `el`, or on its `::before` (the knob), from
+ * The value `property` gets on `el`, or on a pseudo-element of it, from
  * the rules: the most specific matching rule, the later one on a tie. Forced
  * colors adds the rules in its media block, and an OS scheme the rules in its
  * `prefers-color-scheme` block; every other media block is left out. jsdom
@@ -112,7 +112,7 @@ function resolveIn(
     forcedColors = false,
     scheme,
   }: {
-    pseudo?: '::before';
+    pseudo?: '::before' | '::after';
     forcedColors?: boolean;
     scheme?: 'light' | 'dark';
   } = {}
@@ -320,6 +320,68 @@ describe.each([
         ).toBe('transparent');
       }
     );
+  });
+
+  // A small switch drew its track 18px tall, and a thin one with no text was
+  // only as tall as its track, under WCAG 2.5.8's 24px minimum target
+  // (#1972). The label is the target, so a transparent band on its `::after`,
+  // right below it, makes up the rest of the 24px, and nothing else moves.
+  describe('the hit area', () => {
+    const switchOf = (props: SwitchProps) =>
+      renderSwitch(props).querySelector(`.${prefix}switch`) as HTMLElement;
+    const band = (el: Element, property: string) =>
+      resolve(el, property, { pseudo: '::after' });
+
+    it.each([
+      ['a default', {}],
+      ['a small', { size: 'small' }],
+      ['a thin', { isThin: true }],
+      ['a small thin', { size: 'small', isThin: true }],
+      ['a small label-first', { size: 'small', isRtl: true }],
+    ] as const)(
+      'gives %s switch a band right below it, as wide as it, to make 24px',
+      (_style, props) => {
+        const label = switchOf(props);
+        expect(resolve(label, 'position')).toBe('relative');
+        expect(band(label, 'content')).toBe('""');
+        expect(band(label, 'position')).toBe('absolute');
+        expect(band(label, 'top')).toBe('100%');
+        expect(band(label, 'left')).toBe('0px');
+        expect(band(label, 'width')).toBe('100%');
+        // The sheet says `24px - 100%`, which jsdom writes the other way round.
+        expect(band(label, 'height')).toBe('max(0px, -100% + 24px)');
+        expect(band(label, 'transform')).toBeUndefined();
+      }
+    );
+
+    it('draws nothing in the band, in or out of forced colors', () => {
+      const label = switchOf({ size: 'small', checked: true });
+      for (const forcedColors of [false, true]) {
+        for (const property of [
+          'background',
+          'background-color',
+          'border',
+          'box-shadow',
+          'outline',
+        ]) {
+          expect(
+            resolve(label, property, { pseudo: '::after', forcedColors })
+          ).toBeUndefined();
+        }
+      }
+    });
+
+    it('sets the band outside every media query, and nothing on the label above or over it', () => {
+      const on = (pseudo: string) =>
+        RULES.filter(
+          ({ selector }) => selector === `.${prefix}switch${pseudo}`
+        );
+      expect(on('::after').map(({ media }) => media)).toEqual(['']);
+      // A box reaching up would cover a switch or control right above, which
+      // paints before it, and one over the label would cover a link in the
+      // text.
+      expect(on('::before')).toEqual([]);
+    });
   });
 
   describe('the knob', () => {

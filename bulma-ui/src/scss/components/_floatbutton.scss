@@ -46,11 +46,15 @@ $float-button-actions-gap: 0.5rem !default;
 }
 
 // The shadow lifts it off the page. Bulma's focus ring takes its place while
-// it has focus, and a disabled button keeps Bulma's flat look. Forced colors
-// drop the shadow, and the button's border and icon stay.
+// it has focus, and a disabled button keeps Bulma's flat look, a link with
+// `isDisabled`, which has `is-disabled` and `aria-disabled` and no attribute,
+// included, as `_button.scss` draws it. Forced colors drop the shadow, and the
+// button's border and icon stay.
 .#{iv.$class-prefix}button.#{iv.$class-prefix}float-button:not(
     :focus-visible
-  ):not(.#{iv.$class-prefix}is-focused):not([disabled]) {
+  ):not(.#{iv.$class-prefix}is-focused):not([disabled]):not(
+    .#{iv.$class-prefix}is-disabled[aria-disabled="true"]
+  ) {
   box-shadow: cv.getVar('float-button-shadow');
 }
 

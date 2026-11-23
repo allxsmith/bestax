@@ -233,7 +233,9 @@ lone class loses to and `style` does not. Each component's API page lists its va
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
 edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
 In forced colors bestax's CSS sets `--bulma-button-disabled-opacity` to `1` on each button, so what
-Bulma dims with it draws at full strength there.
+dims with it draws at full strength there. Bulma's `--bulma-button-disabled-*` variables also draw
+a link `Button` with `isDisabled`, which bestax's CSS draws the way Bulma draws a disabled
+`<button>`, so overriding one restyles both.
 
 ## Shadow — override the upstream token, not the derived one
 
@@ -408,6 +410,10 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background`,
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
+
+The `--bulma-carousel-arrow-*` and `--bulma-carousel-overlay-arrow-*` variables also draw the
+button `rotationControl` shows to stop autoplay, at the top center of the slides, or the bottom
+center while the indicators sit over the slides at the top.
 
 At their default sizes the indicators sit at least 24px apart, center to center, the spacing WCAG
 asks for around a target smaller than 24px. `--bulma-carousel-indicator-gap` and
@@ -1139,6 +1145,11 @@ colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacit
 system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
 has a hairline in the page's color as long as `--bulma-slider-track-height`.
 
+At the stock thumb sizes, a range Slider's thumb at the default or small size (not a circle one)
+takes presses on a box 24px square around the circle it draws. There `--bulma-slider-thumb-border`
+draws the ring as an outline inside that box, and `--bulma-slider-thumb-shadow` is cast by the box,
+so a shadow starts a little further out than the circle's edge.
+
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
@@ -1397,8 +1408,9 @@ full-page Loading, takes the page's scrollbar away and pads `<html>` by the room
 page doesn't shift. An element fixed to the window is placed against the window, which grows by
 that room, so the padding doesn't reach it. While the lock is on, it sets the room it padded on
 `<html>` as `--bulma-scroll-lock-offset-right`, or `--bulma-scroll-lock-offset-left` where the
-scrollbar was on the left. A `fixed` Navbar, the toast and notification stacks and an Affix add
-them to their offsets, so they stay put. A fixed element of the app's own does the same, with a
+scrollbar was on the left. A `fixed` Navbar, or one Bulma's `-touch` or `-desktop` fixed classes
+fix at their breakpoint, the toast and notification stacks and an Affix add them to their offsets,
+so they stay put. A fixed element of the app's own does the same, with a
 `0px` fallback for when no lock is on:
 
 ```css

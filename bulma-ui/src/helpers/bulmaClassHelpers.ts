@@ -174,13 +174,14 @@ export const validAlignments = [
 
 /**
  * Valid Bulma text transformation classes.
- * @example 'capitalized', 'uppercase', 'italic'
+ * @example 'capitalized', 'uppercase', 'italic', 'underlined'
  */
 export const validTextTransforms = [
   'capitalized',
   'lowercase',
   'uppercase',
   'italic',
+  'underlined',
 ] as const;
 
 /**

@@ -256,6 +256,179 @@ describe('Slider in the cascade', () => {
   });
 });
 
+// A range slider's ticks were placed for a single slider's track, so they hung
+// below the range track (#2101), and a single slider of another size had its
+// ticks placed for the default track, a pixel or two off its own. jsdom works
+// out no layout, so this reads where the cascade puts the ticks: a range
+// slider's at the middle, where its track is centred, and a single slider's
+// up half its own track from the default track's bottom edge.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider ticks on the track, with %s', (_label, prefix) => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const ticksOf = (ui: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    return {
+      slider: container.querySelector(`.${prefix}slider`) as HTMLElement,
+      ticks: container.querySelector(`.${prefix}slider-ticks`) as HTMLElement,
+    };
+  };
+
+  it.each([
+    ['default', undefined],
+    ['small', 'small'],
+    ['medium', 'medium'],
+    ['large', 'large'],
+  ] as const)(
+    'centres a %s range slider’s ticks on its track',
+    (_name, size) => {
+      const { slider, ticks } = ticksOf(
+        <Slider range ticks step={10} defaultValue={[20, 70]} size={size} />
+      );
+      // The track is centred in the slider, and the ticks sit there too, both
+      // placed against the slider itself.
+      const track = slider.querySelector(`.${prefix}slider-track`)!;
+      expect(track.parentElement).toBe(slider);
+      expect(ticks.parentElement).toBe(slider);
+      expect(getComputedStyle(slider).position).toBe('relative');
+      expect(getComputedStyle(track).top).toBe('50%');
+      expect(getComputedStyle(track).transform).toBe('translateY(-50%)');
+      expect(getComputedStyle(ticks).top).toBe('50%');
+    }
+  );
+
+  it('leaves a vertical range slider’s ticks along its track', () => {
+    const { ticks } = ticksOf(
+      <Slider range ticks step={10} orientation="vertical" />
+    );
+    expect(getComputedStyle(ticks).top).toBe('0px');
+  });
+
+  it('places a single slider’s ticks half its track up from the default track’s bottom edge', () => {
+    // That edge is the line's baseline, which a theme's thumb or track
+    // doesn't move, so it's written from the Sass defaults rather than the
+    // theme's variables. The half track is the theme's.
+    const { ticks } = ticksOf(<Slider ticks step={10} />);
+    expect(getComputedStyle(ticks).top.replace(/\s+/g, ' ')).toBe(
+      'calc(0.5rem + 1.25rem / 2 + 0.5rem - var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
+    );
+  });
+
+  it.each([
+    ['default', undefined, ''],
+    ['small', 'small', 'var(--bulma-slider-track-height-small)'],
+    ['medium', 'medium', 'var(--bulma-slider-track-height-medium)'],
+    ['large', 'large', 'var(--bulma-slider-track-height-large)'],
+  ] as const)(
+    'places a %s single slider’s ticks by the height its track is drawn at',
+    (_name, size, height) => {
+      const { slider, ticks } = ticksOf(<Slider ticks step={10} size={size} />);
+      const own = getComputedStyle(slider).getPropertyValue(
+        '--slider-size-track-height'
+      );
+      expect(own).toBe(height);
+      // The ticks go up half that height from the bottom edge, falling back
+      // to the default track's, and the input the track is drawn on is that
+      // height.
+      expect(getComputedStyle(ticks).top.replace(/\s+/g, ' ')).toContain(
+        '- var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
+      );
+      const input = slider.querySelector(`.${prefix}slider-input`)!;
+      expect(getComputedStyle(input).height).toBe(
+        own || 'var(--bulma-slider-track-height)'
+      );
+    }
+  );
+});
+
+// A size gives the input its track's height, a horizontal track's thickness,
+// in rules that tied with the vertical slider's `height: 100%` and came
+// later, so a vertical slider with a size shrank to a few pixels (#2293).
+// jsdom works out no layout, so this reads the height the cascade gives the
+// input, with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider input height by orientation and size, with %s', (_label, prefix) => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const heightsOf = (ui: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    return Array.from(
+      container.querySelectorAll(`.${prefix}slider-input`),
+      input => getComputedStyle(input).height
+    );
+  };
+
+  const sizes = [
+    ['default', undefined],
+    ['small', 'small'],
+    ['medium', 'medium'],
+    ['large', 'large'],
+  ] as const;
+
+  it.each(sizes)(
+    'runs a %s vertical slider’s input the slider’s height',
+    (_name, size) => {
+      expect(
+        heightsOf(
+          <Slider aria-label="Level" orientation="vertical" size={size} />
+        )
+      ).toEqual(['100%']);
+      expect(
+        heightsOf(
+          <Slider range aria-label="Level" orientation="vertical" size={size} />
+        )
+      ).toEqual(['100%', '100%']);
+    }
+  );
+
+  it.each(sizes)(
+    'keeps a %s horizontal slider’s input its track’s height',
+    (_name, size) => {
+      expect(heightsOf(<Slider aria-label="Level" size={size} />)).toEqual([
+        size
+          ? `var(--bulma-slider-track-height-${size})`
+          : 'var(--bulma-slider-track-height)',
+      ]);
+    }
+  );
+});
+
 // Forced colors turns the value bubble's fill into the page's and paints every
 // side of its arrow, which then draws as a square (#1502). jsdom evaluates no
 // media query, so the rules are read off the compiled sheet, with no prefix
@@ -341,7 +514,7 @@ describe.each([
       .map(({ rule }) => rule.selectorText.split(/\s*,\s*/).join(', '));
     const track = `${p('slider')}${p('is-range')} ${p('slider-track')}`;
     const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
-    const ticks = `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`;
+    const ticks = `${p('slider')}${p('has-ticks')} ${line}`;
     expect(optedOut).toEqual([
       `${p('slider-input')}, ${track}`,
       ticks,
@@ -501,12 +674,12 @@ describe.each([
     // The track is drawn in CanvasText, which most contrast themes make the
     // same color as ButtonText, the line's, so the line merged into the track
     // where it crossed it (#2032). A Canvas hairline, half the line's width
-    // and the track's height, now runs down its middle. Every slider but a
-    // horizontal range one gets it, since that one's ticks hang below its
-    // track (#2101). jsdom drops a gradient, so it's read from the compiled
-    // sheet, with its whitespace collapsed.
+    // and the track's height, now runs down its middle. Every slider with
+    // ticks gets it, a range one too since its ticks cross its track
+    // (#2101). jsdom drops a gradient, so it's read from the compiled sheet,
+    // with its whitespace collapsed.
     const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
-    const across = `${p('slider')}:not(${p('is-range')}) ${line}`;
+    const across = `${p('slider')}${p('has-ticks')} ${line}`;
     const vertical = `${p('slider')}${p('is-vertical')} ${line}`;
     const flat = compiled.replace(/\s+/g, ' ');
     const block = (selector: string) => {
@@ -515,15 +688,15 @@ describe.each([
       return flat.slice(at, flat.indexOf('}', at));
     };
     const band = 'var(--bulma-slider-track-height)';
-    expect(block(`${across}, ${vertical}`)).toContain(
+    expect(block(across)).toContain(
       `background: linear-gradient(Canvas, Canvas) center/50% ${band} no-repeat, currentColor;`
     );
     expect(block(vertical)).toContain(`background-size: ${band} 50%;`);
+    // No slider is left out of it, the range one included.
+    expect(flat).not.toContain(`:not(${p('is-range')}) ${line}`);
     // Forced colors drops a gradient unless the tick opts out. The line is
     // painted from the tick's color, ButtonText, or GrayText while disabled.
-    expect(
-      values(`${across}, ${vertical}`, 'forced-color-adjust', [FORCED])
-    ).toEqual(['none']);
+    expect(values(across, 'forced-color-adjust', [FORCED])).toEqual(['none']);
     expect(
       values(p('slider-tick'), 'color', [FORCED]).map(v => v.toLowerCase())
     ).toEqual(['buttontext']);
@@ -548,7 +721,7 @@ describe.each([
     const label = p('slider-tick-label');
     expect(
       values(
-        `${p('slider')}:not(${p('is-range')}) ${line} ${label}, ${p('slider')}${p('is-vertical')} ${line} ${label}`,
+        `${p('slider')}${p('has-ticks')} ${line} ${label}`,
         'forced-color-adjust',
         [FORCED]
       )
@@ -563,9 +736,7 @@ describe.each([
           r.within.join() === FORCED &&
           oneLine(r.rule.selectorText) === selector
       );
-    const hairline = at(
-      `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`
-    );
+    const hairline = at(`${p('slider')}${p('has-ticks')} ${line}`);
     const plain = at(`${p('slider')}${p('is-disabled')} ${line}`);
     expect(plain).toBeGreaterThan(-1);
     expect(hairline).toBeGreaterThan(plain);
@@ -610,5 +781,300 @@ describe.each([
           r.rule.style.getPropertyValue('opacity')
       );
     expect(at([FORCED])).toBeGreaterThan(at([]));
+  });
+});
+
+// A range slider's inputs take no presses, so its thumbs are its only targets,
+// and two can sit side by side, so each needs a 24px target of its own
+// (#2195). A thumb drawn smaller grows by a transparent band and draws its
+// circle inside it. jsdom draws nothing and keeps no pseudo-elements, so this
+// reads the rules off the compiled sheet and checks which sliders they reach
+// in jsdom's cascade.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('A range Slider thumb’s target, with %s', (_label, prefix) => {
+  const FORCED = '@media (forced-colors: active)';
+  const p = (name: string) => `.${prefix}${name}`;
+  const compiled = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+  /**
+   * Every style rule in Sass's expanded output, with the at-rules around it,
+   * and its declarations as written. jsdom's CSSOM can drop a value it doesn't
+   * parse, a `var()` in a shorthand among them, so the text is read as is.
+   */
+  const rules = (() => {
+    const out: {
+      within: string[];
+      selector: string;
+      decls: Record<string, string>;
+    }[] = [];
+    const open: (string | (typeof out)[number])[] = [];
+    let buffer = '';
+    for (const char of compiled.replace(/\/\*[\s\S]*?\*\//g, '')) {
+      if (char === '{') {
+        const head = buffer.replace(/\s+/g, ' ').trim();
+        buffer = '';
+        if (head.startsWith('@')) open.push(head);
+        else {
+          const rule = {
+            within: open.filter((o): o is string => typeof o === 'string'),
+            selector: head,
+            decls: {},
+          };
+          out.push(rule);
+          open.push(rule);
+        }
+      } else if (char === '}') {
+        const closed = open.pop();
+        if (closed && typeof closed !== 'string') {
+          for (const decl of buffer.split(';')) {
+            const at = decl.indexOf(':');
+            if (at < 0) continue;
+            closed.decls[decl.slice(0, at).trim()] = decl
+              .slice(at + 1)
+              .replace(/\s+/g, ' ')
+              .trim();
+          }
+        }
+        buffer = '';
+      } else buffer += char;
+    }
+    return out;
+  })();
+
+  /** The declarations of the one rule for exactly `selector`, at the top level or in `within`. */
+  const decls = (selector: string, within: string[] = []) => {
+    const found = rules.filter(
+      r =>
+        r.within.join() === within.join() &&
+        r.selector.split(/\s*,\s*/).join(', ') === selector
+    );
+    expect(found).toHaveLength(1);
+    return found[0].decls;
+  };
+
+  const banded = `${p('slider')}${p('is-range')}:not(${p('is-circle')}):not(${p('is-medium')}):not(${p('is-large')})`;
+  const thumbOf = `${banded} ${p('slider-input')}${p('slider-input')}`;
+  // Firefox draws its thumb's border outside its width, so only its small
+  // thumb, drawn 20px, needs the band there.
+  const bandedMoz = `${p('slider')}${p('is-range')}${p('is-small')}:not(${p('is-circle')})`;
+  const mozThumbOf = `${bandedMoz} ${p('slider-input')}${p('slider-input')}`;
+  const inputs = `${p('slider')}${p('is-range')}:not(${p('is-vertical')}) ${p('slider-input')}${p('slider-input')}`;
+
+  it('has the small size tell the thumbs their size, as it tells the ticks its track', () => {
+    expect(
+      decls(`${p('slider')}${p('is-small')}`)['--slider-size-thumb-size']
+    ).toBe('var(--bulma-slider-thumb-size-small)');
+    // Medium and large thumbs get no band, so nothing reads theirs.
+    for (const size of ['medium', 'large']) {
+      expect(
+        decls(`${p('slider')}${p(`is-${size}`)}`)['--slider-size-thumb-size']
+      ).toBeUndefined();
+    }
+  });
+
+  it('bands a thumb by half of what its drawn size falls short of 24px', () => {
+    expect(decls(banded)).toEqual({
+      '--slider-thumb-drawn':
+        'var(--slider-size-thumb-size, var(--bulma-slider-thumb-size))',
+      '--slider-thumb-band': 'max(0px, (24px - var(--slider-thumb-drawn)) / 2)',
+    });
+  });
+
+  it('grows a WebKit thumb by the band and draws its circle inside it', () => {
+    expect(decls(`${thumbOf}::-webkit-slider-thumb`)).toEqual({
+      width: 'calc(var(--slider-thumb-drawn) + 2 * var(--slider-thumb-band))',
+      height: 'calc(var(--slider-thumb-drawn) + 2 * var(--slider-thumb-band))',
+      padding: '1px',
+      border: 'var(--slider-thumb-band) solid transparent',
+      'background-clip': 'content-box',
+      outline: '2px solid var(--bulma-slider-thumb-border)',
+      'outline-offset': 'calc(-2px - var(--slider-thumb-band))',
+      // The ring's colour fades on hover, and the halo grows in on focus, as
+      // the border and the spread shadow did.
+      'transition-property':
+        'transform, outline-color, outline-width, outline-offset, box-shadow',
+    });
+  });
+
+  it('grows a small Firefox thumb by its own band, to the same 24px', () => {
+    // Its width, a pixel of padding and the 2px ring each side make the 20px
+    // it's drawn, so its band is half of what that falls short of 24px.
+    expect(decls(mozThumbOf)).toEqual({
+      '--slider-moz-thumb-band':
+        'max(0px, (20px - var(--slider-thumb-drawn)) / 2)',
+    });
+    expect(decls(`${mozThumbOf}::-moz-range-thumb`)).toEqual({
+      width: 'calc(var(--slider-thumb-drawn) + 2px)',
+      height: 'calc(var(--slider-thumb-drawn) + 2px)',
+      padding: '1px',
+      border: 'var(--slider-moz-thumb-band) solid transparent',
+      'background-clip': 'content-box',
+      outline: '2px solid var(--bulma-slider-thumb-border)',
+      'outline-offset': 'calc(-2px - var(--slider-moz-thumb-band))',
+      'transition-property': 'transform, outline-color, box-shadow',
+    });
+  });
+
+  it('rings a hovered thumb in the fill color', () => {
+    expect(decls(`${thumbOf}::-webkit-slider-thumb:hover`)).toEqual({
+      'outline-color': 'var(--bulma-slider-fill-color)',
+    });
+    expect(
+      decls(
+        `${mozThumbOf}::-moz-range-thumb:hover, ${mozThumbOf}:focus::-moz-range-thumb`
+      )
+    ).toEqual({ 'outline-color': 'var(--bulma-slider-fill-color)' });
+  });
+
+  it('keeps a focused thumb’s 3px halo at the circle’s edge, and its ring in the fill color', () => {
+    // The halo was a spread shadow, which the grown box would push out by
+    // the band, so the outline draws it from the circle's edge instead.
+    expect(decls(`${thumbOf}:focus::-webkit-slider-thumb`)).toEqual({
+      outline:
+        '3px solid hsla(var(--bulma-primary-h), var(--bulma-primary-s), 50%, 0.3)',
+      'outline-offset': 'calc(-1 * var(--slider-thumb-band))',
+      'box-shadow': 'inset 0 0 0 2px var(--bulma-slider-fill-color)',
+    });
+  });
+
+  it('stands a horizontal range slider’s inputs 24px tall, and keeps their length', () => {
+    // A longer input would reach past the slider's box, so a thumb stops the
+    // band short of each end instead.
+    expect(decls(inputs)).toEqual({
+      height:
+        'max(24px, var(--slider-size-track-height, var(--bulma-slider-track-height)))',
+    });
+  });
+
+  it('draws the ring in the system’s colors in forced colors', () => {
+    const forced = (selector: string) => decls(selector, [FORCED]);
+    const off = (scope: string) =>
+      `${scope.replace(p('slider'), `${p('slider')}${p('is-disabled')}`)} ${p('slider-input')}${p('slider-input')}`;
+    expect(
+      forced(
+        `${thumbOf}::-webkit-slider-thumb, ${thumbOf}::-webkit-slider-thumb:hover`
+      )
+    ).toEqual({ 'outline-color': 'ButtonText' });
+    expect(
+      forced(
+        `${mozThumbOf}::-moz-range-thumb, ${mozThumbOf}::-moz-range-thumb:hover`
+      )
+    ).toEqual({ 'outline-color': 'ButtonText' });
+    const webkitOff = off(banded);
+    expect(
+      forced(
+        `${webkitOff}::-webkit-slider-thumb, ${webkitOff}::-webkit-slider-thumb:hover`
+      )
+    ).toEqual({ 'outline-color': 'GrayText' });
+    const mozOff = off(bandedMoz);
+    expect(
+      forced(`${mozOff}::-moz-range-thumb, ${mozOff}::-moz-range-thumb:hover`)
+    ).toEqual({ 'outline-color': 'GrayText' });
+    // Focused, the ring is the outline again, in Highlight, with no halo.
+    expect(forced(`${thumbOf}:focus::-webkit-slider-thumb`)).toEqual({
+      outline: '2px solid Highlight',
+      'outline-offset': 'calc(-2px - var(--slider-thumb-band))',
+      'box-shadow': 'none',
+    });
+    expect(forced(`${mozThumbOf}:focus::-moz-range-thumb`)).toEqual({
+      'outline-color': 'Highlight',
+    });
+  });
+
+  describe('in the cascade', () => {
+    let sheet: HTMLStyleElement;
+    beforeAll(() => {
+      sheet = document.createElement('style');
+      sheet.textContent = compiled;
+      document.head.appendChild(sheet);
+    });
+    afterAll(() => sheet.remove());
+
+    const sliderOf = (ui: ReactElement) =>
+      render(
+        <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+      ).container.querySelector(p('slider')) as HTMLElement;
+
+    it.each([
+      [
+        'a default range slider',
+        <Slider key="d" range tooltip="always" />,
+        true,
+      ],
+      [
+        'a small one',
+        <Slider key="s" range size="small" tooltip="always" />,
+        true,
+      ],
+      [
+        'a vertical one',
+        <Slider key="v" range orientation="vertical" tooltip="always" />,
+        true,
+      ],
+      [
+        'a medium one',
+        <Slider key="m" range size="medium" tooltip="always" />,
+        false,
+      ],
+      [
+        'a large one',
+        <Slider key="l" range size="large" tooltip="always" />,
+        false,
+      ],
+      [
+        'a circle one',
+        <Slider key="c" range isCircle tooltip="always" />,
+        false,
+      ],
+      ['a single slider', <Slider key="1" tooltip="always" />, false],
+    ])('bands the thumbs of %s: %s', (_name, ui, bands) => {
+      const slider = sliderOf(ui);
+      expect(slider.matches(banded)).toBe(bands);
+      // The value bubble is placed by the box exactly where the stylesheet
+      // gives the thumbs one, so `Slider.tsx` and this partial agree.
+      for (const output of Array.from(
+        slider.querySelectorAll<HTMLElement>(p('slider-output'))
+      )) {
+        const at = output.style.insetInlineStart || output.style.bottom || '';
+        expect(at.includes('max(24px')).toBe(bands);
+      }
+      // Firefox's band reaches the small one alone.
+      expect(slider.matches(bandedMoz)).toBe(
+        bands && slider.matches(p('is-small'))
+      );
+      for (const input of Array.from(
+        slider.querySelectorAll(p('slider-input'))
+      )) {
+        expect(input.matches(thumbOf)).toBe(bands);
+      }
+    });
+
+    it.each([
+      ['a range slider', <Slider key="r" range />, true],
+      ['a circle range slider', <Slider key="c" range isCircle />, true],
+      [
+        'a vertical range slider',
+        <Slider key="v" range orientation="vertical" />,
+        false,
+      ],
+      ['a single slider', <Slider key="1" />, false],
+    ])('stands the inputs of %s 24px tall: %s', (_name, ui, grows) => {
+      const slider = sliderOf(ui);
+      for (const input of Array.from(
+        slider.querySelectorAll(p('slider-input'))
+      )) {
+        expect(input.matches(inputs)).toBe(grows);
+      }
+    });
   });
 });

@@ -76,7 +76,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   panel without a `Popover.Header` needs `ariaLabel`),
   `HoverCard trigger={<Link href="…">…</Link>}` for a preview on hover or keyboard focus
   (`trigger` is one link or button, cloned the same way; the card's content goes straight in as
-  children with no sub-components; a trigger inside a `Paragraph` needs `appendToBody`; hover
+  children with no sub-components; a trigger inside a `Paragraph` needs `appendToBody`, and a
+  link trigger there `textTransform="underlined"`; hover
   and focus only unless `openOnTap` is set, which suits only a trigger with no tap action of its
   own, such as a `Button` with no `onClick`; on touch a link trigger just follows the link, so
   what the card shows must be on that page too, and a form is a `Popover`),
@@ -247,6 +248,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
+- A `Link` inside running text (a sentence in a `Paragraph` or `Content`) takes
+  `textTransform="underlined"`: outside a `Notification` or `Message`, Bulma draws links with no
+  underline, so in a sentence only its color sets it apart (WCAG 1.4.1). A link that stands on
+  its own (nav, a link list, a button row) doesn't take it.
 - `Navbar.Burger`/`Navbar.Menu` are **controlled** — wire the same `active` state to both:
   `active` on `Navbar.Menu` shows/hides the mobile menu, while `active` + `onClick` on
   `Navbar.Burger` make the burger toggle it and animate. Left unwired, clicking the burger
@@ -345,7 +350,7 @@ styling has no text color.
 | `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
 | `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest). On `Title`/`SubTitle`, `as` sets the level and `size` picks it too, so an `<h3>` at size 4 is `as="h3" textSize="4"`       |
 | `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
-| `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
+| `textTransform`, italics, underline      | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`, `underlined`                                                                               |
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
 | `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |

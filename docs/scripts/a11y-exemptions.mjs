@@ -3,7 +3,8 @@
  *
  * Each entry covers one axe rule on the pages it names, in both color modes
  * unless `themes` limits it, and says why: the open `issue` that will remove
- * it, or the `reason` axe is wrong there or the markup isn't ours. A page
+ * it, or the `reason`: axe is wrong there, the markup isn't ours, or the site
+ * keeps the gap by design. A page
  * pattern is a path, or a path prefix ending in `*`. With `targets`, an
  * entry covers only those elements, written exactly as the scan prints
  * them. A run reports a page pattern that covered nothing, and the fix for a
@@ -21,24 +22,29 @@ export default [
     rule: 'label-content-name-mismatch',
     pages: ['/*'],
     targets: ['.DocSearch'],
-    issue: 2216,
+    reason:
+      "DocSearch's own button, whose name leaves out the shortcut it shows; the site keeps it as DocSearch ships it, by design",
   },
-  // Unchecked on every page: links in running text are marked by color alone,
-  // site-wide.
-  { rule: 'link-in-text-block', pages: ['/*'], issue: 2203 },
+  // Unchecked on every page: links in the site's prose are told apart by
+  // color alone until hovered, by design.
+  {
+    rule: 'link-in-text-block',
+    pages: ['/*'],
+    reason:
+      "links in the site's prose, which Infima, Docusaurus's own CSS, underlines only on hover; the site keeps its link color and look, by design",
+  },
   // Unchecked on the blog's pages, where every post and list shows the
   // author's social links.
-  { rule: 'target-size', pages: ['/blog*'], issue: 2218 },
+  {
+    rule: 'target-size',
+    pages: ['/blog*'],
+    reason:
+      "the author's social links are the Docusaurus blog theme's own markup, which the site keeps as it ships, by design",
+  },
 
   // The library's own open issues, showing in the live examples. Most have
   // stories exempt for them in bulma-ui's stories-a11y.test.ts too.
-  { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
   // Label in name, in the examples.
-  {
-    rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/components/avatar'],
-    issue: 2211,
-  },
   {
     rule: 'label-content-name-mismatch',
     pages: [

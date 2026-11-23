@@ -72,9 +72,23 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   built site). The scan
   scrolls each page so its live examples mount, and checks those too. When it fails on a
   page's own markup or an example's code, fix it there (name the input, give the image its
-  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it or
-  the reason axe is wrong. The scan reports an exemption that covered nothing, and the fix for
+  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it, the
+  reason axe is wrong, or the gap the site keeps by design. The scan reports an exemption that covered nothing, and the fix for
   its issue removes it.
+- **Docusaurus's own behavior stays as shipped.** A finding that comes from what Docusaurus,
+  its classic theme, Infima or DocSearch do out of the box (a search shortcut, a theme
+  component's markup) is not fixed here: don't swizzle or eject a theme component, or add a
+  script, to change how it behaves. An ejected component stops taking upstream fixes and
+  leaves this repo maintaining framework code, and the site is here to show bestax. In the
+  accessibility conformance report, the row keeps the level the gap gives it (usually Partially
+  Supports), and its remark names the gap as Docusaurus's behavior, by design, with no fix
+  issue. When the site scan flags that markup, its exemption in `scripts/a11y-exemptions.mjs`
+  gives that reason, the markup is Docusaurus's, in place of an issue. Raise it upstream if it's
+  worth fixing there. Ejecting the SearchBar to turn off DocSearch's `/` shortcut (#2277) is
+  the case that set this rule. Components this site adds or swizzles for its own features (the
+  live code blocks, the MDX components) are its own code, and their findings get fixed. A gap
+  in that code, or in a page's own markup or an example's code, that the maintainer decides to
+  keep, on its issue or PR, is recorded by design, as the report's Notes describe.
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).

@@ -478,6 +478,305 @@ describe('Carousel', () => {
     });
   });
 
+  // An autoplaying carousel had no control that stopped it, only a pause
+  // while the pointer or focus was on it (#1925, WCAG 2.2.2).
+  describe('The rotation button', () => {
+    const stop = () =>
+      screen.getByRole('button', { name: 'Stop slide rotation' });
+    const start = () =>
+      screen.getByRole('button', { name: 'Start slide rotation' });
+    const tick = (ms: number) =>
+      act(() => {
+        vi.advanceTimersByTime(ms);
+      });
+
+    it('comes first in the tab order, before the slides and the arrows', () => {
+      render(
+        <Carousel autoplay rotationControl>
+          <CarouselItem>
+            <a href="#one">One</a>
+          </CarouselItem>
+          <CarouselItem>Two</CarouselItem>
+        </Carousel>
+      );
+      const focusable = Array.from(
+        screen
+          .getByRole('region')
+          .querySelectorAll<HTMLElement>('button, a[href]')
+      );
+      expect(focusable[0]).toBe(stop());
+      expect(stop()).toHaveAttribute('type', 'button');
+      expect(stop()).toHaveClass('carousel-arrow', 'is-rotation');
+    });
+
+    it('stops autoplay until pressed again, whatever the pointer and focus do', () => {
+      const onChange = vi.fn();
+      render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      const region = screen.getByRole('region');
+
+      fireEvent.click(stop());
+      // The click left the pointer over it and focus on the button. Neither
+      // leaving starts it again.
+      fireEvent.mouseLeave(region);
+      fireEvent.blur(start());
+      tick(5000);
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.mouseEnter(region);
+      fireEvent.mouseLeave(region);
+      tick(5000);
+      expect(onChange).not.toHaveBeenCalled();
+
+      // Pressed again, it turns once the pointer and focus have left.
+      fireEvent.click(start());
+      tick(1000);
+      expect(onChange).toHaveBeenCalledWith(1);
+      expect(stop()).toBeInTheDocument();
+    });
+
+    it('lets the track announce what comes into view while stopped', () => {
+      render(<TestCarousel autoplay rotationControl />);
+      const track = screen
+        .getByRole('region')
+        .querySelector('.carousel-slides')!;
+      expect(track).toHaveAttribute('aria-live', 'off');
+      fireEvent.click(stop());
+      fireEvent.blur(start());
+      expect(track).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it('draws two bars while autoplay turns and a triangle once stopped', () => {
+      render(<TestCarousel autoplay rotationControl />);
+      expect(stop().querySelectorAll('svg line')).toHaveLength(2);
+      fireEvent.click(stop());
+      expect(start().querySelector('svg polygon')).toBeInTheDocument();
+    });
+
+    it('takes its names from labels, and keeps the English for one left empty', () => {
+      const { rerender } = render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          labels={{
+            stopRotation: 'Arrêter le défilement',
+            startRotation: 'Lancer le défilement',
+          }}
+        />
+      );
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Arrêter le défilement' })
+      );
+      expect(
+        screen.getByRole('button', { name: 'Lancer le défilement' })
+      ).toBeInTheDocument();
+
+      rerender(
+        <TestCarousel
+          autoplay
+          rotationControl
+          labels={{ startRotation: '', stopRotation: '' }}
+        />
+      );
+      expect(start()).toBeInTheDocument();
+    });
+
+    it('is left out by default, without autoplay, with rotationControl off, or once all the items fit', () => {
+      const { rerender } = render(<TestCarousel autoplay />);
+      const rotation = () =>
+        screen.queryByRole('button', { name: /slide rotation/ });
+      // Off by default, so no autoplaying carousel's look changes.
+      expect(rotation()).not.toBeInTheDocument();
+
+      rerender(<TestCarousel rotationControl />);
+      expect(rotation()).not.toBeInTheDocument();
+
+      rerender(<TestCarousel autoplay rotationControl={false} />);
+      expect(rotation()).not.toBeInTheDocument();
+
+      rerender(
+        <Carousel autoplay rotationControl>
+          <CarouselItem>Only</CarouselItem>
+        </Carousel>
+      );
+      expect(rotation()).not.toBeInTheDocument();
+    });
+
+    it('stays at the last position without repeat, where a stop keeps autoplay from going on once moved back', () => {
+      const onChange = vi.fn();
+      render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          repeat={false}
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      tick(1000);
+      tick(1000);
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      // Autoplay rests here, and the button still holds whether it goes on.
+      fireEvent.click(stop());
+      fireEvent.click(screen.getByRole('button', { name: 'Previous slide' }));
+      tick(3000);
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      fireEvent.click(start());
+      tick(1000);
+      expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+
+    it('leaves autoplay turning while rotationControl takes the button away, and keeps the stop for its return', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(stop());
+      tick(3000);
+      expect(onChange).not.toHaveBeenCalled();
+      rerender(
+        <TestCarousel
+          autoplay
+          rotationControl={false}
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      tick(1000);
+      expect(onChange).toHaveBeenCalledWith(1);
+
+      rerender(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      expect(start()).toBeInTheDocument();
+      tick(3000);
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a stop while autoplay turns off and on, as a page that plays it only in view does', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(stop());
+      rerender(<TestCarousel interval={1000} onChange={onChange} />);
+      rerender(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      expect(start()).toBeInTheDocument();
+      tick(3000);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves the arrow keys alone while focus is on it', () => {
+      const onChange = vi.fn();
+      render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      act(() => stop().focus());
+      fireEvent.keyDown(stop(), { key: 'ArrowRight' });
+      fireEvent.keyDown(stop(), { key: 'ArrowLeft' });
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('lets autoplay turn while focus is on it, so a key press starts it at once', () => {
+      const onChange = vi.fn();
+      render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          interval={1000}
+          onChange={onChange}
+        />
+      );
+      // Focus on the button itself doesn't hold autoplay, as focus on an
+      // arrow does, so the track stays quiet while it turns.
+      act(() => stop().focus());
+      expect(
+        screen.getByRole('region').querySelector('.carousel-slides')
+      ).toHaveAttribute('aria-live', 'off');
+      tick(1000);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      fireEvent.click(stop());
+      expect(start()).toHaveFocus();
+      tick(3000);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      fireEvent.click(start());
+      tick(1000);
+      expect(onChange).toHaveBeenCalledTimes(2);
+      // Focus that moves on to an arrow holds it again.
+      act(() => screen.getByRole('button', { name: 'Next slide' }).focus());
+      tick(3000);
+      expect(onChange).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows with the arrows off, and with arrowBackground off takes the transparent look', () => {
+      render(
+        <TestCarousel
+          autoplay
+          rotationControl
+          arrow={false}
+          arrowBackground={false}
+        />
+      );
+      expect(stop()).toHaveClass(
+        'carousel-arrow',
+        'is-rotation',
+        'is-transparent'
+      );
+    });
+
+    it('hands focus on when autoplay is turned off while it has focus', () => {
+      const { rerender } = render(<TestCarousel autoplay rotationControl />);
+      stop().focus();
+      rerender(<TestCarousel />);
+      expect(screen.getByRole('tab', { selected: true })).toHaveFocus();
+    });
+
+    it('prefixes its classes', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <TestCarousel autoplay rotationControl />
+        </ConfigProvider>
+      );
+      expect(stop()).toHaveClass(
+        'bestax-carousel-arrow',
+        'bestax-is-rotation',
+        'bestax-button'
+      );
+    });
+  });
+
   describe('Arrow Hover', () => {
     it('applies has-arrow-hover class', () => {
       const { container } = render(<TestCarousel arrowHover />);
@@ -2696,6 +2995,18 @@ describe('Carousel right-to-left styles', () => {
     expect(flip(rtlPrev)).toBe('scaleX(-1)');
     expect(flip(rtlNext)).toBe('scaleX(-1)');
     expect(flip(ltrPrev)).not.toBe('scaleX(-1)');
+  });
+
+  it('leaves the rotation button’s icons unmirrored right to left, as media controls are', () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TestCarousel autoplay rotationControl />
+      </div>
+    );
+    const rotation = container.querySelector('.carousel-arrow.is-rotation')!;
+    expect(flip(rotation.querySelector('svg')!)).toBe('none');
+    fireEvent.click(rotation);
+    expect(flip(rotation.querySelector('svg')!)).toBe('none');
   });
 
   it("leaves a caller's icon as given right to left, svg and all", () => {
