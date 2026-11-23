@@ -46,10 +46,15 @@ This example demonstrates using the `Checkbox` component with a custom label tha
 
 ```tsx live
 <Checkbox>
-  I have read and agree to the
-  <a href="#" target="_blank" rel="noopener noreferrer">
+  I have read and agree to the{' '}
+  <Link
+    href="#"
+    target="_blank"
+    rel="noopener noreferrer"
+    textTransform="underlined"
+  >
     terms and conditions
-  </a>
+  </Link>
   .
 </Checkbox>
 ```

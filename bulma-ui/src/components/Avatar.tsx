@@ -138,6 +138,12 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * A link or button avatar is never decorative — it keeps an accessible name — and a custom
    * component passed to `as` counts as one unless it states otherwise, so `alt=""` on a custom
    * wrapper needs that signal alongside it. `as` documents which props carry it.
+   *
+   * A link or button avatar that shows initials, with no `src` or one that failed to load, is
+   * named by an `aria-label` you pass, else `alt`, else `name`, so by default its name leaves
+   * out the initials it shows. Start the name with them, and pass the same `initials` so the
+   * two match: `initials="AL" alt="AL, Ada Lovelace"`. Someone using speech input can then say
+   * what they see.
    */
   alt?: string | undefined;
   /** Derives initials and a deterministic background color when no `src` is shown. */

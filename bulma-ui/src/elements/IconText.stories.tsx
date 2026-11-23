@@ -7,6 +7,7 @@ import {
   validTextSizes,
 } from '../helpers/useBulmaClasses';
 import { Button } from './Button';
+import { Link } from './Link';
 
 const meta: Meta<typeof IconText> = {
   title: 'Elements/IconText',
@@ -269,7 +270,11 @@ export const IconTextWithFlex: Story = {
         Warning
       </IconText>
       <Block>
-        Some information is missing from your <a href="#">profile</a> details.
+        Some information is missing from your{' '}
+        <Link href="#" textTransform="underlined">
+          profile
+        </Link>{' '}
+        details.
       </Block>
       <IconText
         iconProps={{
@@ -281,14 +286,16 @@ export const IconTextWithFlex: Story = {
         Danger
       </IconText>
       <Block>
-        There was an error in your submission. <a href="#">Please try again</a>.
+        There was an error in your submission.{' '}
+        <Link href="#" textTransform="underlined">
+          Please try again
+        </Link>
+        .
       </Block>
     </div>
   ),
   args: {},
   parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
     docs: {
       description: {
         story:

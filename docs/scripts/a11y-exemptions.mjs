@@ -52,11 +52,6 @@ export default [
   // Label in name, in the examples.
   {
     rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/components/avatar'],
-    issue: 2211,
-  },
-  {
-    rule: 'label-content-name-mismatch',
     pages: [
       '/docs/api/form/datetime/calendar',
       '/docs/api/form/datetime/dateinput',

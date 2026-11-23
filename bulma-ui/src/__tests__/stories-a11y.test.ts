@@ -97,22 +97,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
         "An option's name is its label, and its description and shortcut hint describe it (aria-describedby), so axe counts text the option shows that its name leaves out on purpose.",
     }
   ),
-  'components/Avatar.stories.tsx#Clickable': {
-    'label-content-name-mismatch': 2211,
-  },
-  // A Link in running text differs from the text around it only by color.
-  'components/Timeline.stories.tsx#CompoundUsage': {
-    'link-in-text-block': 1858,
-  },
-  'elements/IconText.stories.tsx#IconTextWithFlex': {
-    'link-in-text-block': 1858,
-  },
-  'elements/Link.stories.tsx#InlineWithText': { 'link-in-text-block': 1858 },
-  'form/Checkbox.stories.tsx#CheckboxWithLink': { 'link-in-text-block': 1858 },
-  'layout/Footer.stories.tsx#Default': { 'link-in-text-block': 1858 },
-  'skill-examples/Overview.stories.tsx#Overview': {
-    'link-in-text-block': 1858,
-  },
   // A calendar's month cells show a short name (#2209).
   'form/Calendar.stories.tsx#MonthAndYear': {
     'label-content-name-mismatch': 2209,

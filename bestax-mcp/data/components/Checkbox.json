@@ -11,7 +11,7 @@
     },
     {
       "title": "Checkbox With Link",
-      "code": "<Checkbox>\n  I have read and agree to the\n  <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">\n    terms and conditions\n  </a>\n  .\n</Checkbox>"
+      "code": "<Checkbox>\n  I have read and agree to the{' '}\n  <Link\n    href=\"#\"\n    target=\"_blank\"\n    rel=\"noopener noreferrer\"\n    textTransform=\"underlined\"\n  >\n    terms and conditions\n  </Link>\n  .\n</Checkbox>"
     },
     {
       "title": "Disabled Checkbox",

@@ -1,3 +1,14 @@
+## [1.18.96](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.95...bestax-mcp@1.18.96) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bulma-ui:** hide a disabled arrowHover arrow at rest, and show it disabled on hover ([e2c3a8c](https://github.com/allxsmith/bestax/commit/e2c3a8c8eefab19ee8fb126ed16ba3318e4bd321)), closes [#2145](https://github.com/allxsmith/bestax/issues/2145)
+* **bulma-ui:** keep a disabled arrowHover arrow in GrayText as it fades out ([9397df1](https://github.com/allxsmith/bestax/commit/9397df1b7fc9b3c23ed4a24444fdc8fc92b31587))
+* **bulma-ui:** keep a focused arrowHover arrow showing when is-disabled marks it ([3bc0fc0](https://github.com/allxsmith/bestax/commit/3bc0fc048beaf56c8730a7ad7e4d008e9db8e87f))
+* **docs:** give the homepage's form-controls carousel a button that stops it ([0cbca67](https://github.com/allxsmith/bestax/commit/0cbca677c93c6d52ed8a8761557dd600b82c12d0)), closes [#2309](https://github.com/allxsmith/bestax/issues/2309)
+* **docs:** move the homepage carousel's controls to a row under the slides ([4414b8d](https://github.com/allxsmith/bestax/commit/4414b8df25aa2359cd9ade4f23528d58d93f9d4a))
+
 ## [1.18.95](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.94...bestax-mcp@1.18.95) (2026-11-23)
 
 
