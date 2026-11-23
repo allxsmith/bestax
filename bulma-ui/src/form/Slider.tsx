@@ -704,13 +704,21 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const effectiveThumbExpr = isCircle
       ? `(${thumbCssVar} * 1.2)`
       : thumbCssVar;
+    // A range thumb at the default or small size takes presses on a box at
+    // least 24px square (#2195), and the browser insets the box, so the
+    // bubble follows the box. `_slider.scss` gives the same thumbs the box.
+    const boxedThumb =
+      range && !isCircle && size !== 'medium' && size !== 'large';
+    const travelThumbExpr = boxedThumb
+      ? `max(24px, ${thumbCssVar})`
+      : effectiveThumbExpr;
 
     // Measured from where the track starts: its inline start when
     // horizontal, which is the right edge right to left, where the native
     // range puts its minimum, and its bottom when vertical.
     const getThumbLeft = (progressPct: number) => {
       const fraction = progressPct / 100;
-      return `calc(${effectiveThumbExpr} / 2 + ${fraction} * (100% - ${effectiveThumbExpr}))`;
+      return `calc(${travelThumbExpr} / 2 + ${fraction} * (100% - ${travelThumbExpr}))`;
     };
 
     // Vertical tooltip offset: position to the right or left of the thumb
@@ -733,6 +741,13 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         px = value;
       }
       return isCircle ? px * 1.2 : px;
+    };
+
+    // The thumb's box in px, which a horizontal bubble's position is measured
+    // by, as `travelThumbExpr` is.
+    const getThumbTravelPx = (): number => {
+      const px = getThumbSizePx();
+      return boxedThumb ? Math.max(24, px) : px;
     };
 
     // Generate wrapper classes
@@ -854,7 +869,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         const tooltipHeight = el.offsetHeight + 10;
         setFlipped(wrapperTop < tooltipHeight);
         const pct = range ? progressLow : progressSingle;
-        const thumbPx = getThumbSizePx();
+        const thumbPx = getThumbTravelPx();
         setNudgeX(computeNudge(el, wrapper, pct, thumbPx));
       }
     });
@@ -867,7 +882,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         const wrapperTop = wrapper.getBoundingClientRect().top;
         const tooltipHeight = el.offsetHeight + 10;
         setFlippedHigh(wrapperTop < tooltipHeight);
-        const thumbPx = getThumbSizePx();
+        const thumbPx = getThumbTravelPx();
         setNudgeXHigh(computeNudge(el, wrapper, progressHigh, thumbPx));
       }
     });

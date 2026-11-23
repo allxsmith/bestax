@@ -1649,6 +1649,60 @@ describe('Slider', () => {
       });
     });
 
+    // A range thumb at the default or small size takes presses on a box at
+    // least 24px square, which the browser insets the thumb by (#2195).
+    it.each([
+      [
+        'a default range slider by its thumb’s box',
+        <Slider key="d" range defaultValue={[25, 75]} tooltip="always" />,
+        'max(24px, var(--bulma-slider-thumb-size))',
+      ],
+      [
+        'a small range slider by its thumb’s box',
+        <Slider
+          key="s"
+          range
+          size="small"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        'max(24px, var(--bulma-slider-thumb-size-small))',
+      ],
+      [
+        'a medium range slider by its thumb',
+        <Slider
+          key="m"
+          range
+          size="medium"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        'var(--bulma-slider-thumb-size-medium)',
+      ],
+      [
+        'a circle range slider by its thumb',
+        <Slider
+          key="c"
+          range
+          isCircle
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        '(var(--bulma-slider-thumb-size) * 1.2)',
+      ],
+      [
+        'a single slider by its thumb',
+        <Slider key="1" defaultValue={25} tooltip="always" />,
+        'var(--bulma-slider-thumb-size)',
+      ],
+    ])('places the bubble of %s', (_name, ui, thumb) => {
+      const { container } = render(ui);
+      const output = container.querySelector('.slider-output') as HTMLElement;
+      expect(output.style.insetInlineStart).toBe(
+        `calc(${thumb} / 2 + 0.25 * (100% - ${thumb}))`
+      );
+    });
+
     it('places the bubble from the inline start, as the thumb is', () => {
       const { container } = render(
         <Slider defaultValue={25} tooltip="always" />
@@ -1656,6 +1710,20 @@ describe('Slider', () => {
       const output = container.querySelector('.slider-output') as HTMLElement;
       expect(output.style.insetInlineStart).toMatch(/^calc\(/);
       expect(output.style.left).toBe('');
+    });
+
+    // A range thumb at the default size takes presses on a 24px box, which
+    // the browser insets it by, so the bubble is centred 12px in (#2195).
+    it('measures a range thumb by its 24px box', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider range value={[0, 100]} showOutput />
+        );
+        const low = container.querySelector('.slider-output') as HTMLElement;
+        expect(low.style.transform).toBe(
+          'translateX(calc(var(--slider-output-shift, -50%) + 28px))'
+        );
+      });
     });
 
     it('nudges high tooltip in range mode when clipped at right edge', () => {
