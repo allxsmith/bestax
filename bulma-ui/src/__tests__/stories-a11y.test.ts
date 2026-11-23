@@ -133,21 +133,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
         "The menu's panel scrolls, with the listbox inside it, and its options are reached from the combobox's input through aria-activedescendant, which the arrow keys move and scroll into view, with its group's heading when it's the group's first option. axe skips the rule only when the box that scrolls is itself the combobox's popup, as the listbox is in Combobox's inline mode.",
     }
   ),
-  // A range Slider's thumbs are 20px targets that can sit side by side.
-  ...each(
-    'form/Slider.stories.tsx',
-    [
-      'RangeDefault',
-      'RangeInHandWiredField',
-      'RangeInLabeledField',
-      'RangeMinDistance',
-      'RangePriceFilter',
-      'RangeWithLabel',
-      'RangeWithNames',
-      'RangeWithOutput',
-    ],
-    { 'target-size': 2195 }
-  ),
 };
 
 /** What a story or a story file's meta sets that can change its axe check. */
