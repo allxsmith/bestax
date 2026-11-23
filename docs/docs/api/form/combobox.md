@@ -582,6 +582,7 @@ function example() {
           <Combobox
             inline
             size="small"
+            label="Assignee"
             onSelect={name => {
               setAssignee(name);
               setQuery('');
@@ -589,14 +590,13 @@ function example() {
             }}
           >
             <Combobox.Input
-              aria-label="Search people"
               placeholder="Search people"
               iconLeftName="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
             {matches.length > 0 ? (
-              <Combobox.List aria-label="People">
+              <Combobox.List>
                 {matches.map(p => (
                   <Combobox.Item key={p} value={p} checked={p === assignee}>
                     {p}
@@ -627,8 +627,8 @@ function example() {
 }
 ```
 
-With no `label`, the field takes an `aria-label` and the list takes one of its own. Without one, the
-list is named "Suggestions".
+The `label` names the field and the list. Built from parts with no `label`, give `Combobox.Input`
+an `aria-label` and the list one of its own, or the list is named "Suggestions".
 
 ### A Result Count
 
@@ -798,9 +798,10 @@ and a click in the field opens the list. A press in the list never takes focus f
   `aria-haspopup="listbox"`. The list is a `listbox` of `option`s, and a group is a `group` named by
   its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.
 - **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`.
-  When a key or the list opening moves the highlight, the item is scrolled into view, since a
-  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer
-  is already on that item. A click on an item keeps focus in the field too.
+  When a key, the list opening or, with `keepFirst`, a change to the list moves the highlight, the item is
+  scrolled into view, since a browser only scrolls to what has focus, and so is its group's
+  heading when it's the group's first item. The pointer moves it without scrolling, since the
+  pointer is already on that item. A click on an item keeps focus in the field too.
 - **`aria-expanded`** is `true` while a list with an item in it is on screen, and
   `aria-controls` points at the list then. While the menu shows just the empty message, the
   field says it's collapsed, and so does the server markup for a list rendered with

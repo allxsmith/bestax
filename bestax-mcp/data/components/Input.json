@@ -39,11 +39,11 @@
     },
     {
       "title": "With Icons (Left and Right)",
-      "code": "<>\n  <Input iconLeftName=\"user\" iconRightName=\"check\" placeholder=\"With icons\" />\n  <Input\n    iconLeftName=\"envelope\"\n    iconRightName=\"exclamation-triangle\"\n    placeholder=\"Another input\"\n  />\n</>"
+      "code": "<>\n  <Input\n    label=\"Username\"\n    iconLeftName=\"user\"\n    iconRightName=\"check\"\n    placeholder=\"With icons\"\n  />\n  <Input\n    label=\"Email\"\n    iconLeftName=\"envelope\"\n    iconRightName=\"exclamation-triangle\"\n    placeholder=\"Another input\"\n  />\n</>"
     },
     {
       "title": "With Icons and Size Variations",
-      "code": "<>\n  <Input\n    size=\"small\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"small\"\n    iconRightName=\"check\"\n    iconRightSize=\"small\"\n    placeholder=\"Icons left/right small\"\n  />\n  <Input\n    iconLeftName=\"user\"\n    iconRightName=\"check\"\n    placeholder=\"Icons left/right normal\"\n  />\n  <Input\n    size=\"medium\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"medium\"\n    iconRightName=\"check\"\n    iconRightSize=\"medium\"\n    placeholder=\"Icons left/right medium\"\n  />\n  <Input\n    size=\"large\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"large\"\n    iconRightName=\"check\"\n    iconRightSize=\"large\"\n    placeholder=\"Icons left/right large\"\n  />\n</>"
+      "code": "<>\n  <Input\n    label=\"Small\"\n    size=\"small\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"small\"\n    iconRightName=\"check\"\n    iconRightSize=\"small\"\n    placeholder=\"Icons left/right small\"\n  />\n  <Input\n    label=\"Normal\"\n    iconLeftName=\"user\"\n    iconRightName=\"check\"\n    placeholder=\"Icons left/right normal\"\n  />\n  <Input\n    label=\"Medium\"\n    size=\"medium\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"medium\"\n    iconRightName=\"check\"\n    iconRightSize=\"medium\"\n    placeholder=\"Icons left/right medium\"\n  />\n  <Input\n    label=\"Large\"\n    size=\"large\"\n    iconLeftName=\"user\"\n    iconLeftSize=\"large\"\n    iconRightName=\"check\"\n    iconRightSize=\"large\"\n    placeholder=\"Icons left/right large\"\n  />\n</>"
     },
     {
       "title": "Help Text Colors",
@@ -55,15 +55,15 @@
     },
     {
       "title": "Form Addons › Input + Button",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Repository\" labelProps={{ htmlFor: 'addons-repository' }}>\n  <Field hasAddons>\n    <Control isExpanded>\n      <Input id=\"addons-repository\" placeholder=\"Find a repository\" />\n    </Control>\n    <Control>\n      <Button color=\"info\">Search</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Addons › Input + Static Suffix",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button as=\"span\" isStatic>\n      @gmail.com\n    </Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Email\" labelProps={{ htmlFor: 'addons-email-username' }}>\n  <Field hasAddons>\n    <Control isExpanded>\n      <Input id=\"addons-email-username\" placeholder=\"Your email\" />\n    </Control>\n    <Control>\n      <Button as=\"span\" isStatic>\n        @gmail.com\n      </Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Addons › Select + Input + Button",
-      "code": "<Field hasAddons>\n  <Control>\n    <Select autoComplete=\"tel-country-code\" aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input\n      autoComplete=\"tel-national\"\n      type=\"tel\"\n      placeholder=\"Your phone number\"\n      aria-label=\"Phone number\"\n    />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Phone number\" labelProps={{ htmlFor: 'addons-phone' }}>\n  <Field hasAddons>\n    <Control>\n      <Select autoComplete=\"tel-country-code\" aria-label=\"Country code\">\n        <option>+1</option>\n        <option>+44</option>\n        <option>+33</option>\n      </Select>\n    </Control>\n    <Control isExpanded>\n      <Input\n        autoComplete=\"tel-national\"\n        id=\"addons-phone\"\n        type=\"tel\"\n        placeholder=\"Your phone number\"\n      />\n    </Control>\n    <Control>\n      <Button color=\"primary\">Call</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Addons › Centered Addons",
@@ -99,7 +99,7 @@
     },
     {
       "title": "Form Group › Expanded Input + Button",
-      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Repository\" labelProps={{ htmlFor: 'grouped-repository' }}>\n  <Field grouped>\n    <Control isExpanded>\n      <Input id=\"grouped-repository\" placeholder=\"Find a repository\" />\n    </Control>\n    <Control>\n      <Button color=\"info\">Search</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Group › Multiline Group",

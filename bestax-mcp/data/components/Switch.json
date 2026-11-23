@@ -15,7 +15,7 @@
     },
     {
       "title": "Sizes",
-      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch size=\"small\" defaultChecked>\n        Small\n      </Switch>\n      <Switch size=\"normal\" defaultChecked>\n        Normal\n      </Switch>\n      <Switch size=\"medium\" defaultChecked>\n        Medium\n      </Switch>\n      <Switch size=\"large\" defaultChecked>\n        Large\n      </Switch>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\" gap=\"1\">\n      <Switch size=\"small\" defaultChecked>\n        Small\n      </Switch>\n      <Switch size=\"normal\" defaultChecked>\n        Normal\n      </Switch>\n      <Switch size=\"medium\" defaultChecked>\n        Medium\n      </Switch>\n      <Switch size=\"large\" defaultChecked>\n        Large\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
       "title": "Valid Colors and Sizes",
@@ -54,7 +54,7 @@
       "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting =\n    (key: keyof typeof settings) =>\n    (e: React.ChangeEvent<HTMLInputElement>) => {\n      setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n    };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- Space toggles a focused switch, as it does a checkbox.\n- A screen reader announces a Switch as a checkbox, since that's the input it's built on. Pass `role=\"switch\"` to have it announced as a switch, as in [Announced as a Switch](https://bestax.io/docs/api/form/switch#announced-as-a-switch). The input keeps its checked state, so `checked`, `onChange` and the form value work the same either way.\n- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, it draws in gray at full strength rather than dimmed: the edge, the knob, the label, and the default style's track when on, with the knob in the page's color on it.",
+  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- Space toggles a focused switch, as it does a checkbox.\n- A screen reader announces a Switch as a checkbox, since that's the input it's built on. Pass `role=\"switch\"` to have it announced as a switch, as in [Announced as a Switch](https://bestax.io/docs/api/form/switch#announced-as-a-switch). The input keeps its checked state, so `checked`, `onChange` and the form value work the same either way.\n- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, it draws in gray at full strength rather than dimmed: the edge, the knob, the label, and the default style's track when on, with the knob in the page's color on it.\n- A small switch draws its track 18px tall, and a thin one with no text is only as tall as its track, under the 24px minimum target size of WCAG 2.5.8. bestax's styles put a transparent band right below the switch, as wide as it, which takes its presses too, so the switch and the band make a target 24px tall. The track, the text and the layout around them stay as they are. Another switch, or a Bulma form control or button, that comes after it in the page paints over the band and keeps its own presses, so a switch stacked on one of those with no gap keeps the target it draws: 18px tall for a small one, and only its track for a thin one with no text. Give it room below, as the sizes example above does. Anything else that close, such as text or a plain link, sits under the band, and a press on it toggles the switch.",
   "related": [],
   "storybook": null,
   "summary": "The `Switch` component provides a toggle switch for boolean on/off states.",
@@ -80,7 +80,7 @@
           "name": "size",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
-          "description": "Size of the switch.",
+          "description": "Size of the switch. A small one draws 18px tall and takes the rest of its 24px target from a transparent band right below it, so leave it room below: stacked flush on another switch or a control, it keeps the 18px.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -98,7 +98,7 @@
           "name": "isThin",
           "type": "boolean",
           "default": "false",
-          "description": "Use thin switch style.",
+          "description": "Use thin switch style. With no text, a thin switch is only as tall as its track and takes the rest of its 24px target from a transparent band right below it, so leave it room below: stacked flush on another switch or a control, it keeps the height it draws.",
           "required": false,
           "inherited": false,
           "deprecated": false

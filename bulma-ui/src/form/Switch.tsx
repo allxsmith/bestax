@@ -68,11 +68,20 @@ export interface SwitchProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color variant for the switch. */
   color?: (typeof switchColors)[number] | undefined;
-  /** Size of the switch. */
+  /**
+   * Size of the switch. A small one draws 18px tall and takes the rest of
+   * its 24px target from a transparent band right below it, so leave it room
+   * below: stacked flush on another switch or a control, it keeps the 18px.
+   */
   size?: (typeof switchSizes)[number] | undefined;
   /** Use rounded switch style. */
   isRounded?: boolean;
-  /** Use thin switch style. */
+  /**
+   * Use thin switch style. With no text, a thin switch is only as tall as its
+   * track and takes the rest of its 24px target from a transparent band right
+   * below it, so leave it room below: stacked flush on another switch or a
+   * control, it keeps the height it draws.
+   */
   isThin?: boolean;
   /** Use outlined switch style. */
   isOutlined?: boolean;

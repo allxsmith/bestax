@@ -36,7 +36,7 @@ describe('rbx deps', () => {
       },
     });
     expect(next!.dependencies.rbx).toBeUndefined();
-    expect(next!.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(next!.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
     expect(next!.dependencies.bulma).toBe('^1.0.4');
     // Reported, still present.
     expect(next!.dependencies['bulma-badge']).toBe('^3.0.1');
@@ -103,7 +103,7 @@ describe('rbx deps', () => {
 
   it('adds bestax-bulma even to a manifest with no rbx left', () => {
     const { next } = run({ dependencies: { react: '^19.0.0' } });
-    expect(next!.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(next!.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
   });
 
   it('does not re-add bestax-bulma when it is already a devDependency', () => {

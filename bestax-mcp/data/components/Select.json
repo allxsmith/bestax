@@ -47,11 +47,11 @@
     },
     {
       "title": "Form Addons › Currency Select + Input + Button",
-      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Currency\">\n      <option>$</option>\n      <option>£</option>\n      <option>€</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"text\" placeholder=\"Amount of money\" />\n  </Control>\n  <Control>\n    <Button>Transfer</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Amount\" labelProps={{ htmlFor: 'transfer-amount' }}>\n  <Field hasAddons>\n    <Control>\n      <Select aria-label=\"Currency\">\n        <option>$</option>\n        <option>£</option>\n        <option>€</option>\n      </Select>\n    </Control>\n    <Control isExpanded>\n      <Input id=\"transfer-amount\" type=\"text\" placeholder=\"Amount of money\" />\n    </Control>\n    <Control>\n      <Button>Transfer</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Addons › Fullwidth Select + Button",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select autoComplete=\"country\" isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Country\" labelProps={{ htmlFor: 'fullwidth-country' }}>\n  <Field hasAddons>\n    <Control isExpanded>\n      <Select autoComplete=\"country\" id=\"fullwidth-country\" isFullwidth>\n        <option>United States</option>\n        <option>United Kingdom</option>\n        <option>Canada</option>\n        <option>France</option>\n        <option>Germany</option>\n      </Select>\n    </Control>\n    <Control>\n      <Button color=\"primary\">Choose</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Horizontal — Select in Narrow Field",
