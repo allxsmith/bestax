@@ -49,7 +49,6 @@ export default [
     pages: ['/docs/api/components/carousel'],
     issue: 1926,
   },
-  { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
   // Label in name, in the examples.
   {
     rule: 'label-content-name-mismatch',
