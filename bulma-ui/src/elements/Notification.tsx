@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { DeleteTarget } from '../helpers/deleteTarget';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -137,7 +138,9 @@ export const Notification: React.FC<NotificationProps> = ({
           className={deleteClasses}
           onClick={onDelete}
           aria-label={ariaCloseLabel || 'Close notification'}
-        />
+        >
+          <DeleteTarget />
+        </button>
       )}
       {children}
     </div>

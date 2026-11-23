@@ -92,7 +92,7 @@ export interface InputProps extends InputBaseProps {
 }
 
 /**
- * The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
+ * The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper props.
  *
  * @function
  * @param {InputProps} props - Props for Input.

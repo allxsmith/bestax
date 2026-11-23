@@ -544,7 +544,8 @@ Where the state actually stands, since "which jobs enforce" was mis-stated repea
 issue #487 and the distinction is load-bearing. **Scope: this covers the AI/automation workflows
 and the jobs adjacent to them, per job, not every job in the directory** — the ordinary build
 jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story-screenshots.yml`,
-`scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of scope here.
+`docs-a11y.yml`, `scorecard.yml`, `dependency-review.yml`) carry no harden-runner and are out of
+scope here.
 
 - **Enforcing and asserted** — every `ai-scan` job (`gate`, `scan`, `label`), every
   `ai-triage` job (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),

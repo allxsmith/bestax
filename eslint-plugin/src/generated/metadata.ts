@@ -63,7 +63,23 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  Cell: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
+  Column: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
   Columns: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
     gapSize: {
       replacement: 'gap',
       note: 'Use `gap` instead — `gap` wins if both are set.',
@@ -89,16 +105,52 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `gapWidescreen` instead — `gapWidescreen` wins if both are set.',
     },
   },
+  'Columns.Column': {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
   CopyButton: {
     isFullWidth: {
       replacement: 'isFullwidth',
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  Field: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
+  'Field.Body': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
+  'Field.Label': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
   File: {
     isFullWidth: {
       replacement: 'isFullwidth',
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
+  Grid: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
+  'Grid.Cell': {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
     },
   },
   Icon: {
@@ -131,6 +183,18 @@ export const DEPRECATED_PROPS: Readonly<
     color: {
       replacement: null,
       note: 'No `.pagination.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version.',
+    },
+  },
+  'Pagination.Link': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
+  'Pagination.List': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
     },
   },
   'Panel.Icon': {

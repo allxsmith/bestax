@@ -127,8 +127,12 @@ export interface RootRecord {
   parent: { tag: string } | null;
   /** The component renders this text as its content, whatever it's given. */
   rendersText: string | null;
-  /** A `className` the component is given replaces its own class. */
-  classNameReplaces: boolean;
+  /**
+   * The bestax-bulma release from which the component keeps its own class
+   * beside a `className` it's given; an older one writes the `className` in
+   * its place.
+   */
+  classNameSince: string | null;
   /**
    * How to keep this class on an element another root converts, where an
    * element of its own is not the answer (`.container`'s `mx="auto"`).
@@ -285,8 +289,8 @@ export type Element =
       parent?: string;
       /** Renders this text as its content. */
       rendersText?: string;
-      /** A `className` it's given replaces its class. */
-      classNameReplaces?: boolean;
+      /** Keeps its class beside a `className` from this release on. */
+      classNameSince?: string;
     }
   /** The component cannot render this tag. */
   | { kind: 'wrong-tag'; target: string; tag: string; reaches: string }
@@ -859,7 +863,7 @@ export function lookupClasses(
       items: null,
       parent: null,
       rendersText: null,
-      classNameReplaces: false,
+      classNameSince: null,
     };
   }
   const target = entry.target;
@@ -1207,17 +1211,6 @@ export function lookupClasses(
       reaches: reaches(entry, retagged),
     });
   }
-  // A `className` it's given replaces its own class, so a class left over
-  // keeps the element as markup.
-  if (
-    entry.classNameReplaces &&
-    tokens.some(token => token !== root && verdicts.get(token)?.kind !== 'prop')
-  ) {
-    return result({
-      kind: 'markup',
-      why: `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class`,
-    });
-  }
   const about = {
     wraps,
     absorbs: entry.absorbs ?? undefined,
@@ -1230,7 +1223,7 @@ export function lookupClasses(
     items: entry.items ?? undefined,
     parent: entry.parent?.tag,
     rendersText: entry.rendersText ?? undefined,
-    classNameReplaces: entry.classNameReplaces || undefined,
+    classNameSince: entry.classNameSince ?? undefined,
   };
   if (!tag) {
     return result({
@@ -1496,9 +1489,10 @@ export function renderLookup(
             ? ` It renders its own \`${element.rendersText}\` as its content, ` +
               `so write it closing itself.`
             : '') +
-          (element.classNameReplaces
-            ? ` A \`className\` it's given replaces its own class, so it ` +
-              `converts only with no other class.`
+          (element.classNameSince
+            ? ` It keeps its own class beside a \`className\` from ` +
+              `bestax-bulma ${element.classNameSince} on; an older release ` +
+              `writes the \`className\` in its place.`
             : '')
       );
       break;

@@ -132,7 +132,9 @@ const config = {
     // to dev.to itself stays a manual act.
     './plugins/devto-preprocessor.js',
     [
-      'docusaurus-plugin-llms',
+      // docusaurus-plugin-llms, which takes these options, followed by a note
+      // in what it writes on the live examples' site images.
+      './plugins/llms-site-images.js',
       {
         // Generate both the curated index (/llms.txt) and the full
         // concatenated docs (/llms-full.txt) at build time, per llmstxt.org.
@@ -296,6 +298,10 @@ const config = {
               {
                 label: 'Security',
                 to: '/docs/guides/security',
+              },
+              {
+                label: 'Accessibility',
+                to: '/docs/guides/accessibility',
               },
             ],
           },

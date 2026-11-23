@@ -1,0 +1,8 @@
+{
+  "label": "Accessibility",
+  "position": 13,
+  "link": {
+    "type": "doc",
+    "id": "guides/accessibility/index"
+  }
+}

@@ -134,7 +134,13 @@ function ThemeDemo() {
   const [hue, setHue] = useState(270);
   return (
     <Block>
-      <Slider value={hue} onChange={setHue} min={0} max={360} />
+      <Slider
+        aria-label="Primary hue"
+        value={hue}
+        onChange={setHue}
+        min={0}
+        max={360}
+      />
       <Paragraph mb="3">
         primaryH: <Strong>{hue}</Strong>
       </Paragraph>
@@ -383,6 +389,7 @@ function SliderDemo() {
   return (
     <Block>
       <Slider
+        aria-label="Enthusiasm"
         value={value}
         onChange={setValue}
         color="primary"
@@ -402,7 +409,12 @@ function NumberDemo() {
   const [count, setCount] = useState(3);
   return (
     <Block>
-      <Numberinput value={count} onChange={setCount} min={0} />
+      <Numberinput
+        aria-label="Dependencies you've never starred"
+        value={count}
+        onChange={setCount}
+        min={0}
+      />
       <Paragraph mt="2">Dependencies you've never starred: {count}</Paragraph>
     </Block>
   );

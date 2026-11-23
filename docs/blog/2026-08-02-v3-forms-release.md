@@ -205,6 +205,7 @@ function SliderDemo() {
   return (
     <Block>
       <Slider
+        aria-label="Value"
         value={value}
         onChange={setValue}
         min={0}
@@ -232,6 +233,7 @@ function NumberDemo() {
   return (
     <Block>
       <Numberinput
+        aria-label="Quantity"
         value={quantity}
         onChange={setQuantity}
         min={1}

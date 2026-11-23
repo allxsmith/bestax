@@ -1,7 +1,9 @@
+import type { MockInstance } from 'vitest';
 import { render } from '@testing-library/react';
 import { Columns, type ColumnsProps } from '../Columns';
 import { Column } from '../Column';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 describe('Columns', () => {
   it('renders children', () => {
@@ -287,5 +289,37 @@ describe('Compound components', () => {
     );
     expect(container.querySelector('.columns')).toBeInTheDocument();
     expect(container.querySelectorAll('.column')).toHaveLength(2);
+  });
+});
+
+// Bulma ships no columns color CSS, so the prop renders nothing; it warns
+// in development, as Tabs' and Pagination's do (#2238).
+describe('Columns deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('warns once in development when color is passed, and renders no class for it', () => {
+    const { container, rerender } = render(
+      <Columns color="primary">x</Columns>
+    );
+    rerender(<Columns color="danger">x</Columns>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Columns "color" prop is deprecated')
+    );
+    expect(container.querySelector('.columns')?.className).toBe('columns');
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Columns>x</Columns>);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

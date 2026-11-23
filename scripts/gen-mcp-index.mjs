@@ -69,6 +69,11 @@ import {
 } from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import {
+  SITE_IMAGES_NOTE,
+  hasSiteImages,
+  noteSiteImagesInFences,
+} from '../docs/src/theme/CodeBlock/sandbox/site-images.mjs';
+import {
   barrelExports,
   exportedModules,
   extractComponent,
@@ -110,6 +115,14 @@ const STYLESHEET_READER = join(
   'support',
   'bulma-stylesheet.ts'
 );
+/**
+ * Where bestax-mcp's `get_helper_props` splits a guide into the sections it
+ * serves, outside fenced code, so the notes this adds land where it serves
+ * them (#2243).
+ */
+const { sections } = await importStripped(
+  join(REPO, 'bestax-mcp', 'src', 'fences.ts')
+);
 
 const PACKAGE = '@allxsmith/bestax-bulma';
 /** A name a page can document as a component: an exported identifier, capitalised. */
@@ -131,8 +144,11 @@ const HELPER_PROPS_PAGE = 'useBulmaClasses';
  *
  * 2: `cssVarIndex` maps a variable to every component that declares it, its
  * owner first, rather than to one name (#964).
+ * 3: a bulma-classes root carries `classNameSince`, the release from which
+ * its component keeps its own class beside a `className`, in place of
+ * `classNameReplaces` (#2178).
  */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const collapse = s =>
   String(s ?? '')
@@ -492,24 +508,52 @@ export function absoluteLinks(markdown, relPath) {
 }
 
 /**
- * A record with `absoluteLinks` applied to every string it carries but its
- * examples, which are code. Summaries come from TSDoc and purposes from
- * frontmatter, and both were written for the page too (`[Column](./column.md)`).
+ * A record made to read away from its page.
+ *
+ * `absoluteLinks` goes over every string but the examples, which are code.
+ * Summaries come from TSDoc and purposes from frontmatter, and both were
+ * written for the page too (`[Column](./column.md)`).
+ *
+ * An example's `/img/logo.svg` names a picture the docs site serves, and once
+ * an agent copies it into an app, a file that app does not have. So an example
+ * that uses one carries a `note` saying it stands for the reader's own, which
+ * the server prints as the first line of its code. It is a field rather than
+ * a comment in `code` because search reads `code`, for its scores, its
+ * previews and `get_examples`' query, and the note's words would match there.
+ * Each other string gets the note above its first such `jsx` or `tsx` fence in
+ * each part the server may serve alone (`noteSiteImagesInSlices`).
  */
-function withAbsoluteLinks(value, relPath, key = '') {
+function awayFromPage(record, relPath) {
+  return {
+    ...awayFromPageIn(record, relPath),
+    examples: record.examples.map(ex =>
+      hasSiteImages(ex.code) ? { ...ex, note: SITE_IMAGES_NOTE } : ex
+    ),
+  };
+}
+
+/** `awayFromPage` over one value, leaving any `examples` as they are. */
+function awayFromPageIn(value, relPath, key = '') {
   if (key === 'examples') return value;
-  if (typeof value === 'string') return absoluteLinks(value, relPath);
-  if (Array.isArray(value))
-    return value.map(v => withAbsoluteLinks(v, relPath));
+  if (typeof value === 'string') {
+    return noteSiteImagesInSlices(absoluteLinks(value, relPath));
+  }
+  if (Array.isArray(value)) return value.map(v => awayFromPageIn(v, relPath));
   if (value && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [
-        k,
-        withAbsoluteLinks(v, relPath, k),
-      ])
+      Object.entries(value).map(([k, v]) => [k, awayFromPageIn(v, relPath, k)])
     );
   }
   return value;
+}
+
+/**
+ * `noteSiteImagesInFences` over each part of `markdown` the server may serve
+ * alone, the sections `get_helper_props` slices a guide into (`sections`), so
+ * every such part that shows a site image says what it stands for.
+ */
+export function noteSiteImagesInSlices(markdown) {
+  return sections(markdown).map(noteSiteImagesInFences).join('\n');
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -890,14 +934,15 @@ function itemsOf(placed, token) {
   };
 }
 
-/** A TypeScript module of bestax-migrate's, loaded with node's type stripping. */
+/** A sibling package's TypeScript module, loaded with node's type stripping. */
 async function importStripped(file) {
   try {
     return await import(pathToFileURL(file).href);
   } catch (err) {
     throw new Error(
       `could not import ${relative(REPO, file)}: ${err.message}. ` +
-        `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
+        `It is loaded with node's type stripping, which needs Node 22.18 or ` +
+        `later and erasable TypeScript, any relative import naming a .ts file.`,
       { cause: err }
     );
   }
@@ -995,7 +1040,7 @@ export async function bulmaClassTable(records) {
         items: itemsOf(map.PLACED, token),
         parent: entry.parent ?? null,
         rendersText: entry.rendersText ?? null,
-        classNameReplaces: entry.classNameReplaces ?? false,
+        classNameSince: entry.classNameSince ?? null,
         onAnother: entry.onAnother ?? null,
       },
     ])
@@ -1184,7 +1229,7 @@ export async function build() {
         };
       }
 
-      record = withAbsoluteLinks(record, relPath);
+      record = awayFromPage(record, relPath);
       components.set(name, record);
       for (const id of importedNames(record.import)) {
         if (titles.has(id) || imported.has(id)) continue;

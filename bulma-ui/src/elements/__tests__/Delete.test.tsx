@@ -149,6 +149,67 @@ describe('Delete Component', () => {
     expect(button).toBeInTheDocument();
   });
 
+  // Bulma draws the button 20px across, 16px small, and WCAG 2.5.8 asks for a
+  // 24px target (#2198). The span is that target: `_delete.scss` centres it
+  // on the button at 24px square or more, and Delete.styles.test.tsx checks
+  // the rule.
+  describe('hit area', () => {
+    it.each([
+      ['no prefix', '', 'delete-target'],
+      ['a class prefix', 'bestax-', 'bestax-delete-target'],
+    ])(
+      'renders a hidden target inside the button, with %s',
+      (_label, prefix, targetClass) => {
+        render(
+          <ConfigProvider classPrefix={prefix}>
+            <Delete size="small" />
+          </ConfigProvider>
+        );
+        const button = screen.getByRole('button', { name: 'Close' });
+        expect(button.children).toHaveLength(1);
+        const target = button.children[0];
+        expect(target.tagName).toBe('SPAN');
+        expect(target).toHaveAttribute('class', targetClass);
+        expect(target).toHaveAttribute('aria-hidden', 'true');
+        expect(target).toBeEmptyDOMElement();
+        expect(button).toHaveAccessibleName('Close');
+      }
+    );
+
+    it('takes a press on the target as a press on the button', () => {
+      const handleClick = vi.fn();
+      const { container } = render(<Delete onClick={handleClick} />);
+      fireEvent.click(container.querySelector('.delete-target') as Element);
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('takes no press on the target while disabled', () => {
+      const handleClick = vi.fn();
+      const { container } = render(<Delete disabled onClick={handleClick} />);
+      fireEvent.click(container.querySelector('.delete-target') as Element);
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('keeps a delete given dangerouslySetInnerHTML working, with no target', () => {
+      // React refuses children beside it, so the hit area gives way.
+      // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- a fixed string
+      render(<Delete dangerouslySetInnerHTML={{ __html: '<b>x</b>' }} />);
+      expect(screen.getByRole('button').innerHTML).toBe('<b>x</b>');
+    });
+
+    it('keeps children a caller passes, ahead of the target', () => {
+      render(
+        <Delete>
+          <span className="is-sr-only">extra</span>
+        </Delete>
+      );
+      const button = screen.getByRole('button');
+      expect(button.children).toHaveLength(2);
+      expect(button.children[0]).toHaveTextContent('extra');
+      expect(button.children[1]).toHaveClass('delete-target');
+    });
+  });
+
   describe('ClassPrefix', () => {
     it('applies classPrefix to main class', () => {
       render(

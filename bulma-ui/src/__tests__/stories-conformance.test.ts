@@ -7,8 +7,8 @@
  * LEGACY_EXEMPT lists story files that predate the rule. Shrink it as they
  * are backfilled; never add a new file to it.
  */
-import { readdirSync } from 'fs';
 import { join, relative } from 'path';
+import { storyFiles } from './sourceFiles';
 
 const SRC = join(__dirname, '..');
 
@@ -29,16 +29,6 @@ const LEGACY_EXEMPT = new Set<string>([
   'form/TimeInput.stories.tsx',
   'helpers/useBulmaClasses.stories.tsx',
 ]);
-
-function storyFiles(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...storyFiles(full));
-    else if (entry.name.endsWith('.stories.tsx')) out.push(full);
-  }
-  return out;
-}
 
 describe('story conformance', () => {
   it('every argType has a description (autodocs prop table)', async () => {

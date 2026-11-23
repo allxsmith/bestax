@@ -139,6 +139,11 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
 - **Changed what a component does for accessibility** (a focus ring, forced colors, an `aria-*`
   attribute it sets): add or update the bullet in the Accessibility section of its API page. That
   section is written by hand, and nothing checks it.
+- **Closed or opened a known accessibility gap:** update the rows it touches in
+  `docs/docs/guides/accessibility/conformance-report.md`, in the same PR: the issue a row cites,
+  its conformance level once no gap is left, and the report's date.
+  `docs/scripts/conformance-report.test.mjs` holds the report's shape, not whether what it says
+  is still true.
 - **Declared a prop on a props interface,** even one it already inherits, to give it TSDoc: keep
   the inherited type (see TSDoc in `bulma-ui/CLAUDE.md`). If the component is a target of
   bestax-migrate's bulma-classes class map, classify the prop there (`ownProps` or
@@ -146,6 +151,17 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
 - **Test the fix, not the code near it.** Assert the declaration or behavior that is the fix,
   revert the fix and watch the test fail, then put it back. For CSS, cover the class-prefixed
   build too.
+- **Changed how something looks, or how it looks in a state:** show it in the PR with
+  before-and-after screenshots. "Before" comes from main (bestax.io's Storybook or docs page) and
+  "after" from the PR's preview deployment (or a local build of the branch when there is none),
+  with the same story, args, theme and viewport. Cover the variations the change reaches (sizes,
+  colors, light and dark, right to left, forced colors; phone, tablet and desktop widths for
+  anything responsive) and each state it touches (hover, focus, open, a click, a drag), reached
+  with the mouse and keyboard rather than by setting a class. Storybook's
+  `iframe.html?id=<story>&args=size:small` reaches variations no story shows. Keep it short for
+  the reviewer: tile each before beside its after, label them, use as few images as show the
+  change, and name in one line the variations you checked that didn't change. Attach the images
+  to the PR rather than committing them, and if you can't, say so.
 - **Changed more than one package:** one commit per package, each with that package's scope (see
   "Commits" below).
 - **Keep the PR body true.** Tick only what you did, name follow-up work as an issue or as not

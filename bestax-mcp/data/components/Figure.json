@@ -7,23 +7,28 @@
   "examples": [
     {
       "title": "Default Figure",
-      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n</Figure>"
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Figure with Caption",
-      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>This is a caption for the image</Figure.Caption>\n</Figure>"
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>This is a caption for the image</Figure.Caption>\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Styled Caption",
-      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textColor=\"grey\" textSize=\"7\" mt=\"2\">\n    Grey caption with smaller text\n  </Figure.Caption>\n</Figure>"
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textColor=\"grey\" textSize=\"7\" mt=\"2\">\n    Grey caption with smaller text\n  </Figure.Caption>\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Figure with Background",
-      "code": "<Figure bgColor=\"light\" textColor=\"dark\" p=\"4\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption mt=\"2\">Figure with background and padding</Figure.Caption>\n</Figure>"
+      "code": "<Figure bgColor=\"light\" textColor=\"dark\" p=\"4\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption mt=\"2\">Figure with background and padding</Figure.Caption>\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Centered Caption",
-      "code": "<Figure textAlign=\"centered\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textSize=\"7\" mt=\"2\">\n    Centered caption\n  </Figure.Caption>\n</Figure>"
+      "code": "<Figure textAlign=\"centered\">\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption textSize=\"7\" mt=\"2\">\n    Centered caption\n  </Figure.Caption>\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Code Figure",
@@ -31,7 +36,8 @@
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>Caption via the Figure.Caption static</Figure.Caption>\n</Figure>"
+      "code": "<Figure>\n  <Image src=\"/img/bestax-solar-system-3d.png\" alt=\"Placeholder\" />\n  <Figure.Caption>Caption via the Figure.Caption static</Figure.Caption>\n</Figure>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     }
   ],
   "accessibility": "- **Image Alt Text:** Always provide meaningful alt text for images within figures.\n- **Figure Semantics:** The `<figure>` element groups content that is referenced from the main flow but could be moved without affecting the document's meaning.\n- **Caption Association:** Screen readers associate `<figcaption>` content with the figure automatically.\n\n:::info\nThe `<figure>` element is ideal for images, illustrations, diagrams, code listings, or anything that is referenced as a unit from the main content.\n:::",

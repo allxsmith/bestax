@@ -18,6 +18,7 @@
  * call. What moves behind `group` is the prose and the live examples, which are re-fetchable
  * and which nothing breaks without.
  */
+import { sections } from './fences.js';
 
 /**
  * Markdown tables in the generated index are column-padded for human reading. That padding
@@ -125,7 +126,17 @@ export const HELPER_GROUPS: Record<string, HelperGroup> = {
       'textWeight',
       'fontFamily',
     ],
-    aliases: ['text', 'font', 'weight', 'align', 'size', 'uppercase', 'italic'],
+    aliases: [
+      'text',
+      'font',
+      'weight',
+      'align',
+      'size',
+      'uppercase',
+      'italic',
+      'underline',
+      'underlined',
+    ],
   },
   flex: {
     headings: ['### With Flexbox Helpers', '### Gap'],
@@ -218,7 +229,6 @@ export function resolveGroup(input: string): string | null {
   return null;
 }
 
-const sections = (doc: string) => doc.split(/\n(?=#{2,3} )/);
 const headingOf = (chunk: string) => chunk.split('\n')[0].trim();
 
 /** The `## Supported Props` table, reflowed, header rows plus the rows for `props`. */

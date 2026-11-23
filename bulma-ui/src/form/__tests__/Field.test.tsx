@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { Profiler } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -30,6 +31,7 @@ import { Input } from '../Input';
 import { Select } from '../Select';
 import { TextArea } from '../TextArea';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 import { useFieldLabelId } from '../FormContext';
 
 /**
@@ -1652,5 +1654,105 @@ describe('a label over content that takes no for (#1004)', () => {
         await cleanup();
       }
     });
+  });
+});
+
+// Bulma ships no field color CSS, so the prop renders nothing; it warns in
+// development, as Tabs' and Pagination's do (#2238).
+describe('Field deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('warns once in development when color is passed, and renders no class for it', () => {
+    const { container, rerender } = render(<Field color="primary">x</Field>);
+    rerender(<Field color="danger">x</Field>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Field "color" prop is deprecated')
+    );
+    expect(container.querySelector('.field')?.className).toBe('field');
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Field>x</Field>);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+// A part's color renders the text color helper in textColor's place. It's
+// deprecated, and warns in development; what it renders is unchanged (#2240).
+describe('Field parts deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  type PartColors = Pick<
+    React.ComponentProps<typeof FieldLabel>,
+    'color' | 'textColor'
+  >;
+  const parts: [string, (props: PartColors) => React.ReactNode][] = [
+    ['Field.Label', props => <Field.Label data-testid="part" {...props} />],
+    ['Field.Body', props => <Field.Body data-testid="part" {...props} />],
+  ];
+
+  it.each(parts)(
+    '%s warns once in development when color is passed',
+    (name, renderPart) => {
+      const { rerender } = render(renderPart({ color: 'info' }));
+      rerender(renderPart({ color: 'danger' }));
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(`${name} "color" prop is deprecated`);
+      expect(message).toContain('renders the text color helper');
+      expect(message).toContain('Use the textColor prop instead');
+    }
+  );
+
+  it.each(parts)(
+    '%s still renders color as the text color helper, over textColor',
+    (_name, renderPart) => {
+      render(renderPart({ color: 'info', textColor: 'danger' }));
+      const part = screen.getByTestId('part');
+      expect(part).toHaveClass('has-text-info');
+      expect(part).not.toHaveClass('has-text-danger');
+      expect(part).not.toHaveClass('is-info');
+    }
+  );
+
+  it.each(parts)(
+    '%s warns for a color key with no value, which still drops textColor',
+    (name, renderPart) => {
+      render(renderPart({ color: undefined, textColor: 'danger' }));
+      expect(screen.getByTestId('part')).not.toHaveClass('has-text-danger');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`${name} "color" prop is deprecated`)
+      );
+    }
+  );
+
+  it('does not warn when color is omitted', () => {
+    render(
+      <Field horizontal>
+        <Field.Label textColor="danger">Name</Field.Label>
+        <Field.Body textColor="danger">x</Field.Body>
+      </Field>
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

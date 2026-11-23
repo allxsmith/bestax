@@ -144,6 +144,48 @@ describe('Calendar', () => {
       for (const m of months) expect(m).toHaveClass('is-success', 'is-small');
     });
 
+    it('hides a week with no day on show from assistive technology (#2190)', () => {
+      // November 2026 fits in five weeks, so its sixth row is all December.
+      // With December on show beside it, those days are hidden there, and the
+      // row would be a row with no cells. It keeps its place for the layout.
+      const weeks = (grid: Element) =>
+        Array.from(grid.querySelectorAll(':scope > .dateinput-week'));
+      const { container } = render(
+        <Calendar monthsToShow={2} defaultMonth={NOV_2026} />
+      );
+      const [november, december] = Array.from(
+        container.querySelectorAll('[role="grid"]')
+      );
+      const novemberWeeks = weeks(november);
+      expect(novemberWeeks).toHaveLength(6);
+      const last = novemberWeeks[5];
+      expect(last).toHaveAttribute('aria-hidden', 'true');
+      for (const day of last.querySelectorAll('[role="gridcell"]')) {
+        expect(day.textContent).toBe('');
+        expect(day.firstElementChild).toHaveStyle({ visibility: 'hidden' });
+      }
+      for (const week of [...novemberWeeks.slice(0, 5), ...weeks(december)]) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+
+      // On its own, November shows December's days dimmed in that row.
+      const { container: alone } = render(<Calendar defaultMonth={NOV_2026} />);
+      for (const week of weeks(alone.querySelector('[role="grid"]')!)) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+
+      // With nearbyMonthDays off, those days are blank on a month alone too,
+      // as in a DateInput or DateTimeInput given nearbyMonthDays={false}.
+      const { container: bare } = render(
+        <Calendar defaultMonth={NOV_2026} nearbyMonthDays={false} />
+      );
+      const bareWeeks = weeks(bare.querySelector('[role="grid"]')!);
+      expect(bareWeeks[5]).toHaveAttribute('aria-hidden', 'true');
+      for (const week of bareWeeks.slice(0, 5)) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+    });
+
     it('prefixes every class under a ConfigProvider classPrefix', () => {
       const { container } = render(
         <ConfigProvider classPrefix="bestax-">
@@ -202,7 +244,7 @@ describe('Calendar', () => {
 
     it('builds the name with getDayLabel from the full date', () => {
       const getDayLabel = vi.fn((date: Date, label: string) =>
-        date.getDate() === 20 ? `${label}, 3 slots left` : label
+        date.getDate() === 20 ? `${date.getDate()}, 3 left, ${label}` : label
       );
       render(
         <Calendar
@@ -213,13 +255,46 @@ describe('Calendar', () => {
       );
       expect(
         screen.getByRole('gridcell', {
-          name: 'Friday, November 20, 2026, 3 slots left',
+          name: '20, 3 left, Friday, November 20, 2026',
         })
       ).toBeInTheDocument();
       expect(getDayLabel).toHaveBeenCalledWith(
         new Date(2026, 10, 20),
-        'Friday, November 20, 2026'
+        'Friday, November 20, 2026',
+        '20'
       );
+    });
+
+    it("hands getDayLabel the day's number as its cell shows it (#2210)", () => {
+      // In the grid's own digits, so a name can start with what the day
+      // shows: plain with no locale, Eastern Arabic in Egyptian Arabic.
+      for (const locale of [undefined, 'ar-EG']) {
+        const shown = new Map<number, string>();
+        const { container, unmount } = render(
+          <Calendar
+            locale={locale}
+            defaultMonth={NOV_2026}
+            getDayLabel={(date, label, shownNumber) => {
+              shown.set(date.getTime(), shownNumber);
+              return `${shownNumber}, ${label}`;
+            }}
+          />
+        );
+        const cells = container.querySelectorAll<HTMLElement>(
+          '[role="gridcell"]:not([style*="hidden"])'
+        );
+        expect(cells.length).toBeGreaterThan(27);
+        for (const cell of cells) {
+          const number = cell.firstChild?.textContent;
+          expect(cell.getAttribute('aria-label')).toMatch(
+            new RegExp(`^${number}, `)
+          );
+        }
+        expect(shown.get(new Date(2026, 10, 20).getTime())).toBe(
+          locale ? '٢٠' : '20'
+        );
+        unmount();
+      }
     });
 
     it('names days in the locale', () => {
@@ -321,6 +396,21 @@ describe('Calendar', () => {
       expect(
         day('November 21, 2026').querySelector('.dateinput-cell-content')
       ).toBeEmptyDOMElement();
+    });
+
+    it("keeps the number and the content apart in a day's text (#2210)", () => {
+      // Text that reads the day's content, such as axe's check that a name
+      // holds what a control shows, would otherwise find "203 left". A day
+      // the template draws nothing for keeps its number alone.
+      render(
+        <Calendar
+          locale="en-US"
+          defaultMonth={NOV_2026}
+          dayTemplate={date => date.getDate() === 20 && '3 left'}
+        />
+      );
+      expect(day('November 20, 2026').textContent).toBe('20 3 left');
+      expect(day('November 21, 2026').textContent).toBe('21');
     });
 
     it('draws no content line without dayTemplate', () => {
@@ -1275,12 +1365,13 @@ describe('Calendar', () => {
         <Calendar locale="en-US" monthsToShow={2} defaultMonth={NOV_2026} />
       );
       const [nov, dec] = grids(container);
-      // November's last week runs into December, which shows them itself.
-      const dec1 = Array.from(
-        nov.querySelectorAll<HTMLElement>('.is-other-month')
-      ).find(c => c.textContent === '1')!;
-      expect(dec1).toBeDisabled();
-      expect(dec1).toHaveStyle({ visibility: 'hidden' });
+      // November's last weeks run into December, which shows those days
+      // itself, so November leaves them blank.
+      const blank = Array.from(
+        nov.querySelectorAll<HTMLElement>('[role="gridcell"]')
+      ).filter(c => c.tagName !== 'BUTTON');
+      expect(blank).toHaveLength(12);
+      for (const c of blank) expect(c.textContent).toBe('');
       expect(
         screen.getAllByRole('gridcell', { name: /December 1, 2026/ })
       ).toEqual([
@@ -1290,6 +1381,45 @@ describe('Calendar', () => {
       expect(
         within(dec).getByRole('gridcell', { name: /January 2, 2027/ })
       ).toHaveClass('is-other-month');
+    });
+
+    it('selects no blank day inside a range (#2194)', () => {
+      // November 28 to December 3. December's first week starts with
+      // November 29 and 30, which November shows, so December leaves them
+      // blank: cells that are neither selected nor drawn as part of the
+      // range, and only the days on show are selected.
+      const { container } = render(
+        <Calendar
+          locale="en-US"
+          selectionMode="range"
+          monthsToShow={2}
+          defaultValue={[new Date(2026, 10, 28), new Date(2026, 11, 3)]}
+        />
+      );
+      const [, december] = grids(container);
+      const firstWeek = december.querySelectorAll('[role="row"]')[1];
+      const [sunday, monday] = Array.from(
+        firstWeek.querySelectorAll<HTMLElement>('[role="gridcell"]')
+      );
+      for (const blank of [sunday, monday]) {
+        expect(blank).not.toHaveAttribute('aria-selected');
+        expect(blank.firstElementChild).toHaveAttribute(
+          'class',
+          'dateinput-cell is-other-month'
+        );
+      }
+      expect(
+        screen
+          .getAllByRole('gridcell', { selected: true })
+          .map(c => c.getAttribute('aria-label'))
+      ).toEqual([
+        'Saturday, November 28, 2026',
+        'Sunday, November 29, 2026',
+        'Monday, November 30, 2026',
+        'Tuesday, December 1, 2026',
+        'Wednesday, December 2, 2026',
+        'Thursday, December 3, 2026',
+      ]);
     });
 
     it("keeps a range's preview as the pointer crosses between months", () => {

@@ -360,7 +360,8 @@ written in its locale, and the list follows its direction.
   announced politely through a status region, since a screen reader can't see the list change.
   Nothing is announced while a file is dragged over the zone.
 - **The list:** a `<ul>` with a row per file, each with a real remove button named "Remove" and
-  the file's name. After a removal, focus moves to the next row's button, the one before, or the
+  the file's name, a small [`Delete`](../elements/delete.md#accessibility) with a target at least 24px square around
+  its circle. After a removal, focus moves to the next row's button, the one before, or the
   input. The `<ul>` writes out `role="list"`, its implicit role, which Safari drops once a list's
   bullets are hidden, as Bulma's reset hides them; without it VoiceOver reads the files with no
   count.

@@ -89,7 +89,7 @@ When using only icons or non-text content, add `aria-label` or screen-reader-onl
 - [Storybook: Footer Stories](https://bestax.io/storybook/?path=/story/layout-footer--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Footer />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Footer />` for powerful utility-based styling.
 :::
 
 ---

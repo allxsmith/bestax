@@ -59,7 +59,7 @@ export interface TextAreaBaseProps
 }
 
 /**
- * Bulma TextArea component with full Bulma helper class support.
+ * Bulma TextArea component with Bulma helper class support.
  *
  * @function
  * @param {TextAreaBaseProps} props - Props for the TextAreaBase component.

@@ -22,13 +22,13 @@ This page documents the bestax-bulma prop API for Bulma's color helpers. For the
 
 :::tip
 
-All components in bestax-bulma have access to these standard color properties through the `useBulmaClasses` hook. This means you can apply color properties to any component in the library.
+Many components in bestax-bulma take these color properties through the `useBulmaClasses` hook, though not every one does and the names differ from one component to the next, so check a component's props before passing one.
 
 :::
 
 ## Text Color
 
-Use the `textColor` prop to apply text colors. Most components re-expose Bulma's `has-text-*` helper under this name, because on components with a filled variant (`Button`, `Notification`, `Hero`, `Progress`, and others) `color` renders the `is-<color>` variant instead of a text color. Some components (`Box`, `Card`, `Block`, and friends) also accept `color` as a text-color alias, but `textColor` is the consistent name and takes precedence when both are set. `Tag`, `Input`, and table cells have no text-color prop; wrap their content in `<Span textColor="...">` instead. The prop accepts Bulma's standard color palette.
+Use the `textColor` prop to apply text colors. Many components re-expose Bulma's `has-text-*` helper under this name, because on components with a filled variant (`Button`, `Notification`, `Hero`, `Progress`, and others) `color` renders the `is-<color>` variant instead of a text color. Some components (`Box`, `Card`, `Block`, and friends) also accept `color` as a text-color alias, but `textColor` is the consistent name and takes precedence when both are set. `Tag` and table cells have no text-color prop; wrap their content in `<Span textColor="...">` instead. The prop accepts Bulma's standard color palette.
 
 ### Standard Colors
 

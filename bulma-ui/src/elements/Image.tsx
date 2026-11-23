@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { warnOnce } from '../helpers/devWarnings';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -64,7 +65,11 @@ export interface ImageProps
   isRetina?: boolean;
   /** Image source URL. */
   src?: string | undefined;
-  /** Alternate text for the image. */
+  /**
+   * Alternate text for the image: what it shows, for a reader who can't see
+   * it. Pass `alt=""` for a decorative image, which a screen reader then
+   * skips. Left unset, the `<img>` has no alt, and a development build warns.
+   */
   alt?: string | undefined;
   /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. */
   children?: React.ReactNode;
@@ -73,7 +78,7 @@ export interface ImageProps
 }
 
 /**
- * The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
+ * The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and Bulma helper props for color and spacing.
  *
  * @function
  * @param {ImageProps} props - Props for the Image component.
@@ -117,6 +122,20 @@ export const Image: React.FC<ImageProps> = ({
     as ?? (size?.includes('by') ? 'figure' : 'div');
 
   const roundedClass = usePrefixedClassNames('is-rounded');
+
+  // In development, an `<img>` with no `alt` says so. An empty one marks a
+  // decorative image.
+  const missingAlt = !children && typeof alt !== 'string';
+  useEffect(() => {
+    if (missingAlt) {
+      warnOnce(
+        'Image:no-alt',
+        '[bestax-bulma] <Image> renders an <img> with no alt. Give it alt ' +
+          'text that says what the image shows, or alt="" when it is ' +
+          'decorative.'
+      );
+    }
+  }, [missingAlt]);
 
   const content = children ? (
     children

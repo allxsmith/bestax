@@ -209,7 +209,7 @@ describe('kitchen-sink e2e', () => {
       fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
-    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');

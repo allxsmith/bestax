@@ -1004,7 +1004,7 @@ describe('Rate', () => {
     );
 
     // A right-to-left page mirrors this star so it fills from its right. That
-    // is a `:dir(rtl)` rule, which jsdom doesn't match, so Rate.styles.test.ts
+    // is a `:dir(rtl)` rule, which jsdom doesn't match, so Rate.styles.test.tsx
     // holds the rule and this test the class it selects.
     it('marks the built-in half star, the one a right-to-left page mirrors', () => {
       const { container } = render(

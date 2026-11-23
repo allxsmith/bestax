@@ -18,6 +18,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import {
   cascade,
   customProperty,
+  declaredFor,
   rulesOf as styleRulesOf,
 } from '../../__tests__/css-cascade';
 import {
@@ -50,6 +51,17 @@ const bulmaCss = (file = 'bulma.css') =>
   fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
 const FORCED = '@media (forced-colors: active)';
+
+// A spaced navbar's height from desktop up: Bulma's navbar height and its
+// padding above and below, which falls back to Bulma's default.
+const SPACED_HEIGHT =
+  'calc(var(--bulma-navbar-height) + var(--bulma-navbar-padding-vertical, 1rem) * 2)';
+
+// The media queries Bulma's `-touch` and `-desktop` fixed classes apply in.
+const BREAKPOINT = {
+  '-touch': '@media screen and (max-width: 1023px)',
+  '-desktop': '@media screen and (min-width: 1024px)',
+} as const;
 
 interface Rule {
   /** The at-rules around it, outermost first, as written. */
@@ -600,13 +612,13 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger, the divider, an active item’s bar and an open dropdown’s edge in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
+    'keeps the burger, the divider, an active item’s bar and an open dropdown’s edge in forced colors, a fixed navbar’s lock margins, the page’s scroll padding and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       // An active or selected link item or link.
       const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 7).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 17).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
         [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
@@ -624,12 +636,30 @@ describe('the Navbar partial', () => {
           `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
           [],
         ],
+        [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-top))`, []],
+        [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-bottom))`, []],
+        // The same three for Bulma's classes that fix it at a breakpoint.
+        ...(['-touch', '-desktop'] as const).flatMap(suffix => {
+          const at = [BREAKPOINT[suffix]];
+          const top = `.${prefix}navbar.${prefix}is-fixed-top${suffix}`;
+          const bottom = `.${prefix}navbar.${prefix}is-fixed-bottom${suffix}`;
+          return [
+            [`:where(${top}, ${bottom})`, at],
+            [`:where(html:has(${top}))`, at],
+            [`:where(html:has(${bottom}))`, at],
+          ];
+        }),
+        // Then a spaced navbar's taller scroll padding, from desktop up.
+        ...(['top', 'bottom'] as const).map(side => [
+          `:where(html:has(.${prefix}navbar.${prefix}is-spaced:is(.${prefix}is-fixed-${side}, .${prefix}is-fixed-${side}-desktop)))`,
+          [BREAKPOINT['-desktop']],
+        ]),
       ]);
       // Then the colored hero's navbar, at the top level but for the menu's
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(7, -1 - extra);
+      const hero = rules.slice(17, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -655,7 +685,21 @@ describe('the Navbar partial', () => {
       expect(rules[5].declarations).toEqual({
         outline: '1px solid CanvasText',
       });
-      expect(rules[6].declarations).toEqual(LOCK_MARGINS);
+      expect(rules[15].declarations).toEqual({
+        'scroll-padding-top': SPACED_HEIGHT,
+      });
+      expect(rules[16].declarations).toEqual({
+        'scroll-padding-bottom': SPACED_HEIGHT,
+      });
+      for (const first of [6, 9, 12]) {
+        expect(rules[first].declarations).toEqual(LOCK_MARGINS);
+        expect(rules[first + 1].declarations).toEqual({
+          'scroll-padding-top': 'var(--bulma-navbar-height)',
+        });
+        expect(rules[first + 2].declarations).toEqual({
+          'scroll-padding-bottom': 'var(--bulma-navbar-height)',
+        });
+      }
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([
@@ -722,6 +766,195 @@ describe('the Navbar partial', () => {
       'utf8'
     );
     expect(index).toMatch(/^@use 'navbar';$/m);
+  });
+});
+
+// The window scrolls a focused control, or an in-page link's target, to its
+// edge, and a fixed navbar covers that edge (#2193). The partial pads the
+// page's scroll by the navbar's height on that side, keyed on the navbar, at
+// no weight. The value is resolved on `<html>` from Bulma's sheet and the
+// partial, as a browser ranks them.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('the page under a fixed navbar, with %s', (_label, prefix, bulmaFile) => {
+  const NAVBAR_HEIGHT = 'var(--bulma-navbar-height)';
+  const css = (before = '', after = '') =>
+    before + bulmaCss(bulmaFile) + compile(prefix) + after;
+
+  /** The `scroll-padding-<side>` the page takes from `sheet`. */
+  const scrollPadding = (sheet: string, side: 'top' | 'bottom') =>
+    cascade(
+      document.documentElement,
+      sheet,
+      [`scroll-padding-${side}`],
+      (style, property) => style.getPropertyValue(property) || undefined
+    );
+
+  it('pads the top of the page by the navbar’s height for one fixed to the top', () => {
+    fixedNavbarOf(prefix, 'top');
+    expect(scrollPadding(css(), 'top')).toBe(NAVBAR_HEIGHT);
+    expect(scrollPadding(css(), 'bottom')).toBeUndefined();
+  });
+
+  it('pads the bottom of the page by the navbar’s height for one fixed to the bottom', () => {
+    fixedNavbarOf(prefix, 'bottom');
+    expect(scrollPadding(css(), 'bottom')).toBe(NAVBAR_HEIGHT);
+    expect(scrollPadding(css(), 'top')).toBeUndefined();
+  });
+
+  it('pads nothing for a navbar that isn’t fixed', () => {
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site" />
+      </ConfigProvider>
+    );
+    expect(scrollPadding(css(), 'top')).toBeUndefined();
+    expect(scrollPadding(css(), 'bottom')).toBeUndefined();
+  });
+
+  it('gets no padding from Bulma alone, which is the bug', () => {
+    fixedNavbarOf(prefix, 'top');
+    expect(scrollPadding(bulmaCss(bulmaFile), 'top')).toBeUndefined();
+  });
+
+  it('leaves an app’s own value in charge, wherever its sheet loads', () => {
+    fixedNavbarOf(prefix, 'top');
+    const own = 'html { scroll-padding-top: 5rem; }';
+    expect(scrollPadding(css(own), 'top')).toBe('5rem');
+    expect(scrollPadding(css('', own), 'top')).toBe('5rem');
+  });
+
+  it('leaves AppFrame’s value in charge, wherever its sheet loads', () => {
+    const appFrame = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'layout/appframe';`,
+      {
+        loadPaths: [SCSS, path.dirname(BULMA)],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    const { container } = render(
+      <div className={`${prefix}app-frame`}>
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar aria-label="Site" fixed="top" />
+        </ConfigProvider>
+      </div>
+    );
+    expect(container.querySelector(`.${prefix}is-fixed-top`)).not.toBeNull();
+    const HEADER = 'var(--bulma-app-frame-header-height)';
+    expect(scrollPadding(css(appFrame), 'top')).toBe(HEADER);
+    expect(scrollPadding(css('', appFrame), 'top')).toBe(HEADER);
+  });
+});
+
+// Bulma's `-touch` and `-desktop` classes fix a navbar below and from its
+// breakpoint only, and a navbar fixed that way takes the lock's margins and
+// pads the page's scroll there, and nowhere else (#2259). jsdom evaluates no
+// media query, so this reads each declaration with the block it sits in,
+// from Bulma's sheet and the partial: Bulma sets no margin on such a navbar,
+// so the margins hold at no weight wherever its sheet loads.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('a navbar fixed at one breakpoint, with %s', (_label, prefix, bulmaFile) => {
+  const SCROLL = ['scroll-padding-top', 'scroll-padding-bottom'];
+  const MARGINS = ['margin-left', 'margin-right'];
+
+  it.each([
+    ['top', '-touch'],
+    ['bottom', '-touch'],
+    ['top', '-desktop'],
+    ['bottom', '-desktop'],
+  ] as const)(
+    'gives a navbar fixed to the %s with the %s class its margins and the page its padding at that breakpoint',
+    (side, suffix) => {
+      const css = bulmaCss(bulmaFile) + compile(prefix);
+      const { getByRole } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar
+            aria-label="Site"
+            className={`${prefix}is-fixed-${side}${suffix}`}
+          />
+        </ConfigProvider>
+      );
+      expect(declaredFor(document.documentElement, css, SCROLL)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: [
+          `scroll-padding-${side}: var(--bulma-navbar-height)`,
+        ],
+      });
+      expect(declaredFor(getByRole('navigation'), css, MARGINS)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: Object.entries(LOCK_MARGINS).map(
+          ([property, value]) => `${property}: ${value}`
+        ),
+      });
+    }
+  );
+});
+
+// A spaced navbar is taller from the desktop breakpoint up by its padding
+// above and below, so the page's scroll padding grows there to match (#2258).
+// A navbar fixed at one breakpoint gets it from desktop up, where Bulma spaces
+// it.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('a spaced fixed navbar, with %s', (_label, prefix, bulmaFile) => {
+  const SCROLL = ['scroll-padding-top', 'scroll-padding-bottom'];
+  const css = () => bulmaCss(bulmaFile) + compile(prefix);
+
+  /** The page's scroll padding with a spaced navbar of `classes`. */
+  const paddingFor = (classes: string) => {
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site" isSpaced className={classes} />
+      </ConfigProvider>
+    );
+    return declaredFor(document.documentElement, css(), SCROLL);
+  };
+
+  it.each(['top', 'bottom'] as const)(
+    'pads the page by the taller height from desktop up for one fixed to the %s',
+    side => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar aria-label="Site" isSpaced fixed={side} />
+        </ConfigProvider>
+      );
+      expect(declaredFor(document.documentElement, css(), SCROLL)).toEqual({
+        atRest: [`scroll-padding-${side}: var(--bulma-navbar-height)`],
+        [BREAKPOINT['-desktop']]: [`scroll-padding-${side}: ${SPACED_HEIGHT}`],
+      });
+    }
+  );
+
+  it.each(['top', 'bottom'] as const)(
+    'pads one desktop-fixed to the %s the same way, after its own padding',
+    side => {
+      expect(paddingFor(`${prefix}is-fixed-${side}-desktop`)).toEqual({
+        atRest: [],
+        [BREAKPOINT['-desktop']]: [
+          `scroll-padding-${side}: var(--bulma-navbar-height)`,
+          `scroll-padding-${side}: ${SPACED_HEIGHT}`,
+        ],
+      });
+    }
+  );
+
+  it('leaves a touch-fixed one at the navbar height, below desktop, where Bulma spaces nothing', () => {
+    expect(paddingFor(`${prefix}is-fixed-top-touch`)).toEqual({
+      atRest: [],
+      [BREAKPOINT['-touch']]: [
+        'scroll-padding-top: var(--bulma-navbar-height)',
+      ],
+    });
+  });
+
+  it('pads nothing for a spaced navbar that isn’t fixed', () => {
+    expect(paddingFor('')).toEqual({ atRest: [] });
   });
 });
 

@@ -569,7 +569,7 @@ A Bulma-styled close/delete button for dismissing modals, notifications, tags, a
 ---
 
 :::tip
-For advanced customization, all elements support Bulma helper props for color, spacing, and accessibility. See the full documentation for each component for more details and advanced usage.
+See the full documentation for each component for more details and advanced usage.
 :::
 
 :::caution

@@ -25,7 +25,9 @@ for an existing component or synonym. If one fits, use or extend it.
 - [ ] `bulma-ui/src/<folder>/__tests__/Foo.test.tsx` — 99% all metrics; must include a
       `ConfigProvider classPrefix` test (pattern: `Reveal.test.tsx`)
 - [ ] `bulma-ui/src/<folder>/Foo.stories.tsx` — import types from `@storybook/react-vite`;
-      `tags: ['autodocs']`; a `description` on every argType; no inline `style={{}}`
+      `tags: ['autodocs']`; a `description` on every argType; no inline `style={{}}`.
+      Each story must pass axe in `pnpm --filter @allxsmith/bestax-bulma test-storybook`
+      (see "Stories" in `bulma-ui/CLAUDE.md` for the rare exemption)
 - [ ] _(extras with styles of their own)_ `bulma-ui/src/scss/<folder>/_foo.scss` + `@use 'foo';`
       in that folder's `_index.scss` — see `bulma-ui/src/scss/CLAUDE.md`
 - [ ] `docs/docs/api/<folder>/foo.md` — mirror `docs/docs/api/components/avatar.md`;

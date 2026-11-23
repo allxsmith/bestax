@@ -1,6 +1,8 @@
+import type { MockInstance } from 'vitest';
 import { render } from '@testing-library/react';
 import { Cell } from '../Cell';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 describe('Cell', () => {
   it('renders children', () => {
@@ -137,5 +139,35 @@ describe('Cell', () => {
     expect(cell?.className).not.toMatch(
       /is-col-start-|is-col-from-end-|is-col-span-|is-row-start-|is-row-from-end-|is-row-span-/
     );
+  });
+});
+
+// Bulma ships no cell color CSS, so the prop renders nothing; it warns
+// in development, as Tabs' and Pagination's do (#2238).
+describe('Cell deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('warns once in development when color is passed, and renders no class for it', () => {
+    const { container, rerender } = render(<Cell color="primary">x</Cell>);
+    rerender(<Cell color="danger">x</Cell>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Cell "color" prop is deprecated')
+    );
+    expect(container.querySelector('.cell')?.className).toBe('cell');
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Cell>x</Cell>);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

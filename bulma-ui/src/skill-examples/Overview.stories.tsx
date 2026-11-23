@@ -15,6 +15,10 @@ export default meta;
 type Story = StoryObj;
 
 export const Overview: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
+  },
   render: () => (
     <Box>
       <Title size="3">Bestax Agent Skills</Title>

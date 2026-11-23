@@ -1,0 +1,73 @@
+name: Docs accessibility
+
+# axe on every page of the built docs site, one color mode per leg (#2183).
+# docs/scripts/a11y-scan.mjs says what fails it, and a11y-exemptions.mjs what
+# is exempt and why.
+#
+# It runs after a change reaches main, not as a pull request check: building
+# the site and loading every page with its live examples is slow enough to
+# hold up every PR. To check a branch before it merges, start it by hand on
+# that branch (Run workflow). The library's own stories get axe in ci.yml's
+# storybook job, on every PR.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'bulma-ui/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/docs-a11y.yml'
+  workflow_dispatch:
+
+# Read-only token, and no repository secrets. It runs code from main, or from
+# a branch someone with write access started it on, so like ci.yml's jobs
+# it's one of the ordinary build jobs .github/CLAUDE.md keeps outside
+# harden-runner's rule 10.
+permissions:
+  contents: read
+
+# A newer change to the same branch makes an older run's result moot.
+concurrency:
+  group: docs-a11y-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Scan (${{ matrix.theme }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [light, dark]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: pnpm install --frozen-lockfile
+
+      # turbo builds the library first, which the site depends on.
+      - name: Build the docs site
+        run: pnpm exec turbo run build --filter=@allxsmith/bestax-docs
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @allxsmith/bestax-docs exec playwright install --with-deps chromium
+
+      - name: Scan every page (${{ matrix.theme }})
+        env:
+          THEME: ${{ matrix.theme }}
+        run: pnpm --filter @allxsmith/bestax-docs run a11y --theme="$THEME"

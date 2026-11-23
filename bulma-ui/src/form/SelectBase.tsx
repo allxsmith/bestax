@@ -64,7 +64,7 @@ export interface SelectBaseProps
 }
 
 /**
- * Bulma Select component with full Bulma helper class support.
+ * Bulma Select component with Bulma helper class support.
  *
  * @function
  * @param {SelectBaseProps} props - Props for the SelectBase component.

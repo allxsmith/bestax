@@ -22,7 +22,7 @@ This page documents the bestax-bulma prop API for Bulma's other helpers. For the
 
 :::tip
 
-Many of these helpers are available as direct props through the `useBulmaClasses` hook in bestax-bulma, providing a clean and type-safe way to apply these utility styles to any component in the library.
+Many of these helpers are available as direct props through the `useBulmaClasses` hook in bestax-bulma, providing a clean and type-safe way to apply these utility styles to the components that take them.
 
 :::
 

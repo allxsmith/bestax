@@ -14,7 +14,7 @@ The `Block` component renders a simple container with Bulma's `.block` class, ad
 
 <!-- /bestax:generated overview -->
 
-Use it for grouping or spacing elements, especially in forms or stacked layouts. It supports all Bulma helper props for color, spacing, and more.
+Use it for grouping or spacing elements, especially in forms or stacked layouts. It supports Bulma helper props for color, spacing, and more.
 
 :::info
 Bulma’s `.block` adds margin-bottom. For visual separation, combine with color or background helpers.

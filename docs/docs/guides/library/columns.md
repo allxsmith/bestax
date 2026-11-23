@@ -12,7 +12,7 @@ This page summarizes the Bulma-styled columns system in Bestax, with a brief des
 
 ## Columns
 
-A responsive grid container for aligning and distributing `Column` components. Supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and all Bulma/utility helper props.
+A responsive grid container for aligning and distributing `Column` components. Supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and Bulma/utility helper props.
 
 :::info
 Use `Columns` as the parent for all column-based layouts. It handles responsive wrapping and spacing automatically.

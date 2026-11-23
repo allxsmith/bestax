@@ -420,7 +420,7 @@ cases. Before writing \`style\`, translate each declaration with this table:
 | \`backgroundColor: '#…'\`                  | \`bgColor\` (same palette)                                                                                                                  |
 | \`fontSize: …\`                            | \`textSize="1"\`…\`"7"\` (\`1\` largest). On \`Title\`/\`SubTitle\`, \`as\` sets the level and \`size\` picks it too, so an \`<h3>\` at size 4 is \`as="h3" textSize="4"\` |
 | \`fontWeight: …\`                          | \`textWeight\`: \`light\`, \`normal\`, \`medium\`, \`semibold\`, \`bold\`                                                                   |
-| \`textTransform\`, italics                 | \`textTransform\`: \`uppercase\`, \`lowercase\`, \`capitalized\`, \`italic\`                                                                |
+| \`textTransform\`, italics, underline      | \`textTransform\`: \`uppercase\`, \`lowercase\`, \`capitalized\`, \`italic\`, \`underlined\`                                                |
 | \`display: 'flex'\` + flex properties      | same-named props: \`display="flex"\`, \`flexDirection\`, \`justifyContent\`, \`alignItems\`, \`flexWrap\`                                   |
 | \`height: '100%'\` on a flex child         | \`flexGrow="1"\`                                                                                                                            |
 | \`display: 'none'\`                        | \`visibility="hidden"\`, or responsive \`display*\` props (\`displayMobile\`, \`displayTablet\`, …)                                         |

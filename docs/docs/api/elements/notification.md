@@ -14,7 +14,7 @@ The `Notification` component is a Bulma-styled alert/message area for providing 
 
 <!-- /bestax:generated overview -->
 
-It supports color themes, light variants, an optional close (delete) button, custom content, and all Bulma helper props for spacing, etc.
+It supports color themes, light variants, an optional close (delete) button, custom content, and Bulma helper props for spacing, etc.
 
 :::info
 Notifications are perfect for status updates, alerts, and dismissible feedback in your UI.
@@ -186,7 +186,7 @@ Each helper takes the message first and any other options second.
 
 ## Accessibility
 
-- **Delete button:** Named "Close notification" for screen readers. Pass `ariaCloseLabel`, on `Notification` or to `notification.show()`, to name it in your app's language.
+- **Delete button:** Named "Close notification" for screen readers. Pass `ariaCloseLabel`, on `Notification` or to `notification.show()`, to name it in your app's language. It takes presses on a box at least 24px square around its circle, as [`Delete`](./delete.md#accessibility) does.
 - **Keyboard:** The delete button is focusable and can be activated by keyboard.
 - **Content:** Use semantic HTML within the notification for best accessibility.
 - **Contrast:** A dark or light notification's text reads against its background the way a dark or light `Button`'s does, in both color schemes, and a white or black one with `isLight` gets the light color's text on its light gray background. That comes from bestax's stylesheets, as the `color` and `isLight` props' descriptions say.

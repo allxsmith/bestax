@@ -384,7 +384,7 @@ When using fullheight or fullheight-with-navbar, ensure your layout remains keyb
 - [Storybook: Hero Stories](https://bestax.io/storybook/?path=/story/layout-hero--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.
 :::
 
 ---

@@ -192,7 +192,7 @@ You can combine the traditional prop-based API with compound components. The hea
 ## Accessibility
 
 - The message is rendered as `<article class="message">`.
-- If `onClose` is provided, a close button is rendered, named "delete" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button.
+- If `onClose` is provided, a close button is rendered, named "delete" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button. It takes presses on a box at least 24px square around its circle, as [`Delete`](../elements/delete.md#accessibility) does.
 - For optimal accessibility, use clear and descriptive titles/content.
 
 :::note
@@ -204,7 +204,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 ## Related Components
 
 - [`Notification`](../elements/notification.md): For simpler, single-box notifications.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -214,7 +214,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 - [Storybook: Message Stories](https://bestax.io/storybook/?path=/story/components-message--primary)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
 :::
 
 ---

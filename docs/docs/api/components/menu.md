@@ -14,7 +14,7 @@ The `Menu` component provides Bulma's vertical navigation menu: a simple, access
 
 <!-- /bestax:generated overview -->
 
-It supports labels, nested menu lists, active states, custom links, sections that open and close, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
+It supports labels, nested menu lists, active states, custom links, sections that open and close, and Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
 
 :::info
 Menu supports unlimited nesting and lets you use any link or router component via the `as` prop on `Menu.Item`.
@@ -413,7 +413,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
   `Menu.Section` for groups that open and close.
 - [`Collapse`](./collapse.md): A panel of any content that opens and closes, whose open state
   works the way `Menu.Section`'s does.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -424,7 +424,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 - [APG: Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
 :::
 
 ---

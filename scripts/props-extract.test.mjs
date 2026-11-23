@@ -21,6 +21,7 @@ import {
   extractComponent,
   extractHelperProps,
   helperPropsNoteOf,
+  readsOwnChildren,
   renderTypeText,
   topLevelInitializers,
   transparentPropWrapper,
@@ -534,6 +535,112 @@ test('an overloaded component resolves to its implementation, not a signature', 
   assert.match(widget.parameters[0].getText(), /size = 'normal'/);
   // A constant of the same name still wins over a function.
   assert.ok(ts.isArrowFunction(inits.get('Gadget')));
+});
+
+test("only the props' own children earn the synthesized children row", () => {
+  // A property access's name is an identifier too, so an element's `.children`
+  // on a ref, or a data node's, counted as the component naming its children,
+  // and a component that takes none got the row (#2125). The checker decides
+  // which value a name is, so the fixture is a program of its own. Its props
+  // inherit a DOM-style `children`, and so do its items, as React's do, so a
+  // check by the property's declaration can't tell them apart.
+  const { ts } = createProgram();
+  const source = [
+    'interface DOMAttributes { children?: unknown; title?: string }',
+    'interface P extends DOMAttributes { items?: P[] }',
+    'type Ref<T> = { current: T | null };',
+    'declare function forwardRef<T, Q>(fn: (props: Q, ref: Ref<T>) => unknown): object;',
+    'declare function memo<C>(c: C): C;',
+    // Another value's children: none of these count.
+    'const OnRef = forwardRef<HTMLDivElement, P>((props, ref) => ref.current?.children[0]);',
+    'const OnItem = ({ items }: P) => items?.map(n => n.children);',
+    'const ItemDestructured = ({ items }: P) => items?.map(({ children }) => children);',
+    'const Shadowed = (props: P) => props.items?.map(props => props.children);',
+    'const OnElement = (props: P, el: { props: P }) => [props.title, el.props.children];',
+    'const ItemLiteral = (props: P) => ({ title: props.title, children: [] });',
+    "const InText = (props: P) => { /* children */ return 'children'; };",
+    'const NoProps = () => null;',
+    'const WithParts = Object.assign(',
+    '  forwardRef<HTMLUListElement, P>((props, ref) => props.title),',
+    '  { Item: forwardRef<HTMLLIElement, P>(({ children }, ref) => children) }',
+    ');',
+    // The props' own: each of these counts.
+    'const Destructured = ({ children, ...rest }: P) => [children, rest];',
+    'const OnProps = forwardRef<HTMLDivElement, P>((props, ref) => props.children);',
+    'const Named = forwardRef(function Named(props: P) { return props.children; });',
+    'const InBody = (props: P) => { const { children: kids } = props; return kids; };',
+    "const ByKey = (props: P) => props['children'];",
+    "const KeyDestructured = ({ 'children': kids }: P) => kids;",
+    'const OnRest = ({ items, ...rest }: P) => rest.children;',
+    'const Cast = (props: unknown) => (props as P).children;',
+    'const Asserted = (props?: P) => props!.children;',
+    'const Aliased = (props: P) => { const p = props; return p.children; };',
+    'const Memoized = memo(forwardRef<HTMLDivElement, P>((props, ref) => props.children));',
+    'const WithThis = function (this: void, props: P) { return props.children; };',
+    'function DeclaredImpl(props: P) { return props.children; }',
+    'const Declared = DeclaredImpl as unknown as (props: P) => unknown;',
+    'const BothWays = (props: P) => [props.items?.[0].children, props.children];',
+  ].join('\n');
+  const options = {
+    lib: ['lib.es2020.d.ts', 'lib.dom.d.ts'],
+    noEmit: true,
+    strict: true,
+    target: ts.ScriptTarget.ES2020,
+  };
+  const host = ts.createCompilerHost(options);
+  const read = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, version, ...rest) =>
+    name === 'fixture.ts'
+      ? ts.createSourceFile(name, source, version, true)
+      : read(name, version, ...rest);
+  const program = ts.createProgram(['fixture.ts'], options, host);
+  // A fixture that doesn't type-check resolves nothing, and every case would
+  // read as another value's.
+  assert.deepEqual(
+    ts
+      .getPreEmitDiagnostics(program)
+      .map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n')),
+    []
+  );
+  const checker = program.getTypeChecker();
+  const inits = topLevelInitializers(ts, program.getSourceFile('fixture.ts'));
+  const names = name => readsOwnChildren(ts, checker, inits.get(name));
+
+  for (const name of [
+    'OnRef',
+    'OnItem',
+    'ItemDestructured',
+    'Shadowed',
+    'OnElement',
+    'ItemLiteral',
+    'InText',
+    'NoProps',
+    'WithParts',
+  ]) {
+    assert.equal(
+      names(name),
+      false,
+      `${name} counted another value's children`
+    );
+  }
+  for (const name of [
+    'Destructured',
+    'OnProps',
+    'Named',
+    'InBody',
+    'ByKey',
+    'KeyDestructured',
+    'OnRest',
+    'Cast',
+    'Asserted',
+    'Aliased',
+    'Memoized',
+    'WithThis',
+    'Declared',
+    'BothWays',
+  ]) {
+    assert.equal(names(name), true, `${name} lost its own children`);
+  }
 });
 
 test('a component the barrel re-exports with `export *` from another module resolves', () => {

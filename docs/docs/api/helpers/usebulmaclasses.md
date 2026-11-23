@@ -189,7 +189,7 @@ The snippets below rebuild simplified components by hand purely to show how `use
 
 #### Columns
 
-`MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
+`MyColumns` merges a caller's `className` with its own and forwards the rest of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
 import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
@@ -197,11 +197,15 @@ import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
 function example() {
   function MyColumns({
     children,
+    className,
     ...props
   }: BulmaClassesProps & React.ComponentPropsWithoutRef<'div'>) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     return (
-      <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
+      <div
+        className={classNames('columns', bulmaHelperClasses, className)}
+        {...rest}
+      >
         {children}
       </div>
     );
@@ -535,6 +539,14 @@ Apply `textTransform` to a Content tag with a paragraph of the Declaration of In
   </Box>
   <Box>
     <Content textTransform="italic">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
+  <Box>
+    <Content textTransform="underlined">
       <p>
         We hold these truths to be self-evident, that all men are created
         equal...
@@ -945,7 +957,7 @@ const flex = useBulmaClasses(props, { flexContainer: true });
 
 ## Composable Mini-Hooks
 
-`useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of seven composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string (except `useColorStyles`, which returns an inline style object or `undefined`), which you can combine with the [`classNames`](./classnames.md) utility.
+`useBulmaClasses` remains the everything-hook — it is what most bestax-bulma components use internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of seven composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string (except `useColorStyles`, which returns an inline style object or `undefined`), which you can combine with the [`classNames`](./classnames.md) utility.
 
 | Hook                   | Props Covered                                                                                                                                                                                                                               | Returns                                                                                                                                                                                                                                     |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1061,7 +1073,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `gapless`              | `true`                                                                                                                                                                                                                                                                             | `is-gapless`                                                                                                |
 | `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                                                         | `is-size-3`                                                                                                 |
 | `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                                                   | `has-text-centered`                                                                                         |
-| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                                                          | `is-uppercase`, `is-italic`                                                                                 |
+| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`, `'underlined'`                                                                                                                                                                                                          | `is-uppercase`, `is-italic`                                                                                 |
 | `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                                                          | `has-text-weight-bold`                                                                                      |
 | `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                                                | `is-family-monospace`                                                                                       |
 | `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'grid'`, `'none'`                                                                                                                                                                                             | `is-flex`, `is-inline-block`, `is-grid`, `is-hidden`                                                        |
@@ -1308,7 +1320,8 @@ export type BulmaGapStep =
 export interface BulmaTypographyProps {
   textSize?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textAlign?: 'centered' | 'justified' | 'left' | 'right';
-  textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
+  textTransform?:
+    'capitalized' | 'lowercase' | 'uppercase' | 'italic' | 'underlined';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
   viewport?: BulmaViewportProps;

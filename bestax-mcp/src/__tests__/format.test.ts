@@ -20,10 +20,25 @@ import {
   referencePointer,
   renderComponent,
   renderCssVarsAnswer,
+  renderExamples,
   renderHelperApi,
   renderPart,
   standaloneLine,
 } from '../format.js';
+
+describe('renderExamples', () => {
+  it("prints an example's note as comment lines above its code", () => {
+    expect(
+      renderExamples([
+        { title: 'Logo', code: '<img src="/img/a.svg" />', note: 'One.\nTwo.' },
+        { title: 'Plain', code: '<Button />' },
+      ])
+    ).toBe(
+      '### Logo\n\n```tsx\n// One.\n// Two.\n<img src="/img/a.svg" />\n```\n\n' +
+        '### Plain\n\n```tsx\n<Button />\n```'
+    );
+  });
+});
 
 describe('attributed', () => {
   it('appends with ? when the URL has no query string', () => {

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useState,
   useCallback,
+  useEffect,
   useRef,
   useMemo,
   useId,
@@ -13,6 +14,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
+import { warnIfUnnamed, warnOnce } from '../helpers/devWarnings';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
@@ -62,7 +64,7 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the `htmlFor` targets the low (minimum) thumb, and the label also starts each thumb's name through `aria-labelledby`, as in "Price Minimum value" and "Price Maximum value", unless an `aria-label` or `aria-labelledby` on the Slider takes its place there. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here, naming a range Slider's thumbs the same way. A `Field` label you wire by hand to the low thumb with `labelProps.htmlFor` names the thumbs too when you also give it an `id` there, since the `Field` generates none for it. */
+  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the `htmlFor` targets the low (minimum) thumb, and the label also starts each thumb's name through `aria-labelledby`, as in "Price Minimum value" and "Price Maximum value", unless an `aria-label` or `aria-labelledby` on the Slider takes its place there. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here, naming a range Slider's thumbs the same way. A `Field` label you wire by hand to the low thumb with `labelProps.htmlFor` names the thumbs too when you also give it an `id` there, since the `Field` generates none for it. A development build warns about a Slider nothing names, and about a range one that leaves a thumb named only "Minimum value" or "Maximum value". */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). In range mode an `id` here is the one the thumbs' `aria-labelledby` points at, in place of a generated one. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -140,8 +142,10 @@ export interface SliderSingleProps extends SliderBaseProps {
   /** Controlled value. */
   value?: number | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it a single Slider starts
+   * at the value it holds nearest 0: 0 itself when 0 is one of its steps,
+   * `min` when 0 is below it, or the highest value it holds when 0 is above
+   * that. A range Slider starts at `min` and that highest value.
    */
   defaultValue?: number | undefined;
   /** Callback when value changes. */
@@ -151,7 +155,7 @@ export interface SliderSingleProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: never;
-  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names. */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names, and a development build then warns that a thumb has only its own name. */
   ariaLabel?: string;
 }
 
@@ -183,7 +187,7 @@ export interface SliderRangeProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: number;
-  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names. */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names, and a development build then warns that a thumb has only its own name. */
   ariaLabel?: [string, string];
   /** Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. */
   nameLow?: string;
@@ -257,7 +261,7 @@ function stepFrom(
   // number they keep as it is. Next to a max written with more digits, the
   // fifteen can round a hair above it, as Chromium and WebKit hold it: with
   // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
-  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+  return kept(top);
 }
 
 /**
@@ -271,12 +275,36 @@ function highestStep(min: number, max: number, step: number): number {
 }
 
 /**
+ * `value` as browsers keep a number: a fraction to fifteen significant
+ * digits, and a whole number as it is.
+ */
+function kept(value: number): number {
+  return Number.isInteger(value) ? value : Number(value.toPrecision(15));
+}
+
+/**
  * `a + b`, with a fraction kept to the fifteen significant digits browsers
  * keep, so a float's error, as in 0.2 + 0.1, doesn't move it across a step.
  */
 function addKept(a: number, b: number): number {
-  const sum = a + b;
-  return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
+  return kept(a + b);
+}
+
+/**
+ * Where a single Slider with no `defaultValue` starts: the value it holds
+ * nearest 0, which is where the browser puts the thumb (#2108). That's `min`
+ * when 0 is below it, the highest step when 0 is above that, and otherwise
+ * the step nearest 0, the higher of two as near, as the browser rounds; 0
+ * itself when 0 is a step. Bounds that aren't finite numbers leave it at 0.
+ */
+function startInRange(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return 0;
+  const top = highestStep(min, max, step);
+  if (0 < min) return min;
+  if (0 > top) return top;
+  const below = stepFrom(min, 0, step, false);
+  const above = stepFrom(min, 0, step, true);
+  return above <= -below ? above : below;
 }
 
 /**
@@ -294,7 +322,11 @@ function getTickPositions(
   if (marks && marks.length > 0) return marks;
   if (!ticks) return [];
   const positions: SliderMark[] = [];
-  const count = Math.round((max - min) / step);
+  // Counted up to the highest step the slider holds rather than to `max`, so
+  // when `max` falls between two steps the last one still gets its tick
+  // (#2109).
+  const top = highestStep(min, max, step);
+  const count = Math.round((top - min) / step);
   if (count > 100) {
     // Cap at 100 ticks to prevent perf issues
     const tickStep = (max - min) / 100;
@@ -303,8 +335,13 @@ function getTickPositions(
       positions.push({ value: min + i * tickStep });
     }
   } else {
-    // Skip first (i=0) and last (i=count) — no ticks at endpoints
-    for (let i = 1; i < count; i++) {
+    // Skip first (i=0), and the last step (i=count) when it is `max`, so
+    // there are no ticks at the endpoints. A last step within a millionth of
+    // a step of `max` counts as `max`: the gap is a float's error, as when
+    // `max` or `min` is worked out as `min + 3 * step` or 0.1 + 0.2, and a
+    // tick there would sit at the end of the track anyway.
+    const last = max - top > step / 1e6 ? count : count - 1;
+    for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
   }
@@ -320,11 +357,16 @@ function getTickPositions(
  *
  * @example
  * // Basic slider
- * <Slider defaultValue={50} />
+ * <Slider label="Volume" defaultValue={50} />
  *
  * @example
  * // Range slider
- * <Slider range defaultValue={[20, 80]} onChange={([low, high]) => {}} />
+ * <Slider
+ *   range
+ *   label="Price"
+ *   defaultValue={[20, 80]}
+ *   onChange={([low, high]) => {}}
+ * />
  */
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(
   (props, ref) => {
@@ -476,6 +518,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         text,
         textId,
         wired,
+        // Named by its own text alone, as in "Minimum value".
+        generic: !wired && !own && !stemText,
         aria: wired
           ? { 'aria-labelledby': `${stemRef} ${textId}` }
           : { 'aria-label': own || (stemText ? `${stemText} ${text}` : text) },
@@ -491,6 +535,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       'Maximum value',
       `${thumbTextId}-max`
     );
+    // A range Slider always names its thumbs, so in development it warns when
+    // a thumb's name would be its own text alone.
+    const genericThumbs = !!range && (lowThumb.generic || highThumb.generic);
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
     const tooltipMode: SliderTooltip =
@@ -508,7 +555,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         : [min, min]
     );
     const [internalSingle, setInternalSingle] = useState<number>(() =>
-      !range ? ((defaultValue as number) ?? 0) : 0
+      !range ? ((defaultValue as number) ?? startInRange(min, max, step)) : 0
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);
@@ -709,6 +756,28 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       bulmaHelperClasses,
       className
     );
+
+    // A single Slider is read once it has mounted, since a label outside it,
+    // an outer Field's or a `<label htmlFor>` of the caller's, can name it.
+    useEffect(() => {
+      if (!range) {
+        warnIfUnnamed(
+          inputRef.current,
+          'Slider:unnamed',
+          '[bestax-bulma] <Slider> has no accessible name. Pass label, ' +
+            'aria-label or aria-labelledby, or point a <label> at its input, ' +
+            'so a screen reader can say what the slider sets.'
+        );
+      } else if (genericThumbs) {
+        warnOnce(
+          'Slider:unnamed-range',
+          '[bestax-bulma] A range <Slider> names a thumb only "Minimum ' +
+            'value" or "Maximum value". Pass label, aria-label or ' +
+            'aria-labelledby, or ariaLabel with a name for each thumb, so a ' +
+            'screen reader can say what the range is for.'
+        );
+      }
+    }, [range, genericThumbs]);
 
     // Combined ref for the first (or only) input
     const combinedRef = (node: HTMLInputElement | null) => {

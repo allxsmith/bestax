@@ -553,6 +553,10 @@ export const ChangesOnScreen: Story = {
 };
 
 export const CompoundUsage: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
+  },
   render: function CompoundUsageExample() {
     return (
       <Timeline titleAs="h3" active={1} color="success">

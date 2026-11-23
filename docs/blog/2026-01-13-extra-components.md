@@ -152,6 +152,7 @@ function SliderDemo() {
   return (
     <div>
       <Slider
+        aria-label="Volume"
         value={volume}
         onChange={setVolume}
         showOutput

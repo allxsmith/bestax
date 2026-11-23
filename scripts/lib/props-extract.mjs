@@ -226,7 +226,7 @@ function sourceFileFor(program, cat, mod) {
 }
 
 /**
- * `x as T`, `x satisfies T` and `(x)` all unwrap to `x`.
+ * `x as T`, `x satisfies T`, `x!` and `(x)` all unwrap to `x`.
  *
  * The polymorphic components (#641) are declared
  * `const Button = forwardRef(…) as PolymorphicComponent<…>` — `forwardRef`
@@ -241,6 +241,7 @@ function unwrapExpression(ts, node) {
     node &&
     (ts.isAsExpression(node) ||
       ts.isSatisfiesExpression(node) ||
+      ts.isNonNullExpression(node) ||
       ts.isParenthesizedExpression(node))
   ) {
     node = node.expression;
@@ -530,24 +531,89 @@ function jsdocTag(ts, node, tagName) {
 }
 
 /**
- * Whether a component implementation actually names `children` — an AST walk,
- * not a text match. Scanning source text counted the word in a comment or in an
+ * Whether a component implementation reads its own `children`: an AST walk, not
+ * a text match. Scanning source text counted the word in a comment or in an
  * unrelated string, which is the one way this check can wrongly restore the
  * synthesized `children` row for a component that never renders it (Divider
  * spreads onto `<hr>`, where React throws on children).
+ *
+ * It counts `children` read off the props value: `props.children`, a
+ * `children` destructured from the props, in the parameter or in the body, and
+ * the same through a cast, a non-null assertion, a variable declared as the
+ * props or a rest binding of them. The checker resolves each name to its
+ * declaration, so `children` read off anything else doesn't count, such as an
+ * element's `ref.current.children`, a data node's, or a callback parameter that
+ * shadows `props`. Counting another object's gave a component that takes no
+ * children the row (#2125).
+ *
+ * A way of reading the props it doesn't follow, such as passing them to a
+ * helper, leaves the row out, which is the safe side: the catch-all row still
+ * covers `children`, where a row for a component that takes none is wrong.
  */
-function namesChildren(ts, node) {
-  if (!node) return false;
+export function readsOwnChildren(ts, checker, node) {
+  // `memo(forwardRef(...))` and `Object.assign(forwardRef(...), parts)`: the
+  // component is the innermost first argument, and a part beside it is a
+  // component of its own.
+  let fn = componentFunction(ts, node);
+  for (
+    let call = unwrapExpression(ts, node);
+    !fn && call && ts.isCallExpression(call);
+    call = unwrapExpression(ts, call.arguments[0])
+  ) {
+    fn = componentFunction(ts, call.arguments[0]);
+  }
+  // The props are the first parameter, after any `this` parameter.
+  const param = fn?.parameters.find(
+    p => !(ts.isIdentifier(p.name) && p.name.text === 'this')
+  );
+  if (!param) return false;
+  const isChildrenKey = key =>
+    (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) &&
+    key.text === 'children';
+  // The props parameter, a variable declared as it, or a rest binding
+  // destructured from it.
+  const isProps = expr => {
+    expr = unwrapExpression(ts, expr);
+    if (!expr || !ts.isIdentifier(expr)) return false;
+    const decl = checker.getSymbolAtLocation(expr)?.valueDeclaration;
+    if (!decl) return false;
+    if (decl === param) return true;
+    if (ts.isVariableDeclaration(decl) && ts.isIdentifier(decl.name)) {
+      return isProps(decl.initializer);
+    }
+    return (
+      ts.isBindingElement(decl) &&
+      Boolean(decl.dotDotDotToken) &&
+      isPropsPattern(decl.parent)
+    );
+  };
+  // A destructuring pattern that takes the props apart: the parameter's own,
+  // or one whose value is the props.
+  const isPropsPattern = pattern =>
+    pattern === param.name ||
+    (ts.isVariableDeclaration(pattern.parent) &&
+      isProps(pattern.parent.initializer));
   let found = false;
   const walk = n => {
     if (found || !n) return;
-    if (ts.isIdentifier(n) && n.text === 'children') {
+    if (
+      (ts.isPropertyAccessExpression(n) &&
+        isChildrenKey(n.name) &&
+        isProps(n.expression)) ||
+      (ts.isElementAccessExpression(n) &&
+        isChildrenKey(n.argumentExpression) &&
+        isProps(n.expression)) ||
+      (ts.isBindingElement(n) &&
+        !n.dotDotDotToken &&
+        isChildrenKey(n.propertyName ?? n.name) &&
+        isPropsPattern(n.parent))
+    ) {
       found = true;
       return;
     }
     ts.forEachChild(n, walk);
   };
-  walk(node);
+  walk(fn);
   return found;
 }
 
@@ -2122,9 +2188,9 @@ export function extractComponent(
       // synthesized row told readers to do the one thing React throws on
       // ("hr is a void element tag and must neither have `children`…"); Icon
       // always supplies its own JSX children, so anything passed is silently
-      // dropped. Emit the row only where the implementation actually names
+      // dropped. Emit the row only where the implementation reads its own
       // `children` — the catch-all still covers the pass-through cases.
-      const rendersChildren = namesChildren(ts, implInit);
+      const rendersChildren = readsOwnChildren(ts, checker, implInit);
       for (const [name, type, description] of DOM_COMMON_PROPS) {
         if (byName.has(name)) continue;
         if (name === 'ref' && !isForwardRef) continue;

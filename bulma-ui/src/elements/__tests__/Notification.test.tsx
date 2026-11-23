@@ -1933,8 +1933,8 @@ describe('NotificationContainer with notifications shown at their own position',
         .map(el => el.outerHTML)
     ).toEqual([
       '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: calc(100% - var(--bulma-scroll-lock-offset-left, 0px) - var(--bulma-scroll-lock-offset-right, 0px)); bottom: 0px; left: calc(50% + (var(--bulma-scroll-lock-offset-left, 0px) - var(--bulma-scroll-lock-offset-right, 0px)) / 2); transform: translateX(-50%); align-items: center;">' +
-        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>One</span></div>' +
-        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
+        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"><span class="delete-target" aria-hidden="true"></span></button><span>One</span></div>' +
+        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"><span class="delete-target" aria-hidden="true"></span></button><span>Two</span></div>' +
         '</div>',
       '<div role="status" aria-live="polite" aria-atomic="false" style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap; border: 0px;"></div>',
     ]);

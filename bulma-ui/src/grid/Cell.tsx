@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -34,7 +35,13 @@ export interface CellProps
   className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the cell. */
+  /**
+   * Renders no class: Bulma ships no cell color CSS for a modifier to
+   * match, and the prop doesn't reach the text color helper either. Passing
+   * it logs a console warning in development.
+   * @deprecated The prop renders nothing and will be removed in the next
+   * major version. Use `textColor` / `bgColor` instead.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
@@ -60,11 +67,16 @@ export const Cell: React.FC<CellProps> = ({
   rowSpan,
   className,
   textColor,
-  color: _fieldColor,
+  color,
   bgColor,
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Cell',
+    color,
+    'Use the textColor / bgColor props instead.'
+  );
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,

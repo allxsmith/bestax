@@ -14,7 +14,7 @@ The `Link` component renders a styled anchor (`<a>`) element with Bulma helper c
 
 <!-- /bestax:generated overview -->
 
-Use it for navigation links, external links, or any clickable text that follows Bulma's styling conventions. It supports all Bulma helper props for color, spacing, typography, and more.
+Use it for navigation links, external links, or any clickable text that follows Bulma's styling conventions. It supports Bulma helper props for color, spacing, typography, and more.
 
 :::info
 The Link component is a thin wrapper around the HTML `<a>` element, providing consistent Bulma styling and helper class support.

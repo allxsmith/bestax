@@ -1,7 +1,9 @@
+import type { MockInstance } from 'vitest';
 import { render } from '@testing-library/react';
 import { Grid } from '../Grid';
 import { Cell } from '../Cell';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
 // Simple test cell contents
 const TestCell = ({ children = 'Cell' }) => <Cell>{children}</Cell>;
@@ -295,5 +297,35 @@ describe('Compound components', () => {
     );
     expect(container.querySelector('.grid')).toBeInTheDocument();
     expect(container.querySelectorAll('.cell')).toHaveLength(2);
+  });
+});
+
+// Bulma ships no grid color CSS, so the prop renders nothing; it warns
+// in development, as Tabs' and Pagination's do (#2238).
+describe('Grid deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('warns once in development when color is passed, and renders no class for it', () => {
+    const { container, rerender } = render(<Grid color="primary">x</Grid>);
+    rerender(<Grid color="danger">x</Grid>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Grid "color" prop is deprecated')
+    );
+    expect(container.querySelector('.grid')?.className).toBe('grid');
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Grid>x</Grid>);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

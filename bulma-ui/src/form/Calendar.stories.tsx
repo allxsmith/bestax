@@ -224,7 +224,9 @@ export const Prices: Story = {
         value={day}
         onChange={setDay}
         dayTemplate={date => `$${priceOf(date)}`}
-        getDayLabel={(date, label) => `${label}, $${priceOf(date)}`}
+        getDayLabel={(date, label, shownNumber) =>
+          `${shownNumber}, $${priceOf(date)}, ${label}`
+        }
       />
     );
   },
@@ -257,7 +259,11 @@ export const LoadingEachMonth: Story = {
         onChange={setDay}
         shouldDisableDate={date => slotsLeft(date) === 0}
         dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
-        getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}
+        getDayLabel={(date, label, shownNumber) =>
+          slotsLeft(date) > 0
+            ? `${shownNumber}, ${slotsLeft(date)} left, ${label}`
+            : label
+        }
       />
     );
   },
@@ -324,6 +330,14 @@ export const MinMaxAndDisabledDays: Story = {
 };
 
 export const MonthAndYear: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function MonthAndYearExample(args) {
     return (
       <Columns>
@@ -375,7 +389,9 @@ export const FullWidth: Story = {
         <Calendar
           {...args}
           dayTemplate={date => `$${priceOf(date)}`}
-          getDayLabel={(date, label) => `${label}, $${priceOf(date)}`}
+          getDayLabel={(date, label, shownNumber) =>
+            `${shownNumber}, $${priceOf(date)}, ${label}`
+          }
         />
       </Block>
     );

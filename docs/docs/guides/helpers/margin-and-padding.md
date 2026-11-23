@@ -22,7 +22,7 @@ This page documents the bestax-bulma prop API for Bulma's spacing helpers. For t
 
 :::tip
 
-All components in bestax-bulma have access to these spacing properties through the `useBulmaClasses` hook. You can apply margin and padding to any component in the library for consistent spacing.
+Most components in bestax-bulma take these spacing properties through the `useBulmaClasses` hook, so check a component's props before passing one.
 
 :::
 

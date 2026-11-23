@@ -61,8 +61,8 @@ function example() {
   const [quantity, setQuantity] = useState(1);
   return (
     <Block>
-      <Paragraph mb="2">Quantity (1-10):</Paragraph>
       <Numberinput
+        label="Quantity (1-10)"
         value={quantity}
         onChange={setQuantity}
         min={1}
@@ -82,11 +82,11 @@ Number inputs with different button colors.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Numberinput defaultValue={5} color="primary" />
-  <Numberinput defaultValue={5} color="success" />
-  <Numberinput defaultValue={5} color="info" />
-  <Numberinput defaultValue={5} color="warning" />
-  <Numberinput defaultValue={5} color="danger" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="primary" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="success" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="info" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="warning" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="danger" />
 </Block>
 ```
 
@@ -98,10 +98,25 @@ Number inputs in different sizes.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Numberinput defaultValue={5} size="small" color="primary" />
-  <Numberinput defaultValue={5} color="primary" />
-  <Numberinput defaultValue={5} size="medium" color="primary" />
-  <Numberinput defaultValue={5} size="large" color="primary" />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="small"
+    color="primary"
+  />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="primary" />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="medium"
+    color="primary"
+  />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="large"
+    color="primary"
+  />
 </Block>
 ```
 
@@ -114,16 +129,28 @@ Different positions for the +/- buttons.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Both sides (default)</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="both" color="primary" />
+    <Numberinput
+      label="Both sides (default)"
+      defaultValue={5}
+      controlsPosition="both"
+      color="primary"
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Left only</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="left" color="info" />
+    <Numberinput
+      label="Left only"
+      defaultValue={5}
+      controlsPosition="left"
+      color="info"
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Right only</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="right" color="success" />
+    <Numberinput
+      label="Right only"
+      defaultValue={5}
+      controlsPosition="right"
+      color="success"
+    />
   </Block>
 </Block>
 ```
@@ -135,7 +162,12 @@ Different positions for the +/- buttons.
 Number input with rounded +/- buttons.
 
 ```tsx live
-<Numberinput defaultValue={5} controlsRounded color="primary" />
+<Numberinput
+  aria-label="Quantity"
+  defaultValue={5}
+  controlsRounded
+  color="primary"
+/>
 ```
 
 ---
@@ -149,8 +181,8 @@ function example() {
   const [value, setValue] = useState(0);
   return (
     <Block>
-      <Paragraph mb="2">Step by 10:</Paragraph>
       <Numberinput
+        label="Step by 10"
         value={value}
         onChange={setValue}
         step={10}
@@ -209,7 +241,7 @@ read it in French.
 A disabled number input.
 
 ```tsx live
-<Numberinput defaultValue={5} disabled />
+<Numberinput aria-label="Quantity" defaultValue={5} disabled />
 ```
 
 ---
@@ -313,7 +345,13 @@ Use `value` and `onChange` to manage state externally:
 
 ```tsx
 const [quantity, setQuantity] = useState(1);
-<Numberinput value={quantity} onChange={setQuantity} min={1} max={10} />;
+<Numberinput
+  label="Quantity"
+  value={quantity}
+  onChange={setQuantity}
+  min={1}
+  max={10}
+/>;
 ```
 
 ### Uncontrolled Mode
@@ -321,7 +359,7 @@ const [quantity, setQuantity] = useState(1);
 Use `defaultValue` for internal state management:
 
 ```tsx
-<Numberinput defaultValue={5} min={0} max={100} />
+<Numberinput label="Quantity" defaultValue={5} min={0} max={100} />
 ```
 
 ---
@@ -330,6 +368,7 @@ Use `defaultValue` for internal state management:
 
 - Uses native number input element
 - The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.
+- A development build warns about a Numberinput with nothing to name it: no label of its own or a `Field`'s, no `<label>` of yours pointing at it, and no `aria-label`, `aria-labelledby`, `title` or `placeholder`. It looks once the Numberinput has mounted, so a label outside it counts. A plusminus `bare` Numberinput outside a `Field` renders no label, so its `label` doesn't name it.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes, with `aria-valuenow` left off while the field holds no number, or a number outside `min` and `max` that's still being typed
 - The increase and decrease buttons are named "Increase value" and "Decrease value", in both variants, and `labels` names them in the page's language
 - Arrow keys increment/decrement the value
@@ -339,6 +378,7 @@ Use `defaultValue` for internal state management:
 - The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then
 - Buttons are disabled at min/max boundaries, and while the field holds a number typed outside them, the one that would step further out is disabled
 - In forced colors (Windows' contrast themes), a disabled Numberinput isn't faded as a whole, and in the stepper variant those disabled buttons draw at full strength in the system's color for a disabled control.
+- The stepper variant stacks its buttons, each half the input's height: 19px at the default size and 14px small, under the 24px minimum target size of WCAG 2.5.8. bestax's styles give each one a transparent band, as wide as it, out past the stepper, which takes its presses too, so the button and the band make a target 24px tall: up from the increase button and down from the decrease one, so neither covers the other. The bands reach 5px past a default stepper and 10px past a small one. Nothing laid out moves and nothing new is drawn, though a pointer over a band shows the button's hover shade. A band takes presses from whatever sits that close, such as text or a plain link, or the bottom edge of a label right above a small stepper. A Bulma control or button right below paints over the decrease band and keeps its own presses, and two steppers stacked closer than their bands share the gap, where the lower one's increase band takes the presses. So leave that room above and below a stepper. The medium and large steppers' buttons are 24px tall or more and get no band.
 - The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.
 
 ---
@@ -366,7 +406,7 @@ Set `editable={false}` when you want users to step the value with the buttons or
 
 | Prop               | Type                                                                                                     | Default       | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ------------------ | -------------------------------------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`            | `React.ReactNode`                                                                                        | —             | Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Not rendered either by a plusminus `bare` Numberinput outside a `Field`.                                                                                                                                                                                                                                                                                                                                                                            |
+| `label`            | `React.ReactNode`                                                                                        | —             | Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Not rendered either by a plusminus `bare` Numberinput outside a `Field`. A development build warns about a Numberinput nothing names.                                                                                                                                                                                                                                                                                                               |
 | `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                              | —             | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `value`            | `number`                                                                                                 | —             | Controlled value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `defaultValue`     | `number`                                                                                                 | —             | Default value for uncontrolled usage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -380,7 +420,7 @@ Set `editable={false}` when you want users to step the value with the buttons or
 | `controlsRounded`  | `boolean`                                                                                                | `false`       | Use rounded buttons.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `compact`          | `boolean`                                                                                                | `false`       | Uses compact button spacing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `bare`             | `boolean`                                                                                                | `auto`        | Renders the plusminus controls without a `.field` row of their own, so they join the row of a `Field` with `hasAddons` or `grouped` they sit in. On by default inside a `Field`, unless a `Control` is anywhere above it: a `Control` stacks its children, so there the controls keep their own row. Bare plusminus controls render no `message`, so put help text after that row yourself.                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `variant`          | `'plusminus'` \| `'stepper'`                                                                             | `'plusminus'` | Style variant for the control buttons.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `variant`          | `'plusminus'` \| `'stepper'`                                                                             | `'plusminus'` | Style variant for the control buttons. A `"stepper"` stacks them, each half the input's height. At the default and small sizes each takes the rest of its 24px target from a transparent band out past the stepper, up from the increase button and down from the decrease one: 5px past a default stepper and 10px past a small one. So leave that room above and below it, and between two stacked steppers. A band takes presses from text or a plain link that close, while a Bulma control or button right below paints over the decrease band and keeps its own.                                                                                                                                                                                                                       |
 | `labels`           | `{ increase?: string; decrease?: string }`                                                               | —             | The buttons' names, in your app's language, in both variants.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `disabled`         | `boolean`                                                                                                | `false`       | Whether the input is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `editable`         | `boolean`                                                                                                | `true`        | Whether the input can be typed in. With `false` the input is `readOnly`, so nothing can be typed or pasted, but the arrow keys and the buttons still change the value, and a screen reader announces the field as read-only all the same. Say that the buttons set it in its label, or in its `message` where it renders one.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |

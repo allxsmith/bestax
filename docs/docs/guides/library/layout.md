@@ -142,7 +142,7 @@ Implements Bulma’s media object layout for aligning images/icons with content 
 ```tsx live
 <Media>
   <Media.Left>
-    <Image src="/img/logo.svg" size="64x64" />
+    <Image src="/img/logo.svg" alt="" size="64x64" />
   </Media.Left>
   <Media.Content>
     <p>

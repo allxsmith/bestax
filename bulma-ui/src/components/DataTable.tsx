@@ -97,7 +97,9 @@ export interface DataTableProps<TRow>
   /**
    * Scrolls a table wider than its wrapper sideways, in a `ScrollArea`
    * named after the table, which can be scrolled from the keyboard while it
-   * overflows.
+   * overflows. Off unless set, and without it the table has no scroll box of
+   * its own, so one wider than its wrapper overflows it, and Bulma's default
+   * `overflow-x: hidden` on the page cuts off what runs past a narrow screen.
    */
   isResponsive?: boolean;
   /** Shows a search field in the toolbar, labelled by `labels.search`. */

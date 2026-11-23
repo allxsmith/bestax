@@ -19,6 +19,10 @@ const meta: Meta<typeof Footer> = {
 export default meta;
 
 export const Default: StoryObj<typeof Footer> = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
+  },
   render: () => (
     <Footer>
       <Content textAlign="centered">

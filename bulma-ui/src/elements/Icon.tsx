@@ -6,6 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useIconLibrary } from '../helpers/Config';
+import { warnOnce } from '../helpers/devWarnings';
 
 // TypeScript declaration for Ionicons web component
 interface IonIconProps extends React.HTMLAttributes<HTMLElement> {
@@ -90,7 +91,10 @@ interface IconBaseProps
    * this unset. A non-empty native `aria-label` or `aria-labelledby` passed instead also
    * counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults. An
    * unnamed icon given a `role` or a `tabIndex` of its own isn't hidden, since hiding
-   * something focusable is a failure of its own.
+   * something focusable is a failure of its own, so give it a name: without one, a Material
+   * ligature's text or an SVG inside it can name it, or the control around it, and a
+   * development build warns. For Ionicons the `<ion-icon>` inside is always `aria-hidden`,
+   * so it adds no image of its own.
    */
   ariaLabel?: string;
   /** Inline style object. */
@@ -332,11 +336,28 @@ export const Icon: React.FC<IconProps> = ({
   // A caller's own `role` or `tabIndex` on an unnamed icon means it isn't decoration (an
   // icon made a button, say), so it isn't hidden either: `aria-hidden` on something
   // focusable is a failure of its own.
+  const ownRole =
+    restProps.role !== undefined || restProps.tabIndex !== undefined;
   const a11yProps = named
     ? { role: 'img', 'aria-label': ariaLabel || undefined }
-    : restProps.role !== undefined || restProps.tabIndex !== undefined
+    : ownRole
       ? {}
       : { 'aria-hidden': true };
+
+  // Nothing hides such an icon's glyph, so a ligature's text or an SVG inside can
+  // name it, or the control around it (#2227), and in development it says so.
+  // Called in render, as `warnOnce` allows, so the icons a page renders in bulk
+  // add no effect each.
+  if (!named && ownRole) {
+    warnOnce(
+      'Icon:unnamed',
+      '[bestax-bulma] An <Icon> with a role or a tabIndex of its own has no ' +
+        'ariaLabel. Give it one, leave the role and tabIndex off so it is ' +
+        'hidden as decoration, or put them on a control around it, such as ' +
+        "a Button. Otherwise a Material ligature's text or an SVG inside it " +
+        'can name it, or the control around it.'
+    );
+  }
 
   if (children !== undefined) {
     // `IconChildrenProps`: render the caller's node (an inline SVG, a `react-icons`
@@ -471,7 +492,11 @@ export const Icon: React.FC<IconProps> = ({
         style={style}
         {...rest}
       >
-        <ion-icon name={ionName} />
+        {/* Ionicons gives its element an image role, and no name, once it
+            hydrates. A named wrapper (role="img") or a hidden one already keeps
+            it from assistive technology, though axe still flags it; an unnamed
+            wrapper with a role of its own doesn't. Hidden always (#2213). */}
+        <ion-icon name={ionName} aria-hidden="true" />
       </span>
     );
   }

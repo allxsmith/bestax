@@ -60,6 +60,10 @@ export const Default: Story = {
  * Checkbox with an anchor tag in the label.
  */
 export const CheckboxWithLink: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
+  },
   render: () => (
     <Checkbox>
       I have read and agree to the{' '}
@@ -229,6 +233,7 @@ export const Controlled: Story = {
  */
 export const NoLabel: Story = {
   args: {
+    'aria-label': 'Remember me',
     color: 'primary',
     defaultChecked: true,
   },

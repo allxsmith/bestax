@@ -83,6 +83,24 @@ const preview: Preview = {
       theme: docsTheme,
       extractComponentDescription: componentDescription,
     },
+    // axe checks every story once it has rendered and played, and in the
+    // browser pass (`test-storybook`) a violation fails the story (#2182).
+    // Only the WCAG 2.0, 2.1 and 2.2 Level A and AA rules run: axe's
+    // best-practice rules expect a whole page, with landmarks and a top-level
+    // heading, and a story is one component. `color-contrast` stays off until
+    // #2188 settles Bulma's stock colors. A story that has to relax a rule
+    // says so in its own `a11y.config.rules` and has an entry, with its issue
+    // or reason, in `src/__tests__/stories-a11y.test.ts`.
+    a11y: {
+      test: 'error',
+      options: {
+        runOnly: {
+          type: 'tag',
+          values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+        },
+        rules: { 'color-contrast': { enabled: false } },
+      },
+    },
   },
 };
 

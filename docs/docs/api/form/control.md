@@ -83,7 +83,7 @@ This example shows a `Control` wrapping a `TextArea`. Leave the icon props off t
 This example demonstrates using the `Control` component with icons on both sides. The `hasIconsLeft` and `hasIconsRight` props add icon containers, and the `iconLeft` and `iconRight` props define the icons to be used.
 
 ```tsx live
-<Field>
+<Field label="With Icons">
   <Control
     hasIconsLeft
     hasIconsRight
@@ -104,7 +104,7 @@ These icons are decoration, not controls: Bulma gives them `pointer-events: none
 This example shows how to use shortcut props for quickly adding an icon to the left of the input. The `iconLeftName` and `iconLeftSize` props are used for specifying the icon's name and size, respectively.
 
 ```tsx live
-<Field>
+<Field label="Left Icon">
   <Control hasIconsLeft iconLeftName="user" iconLeftSize="small">
     <Input size="small" placeholder="With left icon shortcut" />
   </Control>
@@ -118,7 +118,7 @@ This example shows how to use shortcut props for quickly adding an icon to the l
 Similar to the previous example, this one demonstrates adding an icon to the right of the input using shortcut props. The `iconRightName` and `iconRightSize` props define the icon's characteristics.
 
 ```tsx live
-<Field>
+<Field label="Right Icon">
   <Control hasIconsRight iconRightName="check" iconRightSize="small">
     <Input size="small" placeholder="With right icon shortcut" />
   </Control>
@@ -132,7 +132,7 @@ Similar to the previous example, this one demonstrates adding an icon to the rig
 This example combines icon usage with size variations. The `size` prop on `Control` and `Input` adjusts the size, while the `iconLeft` and `iconRight` props with size specifications control the icon sizes.
 
 ```tsx live
-<Field>
+<Field label="Icons Medium">
   <Control
     hasIconsLeft
     hasIconsRight
