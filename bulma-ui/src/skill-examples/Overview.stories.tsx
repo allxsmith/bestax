@@ -2,7 +2,7 @@
 // site's Skills page lists every skill with its install command, so this
 // points there rather than keeping a copy of the list.
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Box, Title, SubTitle, Content } from '../index';
+import { Box, Title, SubTitle, Content, Link } from '../index';
 
 const SKILLS_PAGE = 'https://bestax.io/docs/skills/intro';
 
@@ -15,10 +15,6 @@ export default meta;
 type Story = StoryObj;
 
 export const Overview: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
-  },
   render: () => (
     <Box>
       <Title size="3">Bestax Agent Skills</Title>
@@ -31,9 +27,14 @@ export const Overview: Story = {
           A skill is a small <code>SKILL.md</code> an agent loads automatically
           when your task matches, plus <code>references/</code> it reads on
           demand. Install one by name with the{' '}
-          <a href="https://skills.sh/" target="_blank" rel="noreferrer">
+          <Link
+            href="https://skills.sh/"
+            target="_blank"
+            rel="noreferrer"
+            textTransform="underlined"
+          >
             skills
-          </a>{' '}
+          </Link>{' '}
           CLI, here the form skill:
         </p>
         <pre>
@@ -41,9 +42,14 @@ export const Overview: Story = {
         </pre>
         <p>
           The{' '}
-          <a href={SKILLS_PAGE} target="_blank" rel="noreferrer">
+          <Link
+            href={SKILLS_PAGE}
+            target="_blank"
+            rel="noreferrer"
+            textTransform="underlined"
+          >
             Skills page
-          </a>{' '}
+          </Link>{' '}
           on bestax.io lists every skill, what it does and how to install it.
         </p>
         <p>
