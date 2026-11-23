@@ -11,7 +11,7 @@
     },
     {
       "title": "In Running Text",
-      "code": "<Paragraph>\n  Reviewed by{' '}\n  <HoverCard appendToBody trigger={<Link href=\"#ada\">Ada Lovelace</Link>}>\n    <Title as=\"p\" size=\"6\">\n      Ada Lovelace\n    </Title>\n    <SubTitle as=\"p\" size=\"6\">\n      Analytical Engine team\n    </SubTitle>\n    <Link href=\"#profile\">View profile</Link>\n  </HoverCard>{' '}\n  and merged the same day.\n</Paragraph>"
+      "code": "<Paragraph>\n  Reviewed by{' '}\n  <HoverCard\n    appendToBody\n    trigger={\n      <Link href=\"#ada\" textTransform=\"underlined\">\n        Ada Lovelace\n      </Link>\n    }\n  >\n    <Title as=\"p\" size=\"6\">\n      Ada Lovelace\n    </Title>\n    <SubTitle as=\"p\" size=\"6\">\n      Analytical Engine team\n    </SubTitle>\n    <Link href=\"#profile\">View profile</Link>\n  </HoverCard>{' '}\n  and merged the same day.\n</Paragraph>"
     },
     {
       "title": "Placement",

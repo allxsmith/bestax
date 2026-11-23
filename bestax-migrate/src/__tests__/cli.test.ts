@@ -388,7 +388,60 @@ describe('the bulma-classes source', () => {
       next: '^14.0.0',
       bulma: '^1.0.2',
       react: '^18.2.0',
-      '@allxsmith/bestax-bulma': '^5',
+      '@allxsmith/bestax-bulma': '^5.78.4',
+    });
+  });
+
+  describe("an ellipsis's other classes (#2178)", () => {
+    const pages =
+      'export default function A() {\n  return (\n    <ul className="pagination-list">\n      <li>\n        <span className="pagination-ellipsis has-text-grey">&hellip;</span>\n      </li>\n    </ul>\n  );\n}\n';
+    const app = (pkg: object) =>
+      project({
+        'src/Pages.tsx': pages,
+        'package.json': manifest({ name: 'a', ...pkg }),
+      });
+    const read = (dir: string) =>
+      fs.readFileSync(path.join(dir, 'src/Pages.tsx'), 'utf8');
+    const converted = '<Pagination.Ellipsis className="has-text-grey" />';
+
+    it('converts where the run adds bestax-bulma, whose range starts at 5.78.4', async () => {
+      const dir = app({ dependencies: { react: '^19.0.0' } });
+      await runCli(['bulma-classes', dir]);
+      expect(read(dir)).toContain(converted);
+    });
+
+    it('converts where the declared range starts at 5.78.4 or later', async () => {
+      const dir = app({
+        dependencies: {
+          react: '^19.0.0',
+          '@allxsmith/bestax-bulma': '^5.80.0',
+        },
+      });
+      await runCli(['bulma-classes', dir, '--no-deps']);
+      expect(read(dir)).toContain(converted);
+    });
+
+    it('keeps it as markup, naming the release, where the project may get an older one', async () => {
+      for (const [pkg, args] of [
+        [
+          {
+            dependencies: {
+              react: '^19.0.0',
+              '@allxsmith/bestax-bulma': '^5.70.0',
+            },
+          },
+          [],
+        ],
+        [{ dependencies: { react: '^19.0.0' } }, ['--no-deps']],
+      ] as const) {
+        const dir = app(pkg);
+        await runCli(['bulma-classes', dir, ...args]);
+        expect(read(dir)).not.toContain('<Pagination.Ellipsis');
+        expect(read(dir)).toContain(
+          '<span className="pagination-ellipsis has-text-grey">'
+        );
+        expect(read(dir)).toContain('5.78.4');
+      }
     });
   });
 
@@ -421,7 +474,7 @@ describe('the bulma-classes source', () => {
       expect(pkg.dependencies).toEqual({
         bulma: '^0.9.4',
         react: '^18.2.0',
-        '@allxsmith/bestax-bulma': '^5',
+        '@allxsmith/bestax-bulma': '^5.78.4',
       });
       expect(pkg.devDependencies).toEqual({ 'node-sass': '^9.0.0' });
       expect(logs.join('\n')).toContain('left bulma ^0.9.4');
@@ -868,7 +921,7 @@ describe('CLI', () => {
       fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
-    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5');
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');

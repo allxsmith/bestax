@@ -25,6 +25,7 @@
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
 import {
+  CLASSNAME_SINCE,
   HELPERLESS_TARGETS,
   MAPPING,
   NO_CLASSNAME_TARGETS,
@@ -58,7 +59,9 @@ import {
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
+import { bestaxFloorFor } from '../_shared/bestax-floor.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
+import { compareVersions } from '../_shared/semver-range.js';
 import {
   collectBoundNames,
   makeReserve,
@@ -288,6 +291,13 @@ export default function transform(
 
   ctx.reserve = makeReserve(ctx, bound);
   const bestaxImportState = seedBestaxImport(ctx, root);
+  // The oldest bestax-bulma release this file can count on, for the targets
+  // in CLASSNAME_SINCE.
+  const bestaxFloor = bestaxFloorFor(
+    fileInfo.path,
+    options.bestaxPackages,
+    options.deps
+  );
 
   // ---- 2. Transform JSX elements ----------------------------------------
   root.find(j.JSXElement).forEach(path => {
@@ -345,24 +355,36 @@ export default function transform(
     // Targets that extend only React's HTML attributes take none of bloomer's
     // universal helpers; each becomes a TODO naming the Bulma class rather
     // than an excess-property type error the report never mentions.
-    // `Pagination.Ellipsis` spreads its props after its own className, and
-    // `Dropdown.Divider` declares none at all, so a class cannot be written
-    // on either of them: every helper is named instead, and anything else
-    // left on the divider would not compile.
-    if (NO_CLASSNAME_TARGETS.has(target)) {
+    // `Dropdown.Divider` declares no props at all, and a CLASSNAME_SINCE
+    // target on an older release than its own writes a `className` in place
+    // of its class, so a class cannot be written on either: every helper is
+    // named instead, and anything else left on the divider would not compile.
+    const since = CLASSNAME_SINCE[target];
+    const sinceUnmet =
+      since !== undefined &&
+      !(bestaxFloor && compareVersions(bestaxFloor, since) >= 0);
+    // What a TODO says about a release the project isn't sure to get.
+    const raise = `bestax \`${target}\` keeps its own class beside a \`className\` from @allxsmith/bestax-bulma ${since} on, and this project isn't sure to get ${since}`;
+    if (NO_CLASSNAME_TARGETS.has(target) || sinceUnmet) {
       // A spread may carry a `className` that would replace the structural
-      // class on `Pagination.Ellipsis`, or props `Dropdown.Divider` silently ignores —
-      // and the codemod cannot read inside it. Keep bloomer's element.
+      // class, or props `Dropdown.Divider` silently ignores, and the codemod
+      // cannot read inside it. Keep bloomer's element.
       const spread = (element.openingElement.attributes ?? []).some(
         (a: any) => a.type === 'JSXSpreadAttribute'
       );
-      if (spread) {
+      // A `className` of its own would replace that class too.
+      const ownClass =
+        sinceUnmet &&
+        attributesOf(element).some((a: any) => a.name.name === 'className');
+      if (spread || ownClass) {
         ctx.retained.add(sourcePath[0]);
         addTodo(
           ctx,
           path,
           `component:${dotted}`,
-          `bestax \`${target}\` writes its own className last (or takes no props at all), and this element carries a spread whose contents the codemod cannot read — left as bloomer's, since a \`className\` inside it would replace the class that makes the element work`
+          sinceUnmet
+            ? `${raise}, and this element carries ${spread ? 'a spread whose contents the codemod cannot read, where a `className` would replace that class' : 'a `className`, which would replace that class'}, so it stays bloomer's: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run`
+            : `bestax \`${target}\` takes no props at all, and this element carries a spread whose contents the codemod cannot read, so it stays bloomer's`
         );
         return;
       }
@@ -382,7 +404,27 @@ export default function transform(
           ctx,
           path,
           `prop:${name}`,
-          `bestax \`${target}\` writes its own className last (or takes no props at all), so the \`${cls}\` class this became cannot be set on it — wrap it, or restyle by hand`
+          sinceUnmet
+            ? `${raise}, so the \`${cls}\` class this became isn't set on it: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run, or restyle by hand`
+            : `bestax \`${target}\` takes no props at all, so the \`${cls}\` class this became cannot be set on it: wrap it, or restyle by hand`
+        );
+      }
+      // A prop the mapping turns into a class is dropped the same way, since
+      // the target takes no prop of that name.
+      for (const attr of [...attributesOf(element)]) {
+        const name: string = attr.name.name;
+        const cls = mapping.props?.[name]?.toClass;
+        if (!sinceUnmet || handled.has(name) || !cls) continue;
+        handled.add(name);
+        removeAttr(element, attr);
+        // A false one wrote no class, so there is nothing to name.
+        const literal = literalValueOf(attr);
+        if (literal.kind === 'boolean' && !literal.value) continue;
+        addTodo(
+          ctx,
+          path,
+          `prop:${name}`,
+          `${raise}, so the \`${cls}\` class \`${name}\` stood for isn't set on it: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run, or restyle by hand`
         );
       }
       if (target === 'Dropdown.Divider') {
@@ -404,7 +446,7 @@ export default function transform(
           );
         }
       }
-    } else if (HELPERLESS_TARGETS.has(target)) {
+    } else if (HELPERLESS_TARGETS.has(target) || since !== undefined) {
       for (const attr of [...attributesOf(element)]) {
         const name: string = attr.name.name;
         if (handled.has(name)) continue;

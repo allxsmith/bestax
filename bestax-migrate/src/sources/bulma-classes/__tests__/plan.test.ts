@@ -332,6 +332,27 @@ describe('plan', () => {
   });
 
   describe('helper classes', () => {
+    it("writes Bulma's is-underlined as textTransform, like the other text transforms", () => {
+      expect(
+        plan(facts('span', 'has-text-grey is-underlined')).conversion?.props
+      ).toEqual([
+        ['textColor', 'grey'],
+        ['textTransform', 'underlined'],
+      ]);
+    });
+
+    it('keeps a second text transform as a class, since textTransform takes one', () => {
+      expect(plan(facts('span', 'is-italic is-underlined')).conversion).toEqual(
+        {
+          target: 'Span',
+          props: [['textTransform', 'italic']],
+          className: 'is-underlined',
+          drop: [],
+          numbers: [],
+        }
+      );
+    });
+
     it('uses the text-color prop the target renders it through', () => {
       expect(plan(facts('div', 'box has-text-info')).conversion?.props).toEqual(
         [['textColor', 'info']]
@@ -3150,6 +3171,51 @@ describe('plan', () => {
       expect(rules(ellipsis('pagination-ellipsis mt-2', '…'))).toEqual([
         'attr:className',
       ]);
+    });
+
+    it("converts an ellipsis's other classes only where the project gets 5.78.4 (#2178)", () => {
+      const ellipsis = (bestaxFloor?: string) =>
+        plan(
+          facts(
+            'span',
+            'pagination-ellipsis mt-2',
+            {},
+            {
+              soleChildOf: li(),
+              text: '…',
+              ...(bestaxFloor !== undefined && { bestaxFloor }),
+            }
+          )
+        );
+      for (const floor of ['5.78.4', '5.80.0', '6.0.0']) {
+        expect(ellipsis(floor).conversion).toMatchObject({
+          target: 'Pagination.Ellipsis',
+          className: 'mt-2',
+        });
+      }
+      for (const floor of [undefined, '5.78.3', '5.78.4-rc.1', '5.0.0']) {
+        const refused = ellipsis(floor);
+        expect(refused.conversion).toBeNull();
+        expect(rules(refused)).toEqual(['attr:className']);
+        expect(refused.todos[0].message).toContain('5.78.4');
+      }
+      // A class a condition adds is the same: it lands in `className`.
+      const conditional = (bestaxFloor?: string) =>
+        plan(
+          facts(
+            'span',
+            'pagination-ellipsis',
+            {},
+            {
+              soleChildOf: li(),
+              text: '…',
+              conditional: [['has-text-grey']],
+              ...(bestaxFloor !== undefined && { bestaxFloor }),
+            }
+          )
+        );
+      expect(conditional('5.78.4').conversion).not.toBeNull();
+      expect(conditional().conversion).toBeNull();
     });
   });
 

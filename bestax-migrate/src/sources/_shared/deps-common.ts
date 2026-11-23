@@ -9,7 +9,14 @@
 import type { TodoCollector } from '../../types.js';
 import { isPreV1 } from './semver-range.js';
 
-const BESTAX_RANGE = '^5';
+/**
+ * The oldest bestax-bulma release every conversion renders right on: from
+ * 5.78.4 `Pagination.Ellipsis` keeps its class beside a `className` (#2178).
+ * The range the manifest step adds starts there, and `bestax-floor.ts` counts
+ * on it for a package that step writes.
+ */
+export const BESTAX_FLOOR = '5.78.4';
+const BESTAX_RANGE = `^${BESTAX_FLOOR}`;
 export const BULMA_RANGE = '^1.0.4';
 /** bestax-bulma's optional peer range for Font Awesome. */
 export const FONT_AWESOME_PEER_RANGE = '^6.7.2 || ^7.0.0';

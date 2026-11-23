@@ -131,12 +131,12 @@ which the frame renders: don't wrap the items in a `Tooltip` of your own.
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                                                                                                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                |
-| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                   |
-| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                               |
+| Prop                         | Type                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                                                                  |
+| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack, so put a phone row's items straight in the level; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                                                                     |
+| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                                                                                 |
 
 A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
 navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
@@ -323,12 +323,14 @@ The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` 
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
 (Bulma offsets the page from it); the library adds no helper. Set it statically —
 `<html class="has-navbar-fixed-top">` in `index.html` — reserving a `classList.add` effect for
-a navbar that mounts conditionally. **With `isSpaced`, add `has-spaced-navbar-fixed-top` too**
-(`<html class="has-navbar-fixed-top has-spaced-navbar-fixed-top">`): from desktop up the spaced
-navbar is taller than the plain class pads the page for, and there the spaced class pads it for
-the taller navbar, so with the plain class alone the top of the page sits under the navbar. A
-`fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
-beside it with `isSpaced`.
+a navbar that mounts conditionally. **With `isSpaced`, the page needs more room from desktop up**,
+where the spaced navbar is taller than the plain class pads for. Bulma's
+`has-spaced-navbar-fixed-top` is meant to give it, but it reads `--bulma-navbar-padding-vertical`,
+which Bulma sets on the navbar only, so on its own it sets the page's padding to 0. Add the class
+and register the variable on `:root` with the navbar's padding
+(`:root { --bulma-navbar-padding-vertical: 1rem; }`, Bulma's default), or pad the page yourself.
+A `fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
+beside it with `isSpaced`, on the same terms.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile

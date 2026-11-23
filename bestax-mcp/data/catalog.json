@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.79.3"
+    "version": "5.80.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -3759,12 +3759,12 @@
     "LevelLeft": {
       "component": "Level",
       "path": "Level.Left",
-      "purpose": "Left-aligned content."
+      "purpose": "Left-aligned content. Its items stack below tablet, in a level with `isMobile` too."
     },
     "LevelRight": {
       "component": "Level",
       "path": "Level.Right",
-      "purpose": "Right-aligned content."
+      "purpose": "Right-aligned content. Its items stack below tablet, in a level with `isMobile` too."
     },
     "LightboxTrigger": {
       "component": "Lightbox",
