@@ -360,6 +360,28 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       inset-inline-end: cv.getVar("carousel-arrow-offset");
     }
 
+    // The button that stops autoplay sits at the top center of the slides,
+    // away from the arrows at either side whatever the slides' height, or at
+    // the bottom center while indicators over the slides take the top. The
+    // arrows' rules, its hover's included, center an arrow on `top` with
+    // `translateY(-50%)`, which its `translate` takes back, so `top` or
+    // `bottom` is its edge, and it centers it across. Its pause and play
+    // icons aren't mirrored right to left, as media controls aren't.
+    &.#{iv.$class-prefix}is-rotation {
+      top: cv.getVar("carousel-arrow-offset");
+      left: 50%;
+      translate: -50% 50%;
+
+      &.#{iv.$class-prefix}is-bottom {
+        top: auto;
+        bottom: cv.getVar("carousel-arrow-offset");
+      }
+
+      > svg:dir(rtl) {
+        transform: none;
+      }
+    }
+
     // Previous sits on the inline start, so its chevron points that way.
     // Only the built-in chevron, the button's own svg: an `iconPrev` or
     // `iconNext` is the caller's to point, and an svg inside its `.icon`, as
@@ -449,6 +471,12 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       }
 
       &:focus-visible {
+        opacity: 1;
+      }
+
+      // The button that stops autoplay stays in view, so a touch screen,
+      // which has no pointer to hover with, still shows it.
+      &.#{iv.$class-prefix}is-rotation {
         opacity: 1;
       }
     }
@@ -724,6 +752,14 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
       &.#{iv.$class-prefix}is-next {
         inset-inline-end: cv.getVar("carousel-arrow-offset-mobile");
+      }
+
+      &.#{iv.$class-prefix}is-rotation {
+        top: cv.getVar("carousel-arrow-offset-mobile");
+
+        &.#{iv.$class-prefix}is-bottom {
+          bottom: cv.getVar("carousel-arrow-offset-mobile");
+        }
       }
     }
 

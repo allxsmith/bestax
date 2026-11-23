@@ -411,6 +411,10 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
 
+The `--bulma-carousel-arrow-*` and `--bulma-carousel-overlay-arrow-*` variables also draw the
+button `rotationControl` shows to stop autoplay, at the top center of the slides, or the bottom
+center while the indicators sit over the slides at the top.
+
 In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply: a disabled arrow draws
 at full strength in the system's color for a disabled control, with `arrowHover` under the pointer.
 
