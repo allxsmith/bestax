@@ -97,9 +97,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
         "An option's name is its label, and its description and shortcut hint describe it (aria-describedby), so axe counts text the option shows that its name leaves out on purpose.",
     }
   ),
-  'components/Avatar.stories.tsx#Clickable': {
-    'label-content-name-mismatch': 2211,
-  },
   // A calendar's month cells show a short name (#2209).
   'form/Calendar.stories.tsx#MonthAndYear': {
     'label-content-name-mismatch': 2209,

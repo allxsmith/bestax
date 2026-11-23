@@ -193,6 +193,10 @@ export interface DateInputBaseProps
    * calendar rendered there names its days in the server's language and the
    * browser's own render names them in the browser's: give it a locale, here
    * or through a `LocaleProvider`, where the two can differ.
+   * A `LocaleProvider` drops a tag `Intl` refuses, such as `"en_US"`, with
+   * a development warning, but this `locale` isn't checked, and formatting
+   * with such a tag can throw `Intl`'s `RangeError`. Write tags with a
+   * hyphen, `"en-US"`.
    */
   locale?: string;
   /**
