@@ -1,3 +1,21 @@
+## [2.40.1](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.40.0...bestax-migrate@2.40.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** name rotationControl in the carousel TODO ([4d162d9](https://github.com/allxsmith/bestax/commit/4d162d9186315f13d05c6f5bc47ef908f1266fcc))
+* **bulma-ui:** give a range Slider's thumbs a 24px target, drawn the same size ([5d21faf](https://github.com/allxsmith/bestax/commit/5d21faf50ddce7995f44af6b8d28f96c8c9c8290)), closes [#2195](https://github.com/allxsmith/bestax/issues/2195)
+* **bulma-ui:** hide a disabled arrowHover arrow at rest, and show it disabled on hover ([e2c3a8c](https://github.com/allxsmith/bestax/commit/e2c3a8c8eefab19ee8fb126ed16ba3318e4bd321)), closes [#2145](https://github.com/allxsmith/bestax/issues/2145)
+* **bulma-ui:** keep a disabled arrowHover arrow in GrayText as it fades out ([9397df1](https://github.com/allxsmith/bestax/commit/9397df1b7fc9b3c23ed4a24444fdc8fc92b31587))
+* **bulma-ui:** keep a focused arrowHover arrow showing when is-disabled marks it ([3bc0fc0](https://github.com/allxsmith/bestax/commit/3bc0fc048beaf56c8730a7ad7e4d008e9db8e87f))
+* **docs:** give the homepage's form-controls carousel a button that stops it ([0cbca67](https://github.com/allxsmith/bestax/commit/0cbca677c93c6d52ed8a8761557dd600b82c12d0)), closes [#2309](https://github.com/allxsmith/bestax/issues/2309)
+* **docs:** move the homepage carousel's controls to a row under the slides ([4414b8d](https://github.com/allxsmith/bestax/commit/4414b8df25aa2359cd9ade4f23528d58d93f9d4a))
+
+
+### Features
+
+* **bulma-ui:** add rotationControl, a Carousel button that stops autoplay ([48aa92c](https://github.com/allxsmith/bestax/commit/48aa92c156f21202ca41a7b2ce906cb49cb24082)), closes [#1925](https://github.com/allxsmith/bestax/issues/1925)
+
 # [2.40.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.39.0...bestax-migrate@2.40.0) (2026-11-22)
 
 
