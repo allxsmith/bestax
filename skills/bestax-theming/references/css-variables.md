@@ -416,12 +416,12 @@ button `rotationControl` shows to stop autoplay, at the top center of the slides
 center while the indicators sit over the slides at the top.
 
 At their default sizes the indicators sit at least 24px apart, center to center, the spacing WCAG
-asks for around a target smaller than 24px. `--bulma-carousel-indicator-gap` and
-`--bulma-carousel-indicator-gap-mobile` default by style: `calc(24px - <the mark's width>)` for the
-dots, the circles and a phone's bars, `0.5rem` for the lines and a wider screen's bars, and
-`0.375rem` for a phone's lines, which sit further apart than 24px already. A gap set narrower puts
-them closer than that. A Sass build that sets `$carousel-indicator-gap` gets it on every style on a
-wider screen, and `$carousel-indicator-gap-mobile` on every style on a phone.
+asks for around a target smaller than 24px. For each style, `--bulma-carousel-indicator-gap`
+defaults to `max(0.5rem, calc(24px - <the mark's width>))` and
+`--bulma-carousel-indicator-gap-mobile` to the same with `0.375rem`, so a mark drawn wider keeps
+that much room. A gap you set replaces the default on every style. A Sass build that sets
+`$carousel-indicator-gap` gets it on every style on a wider screen, and
+`$carousel-indicator-gap-mobile` on every style on a phone.
 
 In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply: a disabled arrow draws
 at full strength in the system's color for a disabled control, with `arrowHover` under the pointer.
