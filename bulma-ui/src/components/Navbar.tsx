@@ -73,11 +73,15 @@ export interface NavbarProps
   /**
    * Renders Bulma's `is-spaced`: padding around the navbar, rounded items
    * and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so
-   * below that the navbar looks the same either way. With `fixed="top"`, put
-   * `has-spaced-navbar-fixed-top` on `<html>` beside `has-navbar-fixed-top`
-   * (the `-bottom` pair for `fixed="bottom"`). From desktop up the spaced
-   * navbar is taller than `has-navbar-fixed-top` pads the page for, and
-   * there the spaced class pads it for the taller navbar.
+   * below that the navbar looks the same either way. From desktop up a
+   * spaced navbar with `fixed="top"` is taller than `has-navbar-fixed-top`
+   * pads the page for. Bulma's `has-spaced-navbar-fixed-top` is meant to pad
+   * it for the taller navbar, but it reads `--bulma-navbar-padding-vertical`,
+   * which Bulma sets on the navbar only, so on `<html>` it sets the page's
+   * padding to `0` and takes away `has-navbar-fixed-top`'s. Register that
+   * variable on `:root` with the padding the navbar uses (Bulma's default is
+   * `1rem`) to make it work beside `has-navbar-fixed-top`, or pad the page
+   * yourself; the same goes for the `-bottom` pair with `fixed="bottom"`.
    */
   isSpaced?: boolean;
   /**

@@ -72,7 +72,9 @@ card to use its links, and <kbd>Escape</kbd> closes it.
 
 ### In Running Text
 
-A trigger in a sentence takes `appendToBody`. The card's content is block-level and a `<p>` can't
+A trigger in a sentence takes `appendToBody`, and a link trigger there takes
+`textTransform="underlined"`, so more than its color sets it apart from the words around it. The
+card's content is block-level and a `<p>` can't
 hold it, so the card renders through [`Portal`](../helpers/portal.md) instead, at the end of the
 page unless a [`portalContainer`](../helpers/config.md#where-portaled-content-goes) says otherwise
 or the trigger is in an overlay that takes its popups, such as a `Modal`, fixed to the viewport
@@ -82,7 +84,14 @@ it. With server rendering, it shows from the first render after hydration.
 ```tsx live
 <Paragraph>
   Reviewed by{' '}
-  <HoverCard appendToBody trigger={<Link href="#ada">Ada Lovelace</Link>}>
+  <HoverCard
+    appendToBody
+    trigger={
+      <Link href="#ada" textTransform="underlined">
+        Ada Lovelace
+      </Link>
+    }
+  >
     <Title as="p" size="6">
       Ada Lovelace
     </Title>
