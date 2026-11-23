@@ -86,7 +86,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   gives that reason, the markup is Docusaurus's, in place of an issue. Raise it upstream if it's
   worth fixing there. Ejecting the SearchBar to turn off DocSearch's `/` shortcut (#2277) is
   the case that set this rule. Components this site adds or swizzles for its own features (the
-  live code blocks, the MDX components) are its own code, and their findings get fixed.
+  live code blocks, the MDX components) are its own code, and their findings get fixed. A gap
+  in that code, or in a page's own markup or an example's code, that the maintainer decides to
+  keep, on its issue or PR, is recorded by design, as the report's Notes describe.
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).
