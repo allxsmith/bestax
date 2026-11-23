@@ -111,7 +111,9 @@ Notes:
   its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
 - Extras `Tabs` **extends** stock Bulma tabs (it shows only the selected `Tabs.Content` panel,
   lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, moves
-  Bulma's focus ring inside most `Tabs.Item` links, brings a focused toggle tab in front of its
+  Bulma's focus ring inside a link that is a `Tabs.Item`'s own child, in the tab's text color on a
+  selected toggle tab,
+  brings a focused toggle tab in front of its
   neighbors, and keeps the active tab marked in forced colors, where Bulma's colors for it are
   replaced), so an app using `Tabs` needs both:
 
@@ -179,8 +181,9 @@ Notes:
   edge there from the desktop breakpoint up as a CanvasText outline, where Bulma's shadow is
   dropped, marks the active item there
   with a bar in the system's highlight color, where Bulma's colors for it are replaced, keeps a
-  `fixed` navbar in place while an overlay locks the page's scrolling, pads the page's scroll by
-  a `fixed` navbar's height so a control that takes focus doesn't scroll under it, gives an
+  `fixed` navbar, or one Bulma's `-touch` or `-desktop` fixed classes fix, in place while an
+  overlay locks the page's scrolling, pads the page's scroll by such a navbar's height so a
+  control that takes focus doesn't scroll under it, gives an
   active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
   color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one,
@@ -349,11 +352,14 @@ Notes:
   colors (Windows' contrast themes) drops the shadow and sets the border's color, so a focused
   button can look like an unfocused one there. Forced colors also replaces a colored button's fill,
   which Bulma draws with no border, so an icon-only one shows only its glyph there. The `button`
-  extras partial gives those focused buttons an outline, apart from a loading one, which the
+  extras partial gives those focused buttons an outline, and a focused disabled link one, apart
+  from a loading one, which the
   `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
   system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
   button a 1px border in forced colors, a disabled button full strength in forced colors, where
-  Bulma's disabled opacity would fade the system's color for it, and an outlined button the
+  Bulma's disabled opacity would fade the system's color for it, a link `Button` with `isDisabled`
+  the look Bulma gives a disabled `<button>`, since Bulma draws only the `disabled` attribute,
+  which a link doesn't get, and an outlined button the
   lightness Bulma picks for its color's text on the page where that's lighter, so a dark color
   reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's
   button module. Its rules win over Bulma's either way, so the order of the `@use` lines does not

@@ -236,9 +236,9 @@ async function main() {
     await context.addInitScript(mode => {
       localStorage.setItem('theme', mode);
     }, theme);
-    // Requests to any other host are aborted. What they'd load (a YouTube
-    // player in an example, a font or image off a CDN) is someone else's
-    // markup, and loading it would make the result depend on the network.
+    // Requests to any other host are aborted. What they'd load (a font or
+    // image off a CDN) isn't the build under test, and loading it would make
+    // the result depend on the network.
     await context.route(
       url => new URL(url).origin !== base,
       route => route.abort()
@@ -274,7 +274,7 @@ async function main() {
     for (const line of describeFailures(failing)) console.log(line);
     for (const { exemption, pattern } of stale) {
       console.log(
-        `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If its issue is fixed, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
+        `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If the violation it covered is gone, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
       );
     }
     for (const path of unsettled) {

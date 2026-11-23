@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Checkbox } from './Checkbox';
 import { Checkboxes } from './Checkboxes';
 import { Block } from '../elements/Block';
+import { Link } from '../elements/Link';
 
 const meta: Meta<typeof Checkbox> = {
   title: 'Form/Checkbox',
@@ -60,16 +61,17 @@ export const Default: Story = {
  * Checkbox with an anchor tag in the label.
  */
 export const CheckboxWithLink: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
-  },
   render: () => (
     <Checkbox>
       I have read and agree to the{' '}
-      <a href="#" target="_blank" rel="noopener noreferrer">
+      <Link
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        textTransform="underlined"
+      >
         terms and conditions
-      </a>
+      </Link>
       .
     </Checkbox>
   ),

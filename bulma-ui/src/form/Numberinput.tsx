@@ -111,7 +111,16 @@ export interface NumberinputProps
    * @defaultValue auto
    */
   bare?: boolean;
-  /** Style variant for the control buttons. */
+  /**
+   * Style variant for the control buttons. A `"stepper"` stacks them, each
+   * half the input's height. At the default and small sizes each takes the
+   * rest of its 24px target from a transparent band out past the stepper, up
+   * from the increase button and down from the decrease one: 5px past a
+   * default stepper and 10px past a small one. So leave that room above and
+   * below it, and between two stacked steppers. A band takes presses from
+   * text or a plain link that close, while a Bulma control or button right
+   * below paints over the decrease band and keeps its own.
+   */
   variant?: NumberinputVariant;
   /** The buttons' names, in your app's language, in both variants. */
   labels?: NumberinputLabels;

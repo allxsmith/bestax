@@ -1,3 +1,38 @@
+## [1.3.7](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.3.6...@allxsmith/eslint-plugin-bestax@1.3.7) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** note a guide's site images in the sections the server serves ([94f752e](https://github.com/allxsmith/bestax/commit/94f752ee19a4237226395596a8314e1e66e67495)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **bestax-mcp:** say an example's site image stands for the reader's own ([b4b91ce](https://github.com/allxsmith/bestax/commit/b4b91ce95abd1d7382ec10978ce03d42ae522d7d)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **bestax-mcp:** split a helper guide at headings outside fenced code ([7574840](https://github.com/allxsmith/bestax/commit/75748408b79b650db6f3628a536937c22c644991)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **bulma-ui:** add the space before a calendar day's content only when it has some ([f015782](https://github.com/allxsmith/bestax/commit/f015782128ffc2fdd1b32d1601318c5a13f3bb3d)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** count a Slider's last step as max within a millionth of a step ([a817778](https://github.com/allxsmith/bestax/commit/a81777888133ff42a255a16196a7d20b61fa7f9b))
+* **bulma-ui:** deprecate the color prop on Pagination's and Field's parts ([878e265](https://github.com/allxsmith/bestax/commit/878e265c159c13af0ddd01e6d1c73f56b04c2a6f)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+* **bulma-ui:** draw a Slider's last step tick when max is a little past it ([f696dcd](https://github.com/allxsmith/bestax/commit/f696dcd3c46bdbd78e72a8aa94956eb08fef6841)), closes [#2109](https://github.com/allxsmith/bestax/issues/2109)
+* **bulma-ui:** draw Taginput's focus ring outside a Control ([d9be71e](https://github.com/allxsmith/bestax/commit/d9be71e43e5599ef0ac7728e4b85c9b7161b8b02)), closes [#2189](https://github.com/allxsmith/bestax/issues/2189)
+* **bulma-ui:** give every delete button a 24px target, drawn as before ([16a61fc](https://github.com/allxsmith/bestax/commit/16a61fc7b016750418de41a7ec1bf896855666b8)), closes [#2198](https://github.com/allxsmith/bestax/issues/2198)
+* **bulma-ui:** give the floating close the target, and keep dangerouslySetInnerHTML working ([93a1805](https://github.com/allxsmith/bestax/commit/93a1805e99a2969152310dffc79fa6bba55318e8))
+* **bulma-ui:** keep a calendar day's number and content two words in its text ([41e607b](https://github.com/allxsmith/bestax/commit/41e607b6e52678f666818306fae01e82c1c71fe8)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** keep a focused control clear of a fixed Navbar ([2fc3ebd](https://github.com/allxsmith/bestax/commit/2fc3ebd5225820a7a94e5fc71c2a7e165603b064)), closes [#2193](https://github.com/allxsmith/bestax/issues/2193)
+* **bulma-ui:** preview an iconName Rate's half star in the hover color ([c999e77](https://github.com/allxsmith/bestax/commit/c999e775e35ae5d04538eecf9284ca3e8f81e2b1)), closes [#2012](https://github.com/allxsmith/bestax/issues/2012)
+* **bulma-ui:** skip a Slider's last tick when it sits at the end of the track ([6f908ee](https://github.com/allxsmith/bestax/commit/6f908eec1c97123acb771b71f44c432cb8d2273c))
+* **bulma-ui:** skip the end tick when a Slider's max is a float's error past a step ([644defa](https://github.com/allxsmith/bestax/commit/644defa48ee1ecd4e7a117ab98c81aaf47ecc27a))
+* **bulma-ui:** warn in development about an open Sidebar with no name ([eb243af](https://github.com/allxsmith/bestax/commit/eb243af9f17f230a7e74729ea5c9070e8b05f87c)), closes [#2261](https://github.com/allxsmith/bestax/issues/2261)
+* **bulma-ui:** warn in development about an unnamed Modal, Slider, Numberinput or Image ([9339119](https://github.com/allxsmith/bestax/commit/9339119dbdb19079e9a3f08b0867f645e1e53ec8)), closes [#2201](https://github.com/allxsmith/bestax/issues/2201)
+* **bulma-ui:** warn in development when an Icon with a role of its own has no name ([8dc17a6](https://github.com/allxsmith/bestax/commit/8dc17a6c8a5bacf436b83cdbd59e3d35a95539ca)), closes [#2265](https://github.com/allxsmith/bestax/issues/2265) [#2227](https://github.com/allxsmith/bestax/issues/2227)
+* **docs:** let the keyboard reach a wide Markdown table that scrolls sideways ([0173852](https://github.com/allxsmith/bestax/commit/01738521587f2de71bec7ef742163f113ff7874c))
+* **docs:** name the install button with an aria-label built from its command ([b52e940](https://github.com/allxsmith/bestax/commit/b52e9405dc6da97b31af547b79575a17c645ab52))
+* **docs:** put the command the homepage's install button shows in its name ([217d80b](https://github.com/allxsmith/bestax/commit/217d80bf7af766eebacf386cf1a2da8011957f88))
+* **docs:** say the .md twins' and llms-full.txt's site images stand for the reader's own ([d7d95a2](https://github.com/allxsmith/bestax/commit/d7d95a279b1d955440581928057867dd19b3f8b5)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **docs:** stop the homepage form-controls demo moving keyboard focus ([6f66b5a](https://github.com/allxsmith/bestax/commit/6f66b5a03d87a352391ad03a212d93fa392b9557))
+* **eslint-plugin:** flag the deprecated color prop on Pagination's and Field's parts ([488798b](https://github.com/allxsmith/bestax/commit/488798b684b08a7301592e8d5906e2fe8dfb3d73)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+
+
+### Features
+
+* **bulma-ui:** hand getDayLabel the day's number as its cell shows it ([b9a64b3](https://github.com/allxsmith/bestax/commit/b9a64b37ec97d3abb529692667367b5f2aea3505)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+
 ## [1.3.6](https://github.com/allxsmith/bestax/compare/@allxsmith/eslint-plugin-bestax@1.3.5...@allxsmith/eslint-plugin-bestax@1.3.6) (2026-11-19)
 
 

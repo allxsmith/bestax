@@ -332,7 +332,7 @@ function example() {
         labels={{ search: 'Rechercher' }}
         toolbar={table => (
           <Select
-            aria-label="Parution"
+            label="Parution"
             value={String(table.state.filters.year ?? '')}
             onChange={event => table.setFilter('year', event.target.value)}
           >

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Footer from './Footer';
 import Content from '../elements/Content';
+import { Link } from '../elements/Link';
 import { validColors, validSchemeColors } from '../helpers/useBulmaClasses';
 
 const meta: Meta<typeof Footer> = {
@@ -19,24 +20,29 @@ const meta: Meta<typeof Footer> = {
 export default meta;
 
 export const Default: StoryObj<typeof Footer> = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
-  },
   render: () => (
     <Footer>
       <Content textAlign="centered">
         <p>
           <strong>Bestax</strong> a Bulma component library by{' '}
-          <a href="https://bestax.io">Alex Smith</a>.<br />
-          <a href="https://opensource.org/license/mit">
+          <Link href="https://bestax.io" textTransform="underlined">
+            Alex Smith
+          </Link>
+          .<br />
+          <Link
+            href="https://opensource.org/license/mit"
+            textTransform="underlined"
+          >
             MIT Source Code License
-          </a>
+          </Link>
           {', '}
           Web content licensed{' '}
-          <a href="https://creativecommons.org/licenses/by-nc-sa/4.0//">
+          <Link
+            href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+            textTransform="underlined"
+          >
             CC BY NC SA 4.0
-          </a>
+          </Link>
           .
         </p>
       </Content>

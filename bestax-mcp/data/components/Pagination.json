@@ -243,16 +243,17 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier.",
+          "description": "Renders the text color helper (`has-text-<color>`), not a modifier: Bulma ships no pagination link color CSS. It takes the place of `textColor`, which renders nothing while this prop is present, even as `undefined`. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Use `textColor` instead. This prop will be removed in the next major version."
         },
         {
           "name": "textColor",
           "type": "Bulma color | 'inherit' | 'current'",
           "default": null,
-          "description": "Text color.",
+          "description": "Text color. It renders nothing while a `color` prop is present, even an undefined one.",
           "required": false,
           "inherited": false,
           "deprecated": false,
@@ -328,7 +329,7 @@
           "name": "textColor",
           "type": "Bulma color | 'inherit' | 'current'",
           "default": null,
-          "description": "Text color for the list.",
+          "description": "Text color for the list. It renders nothing while a `color` prop is present, even an undefined one.",
           "required": false,
           "inherited": false,
           "deprecated": false,
@@ -338,10 +339,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the list.",
+          "description": "Renders the text color helper (`has-text-<color>`), not a modifier: Bulma ships no pagination list color CSS. It takes the place of `textColor`, which renders nothing while this prop is present, even as `undefined`. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Use `textColor` instead. This prop will be removed in the next major version."
         },
         {
           "name": "bgColor",

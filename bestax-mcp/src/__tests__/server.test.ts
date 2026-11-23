@@ -1651,9 +1651,9 @@ describe('lookup_bulma_classes', () => {
       'It renders its own `\u2026` as its content, so write it closing itself.'
     );
     expect(ellipsis).toContain(
-      "A `className` it's given replaces its own class, so it converts only with no other class."
+      'It keeps its own class beside a `className` from bestax-bulma 5.78.4 on; an older release writes the `className` in its place.'
     );
-    expect(await lookup('pagination-ellipsis mt-2', 'span')).toContain(
+    expect(await lookup('pagination-ellipsis mt-2', 'span')).not.toContain(
       '**Stays markup:**'
     );
   });

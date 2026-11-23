@@ -98,7 +98,13 @@ export interface ButtonOwnProps extends Omit<
   isActive?: boolean;
   /** Applies hovered styling (visual only). */
   isHovered?: boolean;
-  /** Applies disabled styling. */
+  /**
+   * Disables the button. With the default `as`, the `<button>` gets the
+   * `disabled` attribute. With any other `as`, such as a link or a component
+   * of your own, it gets `aria-disabled` and `tabIndex={-1}` in its place, its
+   * `onClick` doesn't run, and bestax's CSS draws it the way Bulma draws a
+   * disabled `<button>`, which Bulma alone doesn't.
+   */
   isDisabled?: boolean;
   /** Custom class name. */
   className?: string | undefined;

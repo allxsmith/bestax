@@ -7,15 +7,15 @@
   "examples": [
     {
       "title": "Basic Autocomplete",
-      "code": "function example() {\n  const [selected, setSelected] = useState<string | null>(null);\n  const fruits = [\n    'Apple',\n    'Banana',\n    'Cherry',\n    'Date',\n    'Elderberry',\n    'Fig',\n    'Grape',\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={fruits}\n        placeholder=\"Search fruit...\"\n        onSelect={item => setSelected(typeof item === 'string' ? item : null)}\n      />\n      {selected && <Paragraph mt=\"2\">Selected: {selected}</Paragraph>}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [selected, setSelected] = useState<string | null>(null);\n  const fruits = [\n    'Apple',\n    'Banana',\n    'Cherry',\n    'Date',\n    'Elderberry',\n    'Fig',\n    'Grape',\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        label=\"Fruit\"\n        data={fruits}\n        placeholder=\"Search fruit...\"\n        onSelect={item => setSelected(typeof item === 'string' ? item : null)}\n      />\n      {selected && <Paragraph mt=\"2\">Selected: {selected}</Paragraph>}\n    </Block>\n  );\n}"
     },
     {
       "title": "Open on Focus",
-      "code": "function example() {\n  const countries = [\n    'United States',\n    'United Kingdom',\n    'Canada',\n    'Australia',\n    'Germany',\n    'France',\n  ];\n\n  return (\n    <Autocomplete\n      data={countries}\n      placeholder=\"Select a country...\"\n      openOnFocus\n    />\n  );\n}"
+      "code": "function example() {\n  const countries = [\n    'United States',\n    'United Kingdom',\n    'Canada',\n    'Australia',\n    'Germany',\n    'France',\n  ];\n\n  return (\n    <Autocomplete\n      label=\"Country\"\n      data={countries}\n      placeholder=\"Select a country...\"\n      openOnFocus\n    />\n  );\n}"
     },
     {
       "title": "With Clear Button",
-      "code": "function example() {\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete data={options} placeholder=\"Search options...\" clearable />\n  );\n}"
+      "code": "function example() {\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete\n      data={options}\n      label=\"Option\"\n      placeholder=\"Search options...\"\n      clearable\n    />\n  );\n}"
     },
     {
       "title": "Clear Button in Another Language",
@@ -23,27 +23,27 @@
     },
     {
       "title": "Color and Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Primary small\"\n    color=\"primary\"\n    size=\"small\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Info normal\"\n    color=\"info\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Success medium\"\n    color=\"success\"\n    size=\"medium\"\n  />\n  <Autocomplete\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Danger large\"\n    color=\"danger\"\n    size=\"large\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Autocomplete\n    label=\"Primary Small\"\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Primary small\"\n    color=\"primary\"\n    size=\"small\"\n  />\n  <Autocomplete\n    label=\"Info Normal\"\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Info normal\"\n    color=\"info\"\n  />\n  <Autocomplete\n    label=\"Success Medium\"\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Success medium\"\n    color=\"success\"\n    size=\"medium\"\n  />\n  <Autocomplete\n    label=\"Danger Large\"\n    data={['Apple', 'Banana', 'Cherry']}\n    placeholder=\"Danger large\"\n    color=\"danger\"\n    size=\"large\"\n  />\n</Block>"
     },
     {
       "title": "With Object Data",
-      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', email: 'john@example.com' },\n    { value: '2', label: 'Jane Smith', email: 'jane@example.com' },\n    { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },\n  ];\n  const [selected, setSelected] = useState<(typeof users)[number] | null>(null);\n\n  return (\n    <Block>\n      <Autocomplete\n        data={users}\n        field=\"label\"\n        placeholder=\"Search users...\"\n        openOnFocus\n        onSelect={item =>\n          setSelected(\n            users.find(\n              u => u.value === (typeof item === 'string' ? item : item?.value)\n            ) ?? null\n          )\n        }\n      />\n      {selected && (\n        <Paragraph mt=\"2\">\n          Selected: {selected.label} ({selected.email})\n        </Paragraph>\n      )}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', email: 'john@example.com' },\n    { value: '2', label: 'Jane Smith', email: 'jane@example.com' },\n    { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },\n  ];\n  const [selected, setSelected] = useState<(typeof users)[number] | null>(null);\n\n  return (\n    <Block>\n      <Autocomplete\n        label=\"User\"\n        data={users}\n        field=\"label\"\n        placeholder=\"Search users...\"\n        openOnFocus\n        onSelect={item =>\n          setSelected(\n            users.find(\n              u => u.value === (typeof item === 'string' ? item : item?.value)\n            ) ?? null\n          )\n        }\n      />\n      {selected && (\n        <Paragraph mt=\"2\">\n          Selected: {selected.label} ({selected.email})\n        </Paragraph>\n      )}\n    </Block>\n  );\n}"
     },
     {
       "title": "Custom Item Template",
-      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', role: 'Admin' },\n    { value: '2', label: 'Jane Smith', role: 'Editor' },\n    { value: '3', label: 'Bob Johnson', role: 'Viewer' },\n  ];\n\n  return (\n    <Autocomplete\n      data={users}\n      field=\"label\"\n      placeholder=\"Search users...\"\n      openOnFocus\n      itemTemplate={item => {\n        const user = users.find(\n          u => u.value === (typeof item === 'string' ? item : item.value)\n        );\n        return (\n          <Block display=\"flex\" justifyContent=\"space-between\">\n            <Span>{user?.label}</Span>\n            <Tag color=\"info\" isLight>\n              {user?.role}\n            </Tag>\n          </Block>\n        );\n      }}\n    />\n  );\n}"
+      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', role: 'Admin' },\n    { value: '2', label: 'Jane Smith', role: 'Editor' },\n    { value: '3', label: 'Bob Johnson', role: 'Viewer' },\n  ];\n\n  return (\n    <Autocomplete\n      label=\"User\"\n      data={users}\n      field=\"label\"\n      placeholder=\"Search users...\"\n      openOnFocus\n      itemTemplate={item => {\n        const user = users.find(\n          u => u.value === (typeof item === 'string' ? item : item.value)\n        );\n        return (\n          <Block display=\"flex\" justifyContent=\"space-between\">\n            <Span>{user?.label}</Span>\n            <Tag color=\"info\" isLight>\n              {user?.role}\n            </Tag>\n          </Block>\n        );\n      }}\n    />\n  );\n}"
     },
     {
       "title": "With Empty State",
-      "code": "function example() {\n  const options = ['Apple', 'Banana', 'Cherry'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Try searching 'xyz'...\"\n      empty={\n        <Paragraph textColor=\"grey\">\n          <Icon name=\"search\" variant=\"solid\" mr=\"2\" aria-hidden=\"true\" />\n          No results found\n        </Paragraph>\n      }\n    />\n  );\n}"
+      "code": "function example() {\n  const options = ['Apple', 'Banana', 'Cherry'];\n\n  return (\n    <Autocomplete\n      label=\"Fruit\"\n      data={options}\n      placeholder=\"Try searching 'xyz'...\"\n      empty={\n        <Paragraph textColor=\"grey\">\n          <Icon name=\"search\" variant=\"solid\" mr=\"2\" aria-hidden=\"true\" />\n          No results found\n        </Paragraph>\n      }\n    />\n  );\n}"
     },
     {
       "title": "Loading State",
-      "code": "<Autocomplete data={[]} placeholder=\"Loading...\" loading />"
+      "code": "<Autocomplete data={[]} label=\"Fruit\" placeholder=\"Loading...\" loading />"
     },
     {
       "title": "Keep First Highlighted",
-      "code": "function example() {\n  const fruits = [\n    'Apple',\n    'Apricot',\n    'Avocado',\n    'Banana',\n    'Blackberry',\n    'Blueberry',\n  ];\n\n  return (\n    <Autocomplete data={fruits} placeholder=\"Type to filter...\" keepFirst />\n  );\n}"
+      "code": "function example() {\n  const fruits = [\n    'Apple',\n    'Apricot',\n    'Avocado',\n    'Banana',\n    'Blackberry',\n    'Blueberry',\n  ];\n\n  return (\n    <Autocomplete\n      data={fruits}\n      label=\"Fruit\"\n      placeholder=\"Type to filter...\"\n      keepFirst\n    />\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering › Default (with label)",

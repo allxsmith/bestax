@@ -40,17 +40,27 @@ function BrowserEditor({ title }) {
   // user can move on past the example. The default, "indentation", catches
   // both keys to indent, which traps focus in the editor (WCAG 2.1.2). It
   // also set a tab size of 2, kept here for any tab pasted into an example.
+  // The wrapper is ours, and react-live's own markup stays as it is: the
+  // wrapper names the example's code as a group a screen reader announces on
+  // the way in, and draws the focus ring (see .live-editor in custom.css),
+  // since react-live puts `outline: none` inline on its editable <pre>.
   return (
     <BrowserWindow url={title} code={code}>
-      <LiveEditor
-        tabMode="focus"
-        onChange={onChange}
-        style={{
-          backgroundColor: 'var(--prism-background-color)',
-          font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
-          tabSize: 2,
-        }}
-      />
+      <div
+        className="live-editor"
+        role="group"
+        aria-label={title ? `${title} code` : 'Example code'}
+      >
+        <LiveEditor
+          tabMode="focus"
+          onChange={onChange}
+          style={{
+            backgroundColor: 'var(--prism-background-color)',
+            font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
+            tabSize: 2,
+          }}
+        />
+      </div>
     </BrowserWindow>
   );
 }

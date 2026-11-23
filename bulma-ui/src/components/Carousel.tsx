@@ -365,8 +365,8 @@ export interface CarouselProps
    */
   ariaLabel?: string;
   /**
-   * The words it writes for its arrows, indicators and items, for another
-   * language.
+   * The words it writes for its arrows, indicators, items and rotation
+   * button, for another language.
    */
   labels?: CarouselLabels;
   /**

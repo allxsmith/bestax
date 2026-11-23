@@ -52,6 +52,24 @@ $switch-thin-circle-size: 1.25em !default;
   position: relative;
   user-select: none;
 
+  // The hit area. A small switch draws its track 18px tall, and a thin one
+  // with no text is only as tall as its track, under WCAG 2.5.8's 24px
+  // minimum target (#1972). The label is the target, so a transparent band
+  // right below it, as wide as it is, makes up the rest of the 24px, and the
+  // track, the text and the layout around them stay as they are. A switch
+  // 24px tall or more gets no band. It reaches down, not both ways, because
+  // a switch or a Bulma control that comes after it in the page paints over
+  // it, so one stacked right below keeps its own presses, and so does one
+  // right above, which a band reaching up would cover.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: max(0px, 24px - 100%);
+  }
+
   // Hidden native input
   input[type="checkbox"] {
     position: absolute;

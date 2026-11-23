@@ -31,9 +31,9 @@ $tabs-content-padding: 1rem !default;
 // <li> is clipped by the overflow of .tabs and, in toggle tabs, painted over
 // by the next tab. So the ring is drawn inside the <a>, with Bulma's focus
 // colour, style and width. Plain links in a Tabs.Item have no role="tab"
-// and keep Bulma's own a:focus-visible ring, which the rules below move
-// inside a link that is the item's own child, on every tab but a selected
-// toggle one.
+// and keep Bulma's own a:focus-visible ring, which the rules here move
+// inside a link that is the item's own child, and on a selected toggle tab
+// draw in the tab's text colour too.
 .#{iv.$class-prefix}tabs li[role="tab"] {
   &:focus-visible {
     outline: none;
@@ -51,10 +51,16 @@ $tabs-content-padding: 1rem !default;
 // colour matches by default, so its ring takes the tab's text colour
 // (currentColor, which Bulma sets from its toggle tab variables) and sits one
 // ring width further in, keeping a band of the fill outside it to set it off
-// from the page around the tab.
+// from the page around the tab. That goes for a Tabs.Tab and for a link that
+// is a selected Tabs.Item's own child, whose selector outweighs Bulma's
+// a:focus-visible ring wherever its CSS loads. Forced colors replace the
+// fill and the ring's colour, and the ring stays inside the tab there too.
 .#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
   li[role="tab"].#{iv.$class-prefix}is-active:focus-visible
-  > a {
+  > a,
+.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+  li.#{iv.$class-prefix}is-active:not(.#{iv.$class-prefix}tabs li li)
+  > a:focus-visible {
   outline-color: currentColor;
   outline-offset: calc(-2 * #{cv.getVar("focus-width")});
 }
@@ -68,10 +74,7 @@ $tabs-content-padding: 1rem !default;
 // clips its top and bottom, leaving a line at each side. This moves that ring
 // inside the link, at a Tabs.Tab's inset, in place of Bulma's focus offset,
 // which would put it back outside, and leaves its colour, style and width to
-// Bulma. A selected toggle tab keeps Bulma's ring where it is, still clipped:
-// its fill is the link colour, which the focus colour matches by default, so
-// the ring wouldn't show inside it in that colour (#1945). Forced colors draw
-// no such fill, so there it moves inside too, below.
+// Bulma. A selected toggle tab's link takes the ring above instead.
 .#{iv.$class-prefix}tabs:not(.#{iv.$class-prefix}is-toggle)
   li:not(.#{iv.$class-prefix}tabs li li)
   > a:focus-visible,
@@ -255,14 +258,6 @@ $tabs-content-padding: 1rem !default;
     li[role="tab"][aria-disabled="true"].#{iv.$class-prefix}is-active
     > a::after {
     background-color: GrayText;
-  }
-
-  // A selected toggle tab's link has no fill here to hide its focus ring, so
-  // the ring moves inside it, as on every other tab, out of the row's clip.
-  .#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
-    li.#{iv.$class-prefix}is-active
-    > a:focus-visible {
-    outline-offset: calc(-1 * #{cv.getVar("focus-width")});
   }
 }
 

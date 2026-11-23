@@ -1383,6 +1383,85 @@ describe('Combobox', () => {
       );
     }
 
+    it("brings a group's heading into view with its first option (#2268)", () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      /** What each key press scrolled into view, by its text. */
+      const scrolled = () => {
+        const shown = (scrollIntoView.mock.contexts as Element[]).map(
+          element => element.textContent
+        );
+        scrollIntoView.mockClear();
+        return shown;
+      };
+      try {
+        render(<Produce />);
+        key('ArrowDown');
+        expect(highlighted()).toBe('Apple');
+        expect(scrolled()).toEqual(['Fruit', 'Apple']);
+        key('ArrowDown');
+        expect(scrolled()).toEqual(['Banana']);
+        key('ArrowDown');
+        expect(scrolled()).toEqual(['Vegetables', 'Carrot']);
+        // Up onto a group's first option, and round from the last to the first.
+        key('ArrowUp');
+        key('ArrowUp');
+        expect(scrolled()).toEqual(['Banana', 'Fruit', 'Apple']);
+        key('ArrowUp');
+        expect(highlighted()).toBe('Carrot');
+        key('ArrowDown');
+        expect(scrolled()).toEqual(['Vegetables', 'Carrot', 'Fruit', 'Apple']);
+      } finally {
+        delete (Element.prototype as Partial<Element>).scrollIntoView;
+      }
+    });
+
+    it('scrolls nothing but the option in a group of its own markup with no heading first', () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      try {
+        render(
+          <Combobox label="Produce" defaultOpen>
+            <Combobox.Input />
+            <Combobox.Menu>
+              <Combobox.List>
+                <div role="group" aria-label="Fruit">
+                  <div>
+                    <Combobox.Item value="apple">Apple</Combobox.Item>
+                  </div>
+                </div>
+              </Combobox.List>
+            </Combobox.Menu>
+          </Combobox>
+        );
+        key('ArrowDown');
+        expect(highlighted()).toBe('Apple');
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrollIntoView.mock.contexts[0]).toBe(option('Apple'));
+      } finally {
+        delete (Element.prototype as Partial<Element>).scrollIntoView;
+      }
+    });
+
+    it('leaves a group around the whole combobox alone', () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      try {
+        render(
+          <div role="group" aria-label="Filters">
+            <p>Pick a country</p>
+            <CountrySelect />
+          </div>
+        );
+        key('ArrowDown');
+        expect(highlighted()).toBe('Canada');
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrollIntoView.mock.contexts[0]).toBe(option('Canada'));
+      } finally {
+        delete (Element.prototype as Partial<Element>).scrollIntoView;
+      }
+    });
+
     it('renders each group named by its heading', () => {
       render(<Produce />);
       const fruit = screen.getByRole('group', { name: 'Fruit' });

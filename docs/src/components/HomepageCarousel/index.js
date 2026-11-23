@@ -12,6 +12,7 @@ import {
   Content,
 } from '@allxsmith/bestax-bulma';
 import ShadowPreview from '@site/src/components/ShadowPreview';
+import { SlideShowStoppedContext } from './useDemoLoop';
 import styles from './styles.module.css';
 
 const SLIDE_CSS = `
@@ -29,47 +30,212 @@ const SLIDE_CSS = `
       padding: 1rem var(--homepage-slide-x-padding-mobile, 1rem) 2rem;
     }
   }
+  .homepage-carousel {
+    position: relative;
+  }
+  /* The controls sit in a row centered under the slides, as a media
+     player's do: Previous, the rotation control, Next. The arrows are the
+     Carousel's own, moved from the slides' sides into the room the row
+     takes under them, and the rotation control is drawn like them. Each
+     sits a little above the bottom edge so its focus ring isn't clipped. */
+  .homepage-carousel.has-control-row .carousel-container {
+    padding-bottom: calc(48px + 0.5rem);
+  }
+  /* The row sets the slide apart from what follows, so the slide's own
+     bottom padding can mostly go. */
+  .homepage-carousel.has-control-row .homepage-slide {
+    padding-bottom: 0.5rem;
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow {
+    top: calc(100% - 24px - 0.25rem);
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow.is-prev {
+    inset-inline-start: calc(50% - 24px - 0.5rem - 48px);
+  }
+  .homepage-carousel.has-control-row .carousel .carousel-arrow.is-next {
+    inset-inline-end: calc(50% - 24px - 0.5rem - 48px);
+  }
+  .homepage-carousel .homepage-rotation.button {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 50%;
+    z-index: 11;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: none;
+    border-radius: var(--bulma-radius);
+    background-color: hsla(
+      var(--bulma-scheme-h),
+      var(--bulma-scheme-s),
+      var(--bulma-scheme-main-l),
+      0.8
+    );
+    color: var(--bulma-text);
+    transform: translateX(-50%);
+    transition:
+      background-color var(--bulma-duration),
+      transform var(--bulma-duration);
+  }
+  .homepage-carousel .homepage-rotation.button:hover {
+    background-color: hsla(
+      var(--bulma-scheme-h),
+      var(--bulma-scheme-s),
+      var(--bulma-scheme-main-l),
+      0.95
+    );
+    transform: translateX(-50%) scale(1.05);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .homepage-carousel .homepage-rotation.button {
+      transition: none;
+    }
+  }
+  .homepage-rotation svg {
+    width: 24px;
+    height: 24px;
+  }
+  @media screen and (max-width: 768px) {
+    .homepage-carousel.has-control-row .carousel-container {
+      padding-bottom: calc(36px + 0.5rem);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow {
+      top: calc(100% - 18px - 0.25rem);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow.is-prev {
+      inset-inline-start: calc(50% - 18px - 0.5rem - 36px);
+    }
+    .homepage-carousel.has-control-row .carousel .carousel-arrow.is-next {
+      inset-inline-end: calc(50% - 18px - 0.5rem - 36px);
+    }
+    .homepage-carousel .homepage-rotation.button {
+      width: 36px;
+      height: 36px;
+    }
+    .homepage-rotation svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 `;
 
-function CarouselSlides({ label, slides, autoplay, interval, hasDrag, arrow }) {
+// Feather's pause and play glyphs, in the stroke the arrows' chevrons use.
+const PauseGlyph = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+);
+const PlayGlyph = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+function CarouselSlides({
+  label,
+  slides,
+  autoplay,
+  rotates,
+  interval,
+  hasDrag,
+  arrow,
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // The rotation control stops the slides and the demos in them until it's
+  // pressed again (#2206). Rotation also holds while the pointer is over the
+  // slides or focus is in them, which the Carousel does for focus itself. The
+  // control isn't part of that, so pressing Start starts the slides at once.
+  const [stopped, setStopped] = useState(false);
+  // The Carousel's own hover pause misses a pointer that comes into the
+  // shadow root from outside (#2309), so the bubbling over and out events
+  // hold it here.
+  const [hovered, setHovered] = useState(false);
 
   return (
     <ShadowPreview extraStyles={SLIDE_CSS}>
-      {/* Named with the heading's text, since the carousel renders in a
-          shadow root, where aria-labelledby can't reach the heading */}
-      <Carousel
-        ariaLabel={label}
-        autoplay={autoplay}
-        interval={interval}
-        pauseOnHover
-        arrow={arrow}
-        indicator={false}
-        hasDrag={hasDrag}
-        repeat
-        onChange={setActiveIndex}
+      <div
+        className={clsx(
+          'homepage-carousel',
+          (arrow || rotates) && 'has-control-row'
+        )}
       >
-        {slides.map((slide, i) => (
-          <CarouselItem key={slide.key}>
-            <Columns isVCentered className="homepage-slide">
-              <Column size="two-fifths" className="homepage-slide-text">
-                <Title size="3">{slide.title}</Title>
-                <Content>
-                  <p>{slide.description}</p>
-                </Content>
-                <Link className="button is-primary" to={slide.link}>
-                  {slide.linkLabel}
-                </Link>
-              </Column>
-              <Column className="homepage-slide-demo">
-                {typeof slide.demo === 'function'
-                  ? slide.demo({ active: i === activeIndex })
-                  : slide.demo}
-              </Column>
-            </Columns>
-          </CarouselItem>
-        ))}
-      </Carousel>
+        {/* First in the carousel's tab order, though it sits between the
+            arrows in the row. Its name says what pressing it does, so it
+            changes with the state rather than taking a pressed state of its
+            own. */}
+        {rotates && (
+          <button
+            type="button"
+            className="button homepage-rotation"
+            aria-label={
+              stopped
+                ? 'Start automatic slide show'
+                : 'Stop automatic slide show'
+            }
+            onClick={() => setStopped(was => !was)}
+          >
+            {stopped ? <PlayGlyph /> : <PauseGlyph />}
+          </button>
+        )}
+        <SlideShowStoppedContext.Provider value={stopped}>
+          <div
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={event => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                setHovered(false);
+              }
+            }}
+          >
+            {/* Named with the heading's text, since the carousel renders in a
+          shadow root, where aria-labelledby can't reach the heading */}
+            <Carousel
+              ariaLabel={label}
+              autoplay={autoplay && !stopped && !hovered}
+              interval={interval}
+              pauseOnHover
+              arrow={arrow}
+              indicator={false}
+              hasDrag={hasDrag}
+              repeat
+              onChange={setActiveIndex}
+            >
+              {slides.map((slide, i) => (
+                <CarouselItem key={slide.key}>
+                  <Columns isVCentered className="homepage-slide">
+                    <Column size="two-fifths" className="homepage-slide-text">
+                      <Title size="3">{slide.title}</Title>
+                      <Content>
+                        <p>{slide.description}</p>
+                      </Content>
+                      <Link className="button is-primary" to={slide.link}>
+                        {slide.linkLabel}
+                      </Link>
+                    </Column>
+                    <Column className="homepage-slide-demo">
+                      {typeof slide.demo === 'function'
+                        ? slide.demo({ active: i === activeIndex })
+                        : slide.demo}
+                    </Column>
+                  </Columns>
+                </CarouselItem>
+              ))}
+            </Carousel>
+          </div>
+        </SlideShowStoppedContext.Provider>
+      </div>
     </ShadowPreview>
   );
 }
@@ -111,12 +277,6 @@ export default function HomepageCarousel({
     sectionVars['--homepage-slide-min-height'] = slideMinHeight;
     sectionVars['--homepage-slide-demo-max-height'] = slideMinHeight;
   }
-  // The arrows are 48px wide at a 1rem offset, so the slide needs wider side
-  // padding to keep them from overlapping the slide content.
-  if (arrow) {
-    sectionVars['--homepage-slide-x-padding'] = '5rem';
-    sectionVars['--homepage-slide-x-padding-mobile'] = '3.25rem';
-  }
   const sectionStyle = Object.keys(sectionVars).length
     ? sectionVars
     : undefined;
@@ -145,6 +305,7 @@ export default function HomepageCarousel({
               label={heading}
               slides={slides}
               autoplay={autoplay && inView}
+              rotates={autoplay}
               interval={interval}
               hasDrag={hasDrag}
               arrow={arrow}

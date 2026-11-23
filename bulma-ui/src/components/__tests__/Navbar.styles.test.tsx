@@ -18,6 +18,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import {
   cascade,
   customProperty,
+  declaredFor,
   rulesOf as styleRulesOf,
 } from '../../__tests__/css-cascade';
 import {
@@ -49,7 +50,41 @@ const compile = (prefix = '') =>
 const bulmaCss = (file = 'bulma.css') =>
   fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
+type VarIndex = {
+  /** The rules that declare a custom property, all a variable lookup reads. */
+  varRules: CSSStyleRule[];
+  schemes: { light: Vars; dark: Vars };
+};
+const varIndexes = new WeakMap<CSSStyleRule[], VarIndex>();
+/** A sheet's variable rules and its two schemes, once per list of rules. */
+const varIndexOf = (rules: CSSStyleRule[]) => {
+  let index = varIndexes.get(rules);
+  if (!index) {
+    index = {
+      varRules: rules.filter(rule =>
+        Array.from({ length: rule.style.length }, (_, i) => rule.style[i]).some(
+          name => name.startsWith('--')
+        )
+      ),
+      schemes: schemesOf(rules),
+    };
+    varIndexes.set(rules, index);
+  }
+  return index;
+};
+
 const FORCED = '@media (forced-colors: active)';
+
+// A spaced navbar's height from desktop up: Bulma's navbar height and its
+// padding above and below, which falls back to Bulma's default.
+const SPACED_HEIGHT =
+  'calc(var(--bulma-navbar-height) + var(--bulma-navbar-padding-vertical, 1rem) * 2)';
+
+// The media queries Bulma's `-touch` and `-desktop` fixed classes apply in.
+const BREAKPOINT = {
+  '-touch': '@media screen and (max-width: 1023px)',
+  '-desktop': '@media screen and (min-width: 1024px)',
+} as const;
 
 interface Rule {
   /** The at-rules around it, outermost first, as written. */
@@ -606,7 +641,7 @@ describe('the Navbar partial', () => {
       // An active or selected link item or link.
       const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 9).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 17).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
         [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
@@ -626,12 +661,28 @@ describe('the Navbar partial', () => {
         ],
         [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-top))`, []],
         [`:where(html:has(.${prefix}navbar.${prefix}is-fixed-bottom))`, []],
+        // The same three for Bulma's classes that fix it at a breakpoint.
+        ...(['-touch', '-desktop'] as const).flatMap(suffix => {
+          const at = [BREAKPOINT[suffix]];
+          const top = `.${prefix}navbar.${prefix}is-fixed-top${suffix}`;
+          const bottom = `.${prefix}navbar.${prefix}is-fixed-bottom${suffix}`;
+          return [
+            [`:where(${top}, ${bottom})`, at],
+            [`:where(html:has(${top}))`, at],
+            [`:where(html:has(${bottom}))`, at],
+          ];
+        }),
+        // Then a spaced navbar's taller scroll padding, from desktop up.
+        ...(['top', 'bottom'] as const).map(side => [
+          `:where(html:has(.${prefix}navbar.${prefix}is-spaced:is(.${prefix}is-fixed-${side}, .${prefix}is-fixed-${side}-desktop)))`,
+          [BREAKPOINT['-desktop']],
+        ]),
       ]);
       // Then the colored hero's navbar, at the top level but for the menu's
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(9, -1 - extra);
+      const hero = rules.slice(17, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -657,13 +708,21 @@ describe('the Navbar partial', () => {
       expect(rules[5].declarations).toEqual({
         outline: '1px solid CanvasText',
       });
-      expect(rules[6].declarations).toEqual(LOCK_MARGINS);
-      expect(rules[7].declarations).toEqual({
-        'scroll-padding-top': 'var(--bulma-navbar-height)',
+      expect(rules[15].declarations).toEqual({
+        'scroll-padding-top': SPACED_HEIGHT,
       });
-      expect(rules[8].declarations).toEqual({
-        'scroll-padding-bottom': 'var(--bulma-navbar-height)',
+      expect(rules[16].declarations).toEqual({
+        'scroll-padding-bottom': SPACED_HEIGHT,
       });
+      for (const first of [6, 9, 12]) {
+        expect(rules[first].declarations).toEqual(LOCK_MARGINS);
+        expect(rules[first + 1].declarations).toEqual({
+          'scroll-padding-top': 'var(--bulma-navbar-height)',
+        });
+        expect(rules[first + 2].declarations).toEqual({
+          'scroll-padding-bottom': 'var(--bulma-navbar-height)',
+        });
+      }
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([
@@ -810,6 +869,115 @@ describe.each([
     const HEADER = 'var(--bulma-app-frame-header-height)';
     expect(scrollPadding(css(appFrame), 'top')).toBe(HEADER);
     expect(scrollPadding(css('', appFrame), 'top')).toBe(HEADER);
+  });
+});
+
+// Bulma's `-touch` and `-desktop` classes fix a navbar below and from its
+// breakpoint only, and a navbar fixed that way takes the lock's margins and
+// pads the page's scroll there, and nowhere else (#2259). jsdom evaluates no
+// media query, so this reads each declaration with the block it sits in,
+// from Bulma's sheet and the partial: Bulma sets no margin on such a navbar,
+// so the margins hold at no weight wherever its sheet loads.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('a navbar fixed at one breakpoint, with %s', (_label, prefix, bulmaFile) => {
+  const SCROLL = ['scroll-padding-top', 'scroll-padding-bottom'];
+  const MARGINS = ['margin-left', 'margin-right'];
+
+  it.each([
+    ['top', '-touch'],
+    ['bottom', '-touch'],
+    ['top', '-desktop'],
+    ['bottom', '-desktop'],
+  ] as const)(
+    'gives a navbar fixed to the %s with the %s class its margins and the page its padding at that breakpoint',
+    (side, suffix) => {
+      const css = bulmaCss(bulmaFile) + compile(prefix);
+      const { getByRole } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar
+            aria-label="Site"
+            className={`${prefix}is-fixed-${side}${suffix}`}
+          />
+        </ConfigProvider>
+      );
+      expect(declaredFor(document.documentElement, css, SCROLL)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: [
+          `scroll-padding-${side}: var(--bulma-navbar-height)`,
+        ],
+      });
+      expect(declaredFor(getByRole('navigation'), css, MARGINS)).toEqual({
+        atRest: [],
+        [BREAKPOINT[suffix]]: Object.entries(LOCK_MARGINS).map(
+          ([property, value]) => `${property}: ${value}`
+        ),
+      });
+    }
+  );
+});
+
+// A spaced navbar is taller from the desktop breakpoint up by its padding
+// above and below, so the page's scroll padding grows there to match (#2258).
+// A navbar fixed at one breakpoint gets it from desktop up, where Bulma spaces
+// it.
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])('a spaced fixed navbar, with %s', (_label, prefix, bulmaFile) => {
+  const SCROLL = ['scroll-padding-top', 'scroll-padding-bottom'];
+  const css = () => bulmaCss(bulmaFile) + compile(prefix);
+
+  /** The page's scroll padding with a spaced navbar of `classes`. */
+  const paddingFor = (classes: string) => {
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site" isSpaced className={classes} />
+      </ConfigProvider>
+    );
+    return declaredFor(document.documentElement, css(), SCROLL);
+  };
+
+  it.each(['top', 'bottom'] as const)(
+    'pads the page by the taller height from desktop up for one fixed to the %s',
+    side => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar aria-label="Site" isSpaced fixed={side} />
+        </ConfigProvider>
+      );
+      expect(declaredFor(document.documentElement, css(), SCROLL)).toEqual({
+        atRest: [`scroll-padding-${side}: var(--bulma-navbar-height)`],
+        [BREAKPOINT['-desktop']]: [`scroll-padding-${side}: ${SPACED_HEIGHT}`],
+      });
+    }
+  );
+
+  it.each(['top', 'bottom'] as const)(
+    'pads one desktop-fixed to the %s the same way, after its own padding',
+    side => {
+      expect(paddingFor(`${prefix}is-fixed-${side}-desktop`)).toEqual({
+        atRest: [],
+        [BREAKPOINT['-desktop']]: [
+          `scroll-padding-${side}: var(--bulma-navbar-height)`,
+          `scroll-padding-${side}: ${SPACED_HEIGHT}`,
+        ],
+      });
+    }
+  );
+
+  it('leaves a touch-fixed one at the navbar height, below desktop, where Bulma spaces nothing', () => {
+    expect(paddingFor(`${prefix}is-fixed-top-touch`)).toEqual({
+      atRest: [],
+      [BREAKPOINT['-touch']]: [
+        'scroll-padding-top: var(--bulma-navbar-height)',
+      ],
+    });
+  });
+
+  it('pads nothing for a spaced navbar that isn’t fixed', () => {
+    expect(paddingFor('')).toEqual({ atRest: [] });
   });
 });
 
@@ -1183,15 +1351,15 @@ describe('an active navbar item', () => {
     item: Element,
     scheme: 'light' | 'dark'
   ) {
-    const rules = bulmaRules(bulmaFile);
+    const { varRules, schemes } = varIndexOf(bulmaRules(bulmaFile));
     const navbarSelectors = new Set(
       Array.from(navbar.classList, name => `.${prefix}navbar.${name}`).concat(
         `.${prefix}navbar`
       )
     );
     const onNavbar: Vars = {
-      ...schemesOf(rules)[scheme],
-      ...varsOn(rules, s => navbarSelectors.has(s)),
+      ...schemes[scheme],
+      ...varsOn(varRules, s => navbarSelectors.has(s)),
     };
     const onItem: Vars = {
       ...onNavbar,
@@ -1200,7 +1368,7 @@ describe('an active navbar item', () => {
         onNavbar['--bulma-navbar-item-color'],
         onNavbar
       ),
-      ...varsOn(rules, s => matches(item, s)),
+      ...varsOn(varRules, s => matches(item, s)),
     };
     const own = customProperty(item, css, '--bulma-navbar-item-color');
     if (own) onItem['--bulma-navbar-item-color'] = own;
@@ -1406,6 +1574,15 @@ describe('an active dropdown row in a prefixed build', () => {
     return widthRules.get(key) as CSSStyleRule[];
   };
 
+  const widthSheets = new Map<string, Map<number, string>>();
+  /** `css` as a screen `width` pixels wide sees it, once per sheet and width. */
+  const sheetAt = (css: string, width: number) => {
+    let byWidth = widthSheets.get(css);
+    if (!byWidth) widthSheets.set(css, (byWidth = new Map()));
+    if (!byWidth.has(width)) byWidth.set(width, atWidth(css, width));
+    return byWidth.get(width) as string;
+  };
+
   type Setup = { color?: 'primary'; transparent?: boolean; hero?: boolean };
 
   /**
@@ -1465,21 +1642,23 @@ describe('an active dropdown row in a prefixed build', () => {
 
   /**
    * The row's text and fill, with every variable worked out, as the sheet
-   * `css` over Bulma's sheet `bulmaFile` draws them in `scheme` on a screen
-   * `width` pixels wide. The variables come from Bulma's sheet, and the one
-   * the partial declares that the row reads, `--bulma-navbar-item-color`,
-   * through the cascade.
+   * `css` over Bulma's sheet `bulmaFile` draws them on a screen `width`
+   * pixels wide, for each scheme. The variables come from Bulma's sheet, and
+   * the one the partial declares that the row reads,
+   * `--bulma-navbar-item-color`, through the cascade. What doesn't depend on
+   * the scheme is worked out once. Everything that reads the page, focus
+   * included, is read here rather than in the function it returns, since a
+   * caller may move focus to another row before calling that.
    */
   function drawnRow(
     css: string,
     bulmaFile: string,
     navbar: Element,
     row: Element,
-    scheme: 'light' | 'dark',
     width: number
   ) {
-    const sheet = atWidth(css, width);
-    const rules = bulmaAt(bulmaFile, width);
+    const sheet = sheetAt(css, width);
+    const { varRules, schemes } = varIndexOf(bulmaAt(bulmaFile, width));
     /** The variables Bulma declares on `from`'s ancestors down to `to`. */
     const down = (from: Element | null, to: Element): Vars => {
       const chain: Element[] = [];
@@ -1491,24 +1670,12 @@ describe('an active dropdown row in a prefixed build', () => {
         chain.unshift(el);
       return Object.assign(
         {},
-        ...chain.map(el => varsOn(rules, s => matches(el, s)))
+        ...chain.map(el => varsOn(varRules, s => matches(el, s)))
       );
     };
-    const onNavbar: Vars = {
-      ...schemesOf(rules)[scheme],
-      ...down(null, navbar),
-    };
-    const onRow: Vars = {
-      ...onNavbar,
-      // Inherited as the navbar worked it out.
-      '--bulma-navbar-item-color': substitute(
-        onNavbar['--bulma-navbar-item-color'],
-        onNavbar
-      ),
-      ...down(navbar, row),
-    };
+    const onNavbarDown = down(null, navbar);
+    const onRowDown = down(navbar, row);
     const own = customProperty(row, sheet, '--bulma-navbar-item-color');
-    if (own) onRow['--bulma-navbar-item-color'] = own;
     const declared = (property: string) =>
       cascade(
         row,
@@ -1516,9 +1683,24 @@ describe('an active dropdown row in a prefixed build', () => {
         [property],
         (style, name) => style.getPropertyValue(name) || undefined
       ) as string;
-    return {
-      text: substitute(declared('color'), onRow),
-      fill: substitute(declared('background-color'), onRow),
+    const text = declared('color');
+    const fill = declared('background-color');
+    return (scheme: 'light' | 'dark') => {
+      const onNavbar: Vars = { ...schemes[scheme], ...onNavbarDown };
+      const onRow: Vars = {
+        ...onNavbar,
+        // Inherited as the navbar worked it out.
+        '--bulma-navbar-item-color': substitute(
+          onNavbar['--bulma-navbar-item-color'],
+          onNavbar
+        ),
+        ...onRowDown,
+      };
+      if (own) onRow['--bulma-navbar-item-color'] = own;
+      return {
+        text: substitute(text, onRow),
+        fill: substitute(fill, onRow),
+      };
     };
   }
 
@@ -1572,25 +1754,25 @@ describe('an active dropdown row in a prefixed build', () => {
       const plain = dropdownOf('', setup);
       const withPrefix = dropdownOf('bulma-', setup);
       for (const width of [1280, 800]) {
+        if (focus) pick(plain).focus();
+        const wantIn = drawnRow(
+          unprefixed,
+          'bulma.css',
+          plain.navbar,
+          pick(plain),
+          width
+        );
+        if (focus) pick(withPrefix).focus();
+        const gotIn = drawnRow(
+          prefixed,
+          'versions/bulma-prefixed.css',
+          withPrefix.navbar,
+          pick(withPrefix),
+          width
+        );
         for (const scheme of ['light', 'dark'] as const) {
-          if (focus) pick(plain).focus();
-          const want = drawnRow(
-            unprefixed,
-            'bulma.css',
-            plain.navbar,
-            pick(plain),
-            scheme,
-            width
-          );
-          if (focus) pick(withPrefix).focus();
-          const got = drawnRow(
-            prefixed,
-            'versions/bulma-prefixed.css',
-            withPrefix.navbar,
-            pick(withPrefix),
-            scheme,
-            width
-          );
+          const want = wantIn(scheme);
+          const got = gotIn(scheme);
           // The same color measures 1:1 against itself.
           expect(contrast(got.text, want.text)).toBeCloseTo(1, 6);
           expect(contrast(got.fill, want.fill)).toBeCloseTo(1, 6);
@@ -1637,17 +1819,15 @@ describe('an active dropdown row in a prefixed build', () => {
       'bulma.css',
       plain.navbar,
       plain.row,
-      'light',
       1280
-    );
+    )('light');
     const got = drawnRow(
       bulmaCss('versions/bulma-prefixed.css'),
       'versions/bulma-prefixed.css',
       withPrefix.navbar,
       withPrefix.row,
-      'light',
       1280
-    );
+    )('light');
     expect(contrast(got.fill, want.fill)).toBeGreaterThan(1.5);
   });
 });

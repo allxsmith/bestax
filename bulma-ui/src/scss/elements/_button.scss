@@ -10,6 +10,11 @@
 //   shadow, and its border color outranks the focus one. `isStatic` still
 //   renders a `<button>`, so Tab reaches it. This one applies outside forced
 //   colors too.
+// - A disabled link, which the disabled link rules below draw with Bulma's
+//   disabled edge and no shadow over the focus ones, as Bulma does for a
+//   disabled `<button>`. Tab skips the link, but a script or a click can
+//   still focus it, and a `<button>` can't take focus at all. This one applies
+//   outside forced colors too.
 // - Every button in forced colors (Windows' contrast themes), which drops the
 //   shadow and forces the border's color, so a focused button can look just
 //   like an unfocused one there. A ghost or static button matches both rules
@@ -17,8 +22,8 @@
 //
 // A loading button, ghost and static ones included, is left to
 // `_loader.scss`, which rings it in and out of forced colors, since Bulma's
-// `is-loading` drops the shadow as well. Neither outline here reaches one, so
-// the order the two partials load in doesn't decide its ring.
+// `is-loading` drops the shadow as well. No outline here reaches one, so the
+// order the two partials load in doesn't decide its ring.
 //
 // `.is-focused` is the class `isFocused` sets, so it gets the outline too.
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
@@ -33,17 +38,18 @@
 // one at rest the outline above is what shows focus.
 //
 // Bulma dims a disabled button, one with the `disabled` attribute or inside a
-// disabled `<fieldset>`, with `--bulma-button-disabled-opacity`. Forced
+// disabled `<fieldset>`, with `--bulma-button-disabled-opacity`, and the
+// disabled link rules below dim a link with `isDisabled` with it too. Forced
 // colors draws a disabled `<button>`'s text in GrayText, the system's color
 // for a disabled control, so there the opacity only halves that color. In
-// forced colors the opacity rule sets that variable to 1, so whatever Bulma
-// dims with it draws at full strength. The disabled rule names GrayText for
+// forced colors the opacity rule sets that variable to 1, so whatever dims
+// with it draws at full strength. The disabled rule names GrayText for
 // the text and edge of a button that is disabled, by its own `disabled`
 // attribute or a disabled `<fieldset>`, since Firefox doesn't give its edge
 // that color and an element that isn't a form control gets neither. It
 // matches `is-disabled` too, which `Button` writes for `isDisabled` on a link,
-// with no attribute, and which Bulma doesn't dim, so that link doesn't draw
-// like a working one there. What Bulma dims but the browser leaves working, a
+// with no attribute, so that link doesn't draw like a working one there
+// either. What Bulma dims but the browser leaves working, a
 // link in a disabled `<fieldset>` or a button in its first `<legend>`, keeps
 // its own colors, since GrayText would say it does nothing. A loading one
 // draws at full strength too, in the colors `_loader.scss` gives it.
@@ -99,6 +105,10 @@
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'bulma/sass/utilities/derived-variables' as dv;
 
+// What marks a disabled link: `is-disabled` and `aria-disabled`, with no
+// `disabled` attribute. The disabled link rules below say why.
+$-disabled-link: '.#{iv.$class-prefix}is-disabled[aria-disabled="true"]:not(:where([disabled]))';
+
 @mixin -focus-outline {
   outline-color: hsl(
     cv.getVar('focus-h'),
@@ -121,8 +131,90 @@
   ):focus-visible,
 .#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:not(
     .#{iv.$class-prefix}is-loading
+  ).#{iv.$class-prefix}is-focused,
+.#{iv.$class-prefix}button#{$-disabled-link}:not(
+    .#{iv.$class-prefix}is-loading
+  ):focus-visible,
+.#{iv.$class-prefix}button#{$-disabled-link}:not(
+    .#{iv.$class-prefix}is-loading
   ).#{iv.$class-prefix}is-focused {
   @include -focus-outline;
+}
+
+// Bulma draws a disabled button, one with the `disabled` attribute, with its
+// `--bulma-button-disabled-*` fill, edge, shadow and opacity and a
+// not-allowed cursor, a colored one filled and edged in its color, and an
+// outlined or text one with no fill. For `isDisabled` with any `as` but the
+// default `<button>`, a link or a component of the app's own, `Button` writes
+// `is-disabled` and `aria-disabled="true"` and no attribute, and Bulma
+// doesn't style that, so the link looked like a working button while a
+// screen reader called it unavailable. These rules draw it the way Bulma
+// draws `[disabled]`, from the same variables, keyed on `aria-disabled`, the
+// state a screen reader gets. They leave an element with the attribute to
+// Bulma, so a disabled `<button>`, which gets `is-disabled` too, draws as it
+// always has.
+//
+// Bulma's inverted, outlined, ghost, static and loading styles come after its
+// disabled rule and keep the fill, edge or shadow they set, while its colored
+// disabled rule outranks them. This partial can load on either side of
+// Bulma's CSS, so rather than lean on source order, the first rule leaves
+// each style out of what it keeps, in a `:where()` that adds no weight, as
+// the attribute test does. It outranks Bulma's focus rules, as Bulma's
+// disabled rule does by coming later. The colored, outlined and text rules
+// each name one class more, and sit ahead of the forced colors block, whose
+// disabled rule weighs as much and takes over there.
+.#{iv.$class-prefix}button#{$-disabled-link} {
+  cursor: not-allowed;
+  opacity: cv.getVar('button-disabled-opacity');
+
+  &:not(
+      :where(
+        .#{iv.$class-prefix}is-inverted,
+        .#{iv.$class-prefix}is-ghost,
+        .#{iv.$class-prefix}is-static
+      )
+    ) {
+    background-color: cv.getVar('button-disabled-background-color');
+  }
+
+  &:not(
+      :where(
+        .#{iv.$class-prefix}is-outlined,
+        .#{iv.$class-prefix}is-ghost,
+        .#{iv.$class-prefix}is-static
+      )
+    ) {
+    border-color: cv.getVar('button-disabled-border-color');
+  }
+
+  &:not(
+      :where(
+        .#{iv.$class-prefix}is-ghost,
+        .#{iv.$class-prefix}is-static,
+        .#{iv.$class-prefix}is-loading
+      )
+    ) {
+    box-shadow: cv.getVar('button-disabled-shadow');
+  }
+}
+
+@each $name in map.keys(map.remove(dv.$colors, 'text')) {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}#{$-disabled-link} {
+    background-color: cv.getVar($name);
+    border-color: cv.getVar($name);
+    box-shadow: none;
+  }
+}
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-outlined#{$-disabled-link} {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-text#{$-disabled-link} {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 @media (forced-colors: active) {
