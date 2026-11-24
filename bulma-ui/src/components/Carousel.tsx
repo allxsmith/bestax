@@ -460,6 +460,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       onBlur,
       onMouseEnter,
       onMouseLeave,
+      onMouseOver,
       ...props
     },
     ref
@@ -696,6 +697,13 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // rather than replacing these.
     const handleMouseEnter = chain(onMouseEnter, () => setIsHovered(true));
     const handleMouseLeave = chain(onMouseLeave, () => setIsHovered(false));
+    // React makes the enter out of the mouseout on the element the pointer
+    // left. When the page around a carousel in a shadow root is React's too,
+    // as through a portal, that mouseout names only the shadow host, so no
+    // enter reaches here, as useHoverOpen's onPointerOver says. Any mouseover
+    // inside means the pointer is over the carousel, and the leave still
+    // comes, from a mouseout inside.
+    const handleMouseOver = chain(onMouseOver, () => setIsHovered(true));
     const handleFocus = chain(
       onFocus,
       (e: React.FocusEvent<HTMLDivElement>) => {
@@ -1022,6 +1030,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         {...rest}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onMouseOver={handleMouseOver}
         onFocus={handleFocus}
         onBlur={handleBlur}
       >
