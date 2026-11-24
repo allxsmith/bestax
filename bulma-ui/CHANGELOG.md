@@ -1,3 +1,14 @@
+## [5.81.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.81.0...@allxsmith/bestax-bulma@5.81.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a wrapped row of Carousel lines or bars 24px below the one above ([7c82072](https://github.com/allxsmith/bestax/commit/7c820724c4844208d2801d44aeb892e8768b105e))
+* **bulma-ui:** keep a wrapped row of tall Carousel lines or bars off the row above ([bbadda4](https://github.com/allxsmith/bestax/commit/bbadda40dd75d0a6038671f0e595e1314be84cc4))
+* **bulma-ui:** keep Carousel indicators drawn wider as far apart as they were ([49943c2](https://github.com/allxsmith/bestax/commit/49943c21794d4e4fb99a0c5d9aec097ea25a7800))
+* **bulma-ui:** pause a Carousel under a pointer that comes from outside its shadow root ([638c967](https://github.com/allxsmith/bestax/commit/638c9676d116c7fadcd0116fea2f5fbd78d0149b)), closes [#2309](https://github.com/allxsmith/bestax/issues/2309)
+* **bulma-ui:** space Carousel's indicators 24px apart, with the marks drawn as before ([1c10830](https://github.com/allxsmith/bestax/commit/1c10830e1685571f6ca08a5496c265a9f3612633)), closes [#1926](https://github.com/allxsmith/bestax/issues/1926)
+
 # [5.81.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.80.1...@allxsmith/bestax-bulma@5.81.0) (2026-11-23)
 
 
