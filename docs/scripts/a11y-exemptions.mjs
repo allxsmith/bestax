@@ -44,11 +44,6 @@ export default [
 
   // The library's own open issues, showing in the live examples. Most have
   // stories exempt for them in bulma-ui's stories-a11y.test.ts too.
-  {
-    rule: 'target-size',
-    pages: ['/docs/api/components/carousel'],
-    issue: 1926,
-  },
   // Label in name, in the examples.
   {
     rule: 'label-content-name-mismatch',

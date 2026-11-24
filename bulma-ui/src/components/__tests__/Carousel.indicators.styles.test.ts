@@ -6,7 +6,12 @@
 // fill until then. These pin that look in each published sheet, and the rules
 // that draw it in the partial, with no prefix and under one.
 import { compileSheet } from '../../__tests__/compile-scss';
-import { bulmaCss, compilePartial, rulesOf } from '../../__tests__/css-cascade';
+import {
+  bulmaCss,
+  compilePartial,
+  compileSource,
+  rulesOf,
+} from '../../__tests__/css-cascade';
 import { varsOn } from '../../__tests__/contrast';
 
 /** The indicator variables each sheet declares on the carousel. */
@@ -19,6 +24,12 @@ const DEFAULTS = {
     'var(--bulma-carousel-indicator-border-color)',
   '--bulma-carousel-indicator-border-width': '2px',
   '--bulma-carousel-indicator-line-border-width': '1px',
+  // The dots 24px apart, center to center, the least target size (#1926),
+  // and dots drawn wider no closer than the gaps they had.
+  '--bulma-carousel-indicator-gap':
+    'max(0.5rem,24px - var(--bulma-carousel-indicator-size))',
+  '--bulma-carousel-indicator-gap-mobile':
+    'max(0.375rem,24px - var(--bulma-carousel-indicator-size-mobile))',
 };
 
 describe.each([
@@ -82,6 +93,119 @@ describe.each([
     expect(declared(`${item}:hover`, 'background-color')).toBe(
       'var(--bulma-carousel-indicator-background-hover)'
     );
+  });
+
+  // The indicators sat closer together than the 24px target size allows
+  // (#1926). Each style's gaps default to what puts its marks 24px apart,
+  // center to center, and to no less than the gaps they had, so a mark drawn
+  // wider doesn't come closer. A row too long for the carousel wraps rather
+  // than squeezing them closer.
+  it('sets each style’s default gap at the carousel’s own weight, and wraps a long row', () => {
+    const gaps = (style: string) => {
+      const selector = `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
+      return [
+        declared(selector, '--bulma-carousel-indicator-gap'),
+        declared(selector, '--bulma-carousel-indicator-gap-mobile'),
+      ];
+    };
+    expect(gaps('circles')).toEqual([
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-circle-size))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-circle-size))',
+    ]);
+    expect(gaps('lines')).toEqual([
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-line-width))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-line-width-mobile))',
+    ]);
+    expect(gaps('bars')).toEqual([
+      'max(0.5rem,24px - var(--bulma-carousel-indicator-bar-width))',
+      'max(0.375rem,24px - var(--bulma-carousel-indicator-bar-width-mobile))',
+    ]);
+    // The row reads the variables, whatever a theme sets them to.
+    const row = `${p('carousel')} ${p('carousel-indicator')}`;
+    expect(declared(row, 'gap')).toBe('var(--bulma-carousel-indicator-gap)');
+    expect(declared(row, 'flex-wrap')).toBe('wrap');
+    expect(declared(item, 'flex-shrink')).toBe('0');
+    // The marks draw at their own sizes, as before.
+    expect(declared(item, 'width')).toBe(
+      'var(--bulma-carousel-indicator-size)'
+    );
+  });
+
+  /** The rules of the partial built with `config` for its variables. */
+  const builtWith = (config: string) =>
+    rulesOf(
+      compileSource(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'components/carousel' with (${config});`
+      )
+    ).rules;
+  /** Each value a rule whose list has `selector` gives `property`. */
+  const on = (built: CSSStyleRule[], selector: string, property: string) =>
+    built
+      .filter(rule => rule.selectorText.split(', ').includes(selector))
+      .map(rule => rule.style.getPropertyValue(property))
+      .filter(Boolean);
+  const styleRoot = (style: string) =>
+    `${p('carousel')}:where(${p(`is-indicator-${style}`)})`;
+
+  it('gives every style a gap a build sets, as it did', () => {
+    const built = builtWith(
+      '$carousel-indicator-gap: 4px, $carousel-indicator-gap-mobile: 3px'
+    );
+    expect(on(built, p('carousel'), '--bulma-carousel-indicator-gap')).toEqual([
+      '4px',
+    ]);
+    expect(
+      on(built, p('carousel'), '--bulma-carousel-indicator-gap-mobile')
+    ).toEqual(['3px']);
+    for (const style of ['circles', 'lines', 'bars']) {
+      for (const gap of ['gap', 'gap-mobile']) {
+        expect(
+          on(built, styleRoot(style), `--bulma-carousel-indicator-${gap}`)
+        ).toEqual([]);
+      }
+    }
+  });
+
+  it('keeps the other gap’s per-style defaults when a build sets one of the two', () => {
+    const wide = builtWith('$carousel-indicator-gap: 4px');
+    const phone = builtWith('$carousel-indicator-gap-mobile: 3px');
+    for (const style of ['circles', 'lines', 'bars']) {
+      const root = styleRoot(style);
+      expect(on(wide, root, '--bulma-carousel-indicator-gap')).toEqual([]);
+      expect(
+        on(wide, root, '--bulma-carousel-indicator-gap-mobile')
+      ).toHaveLength(1);
+      expect(on(phone, root, '--bulma-carousel-indicator-gap')).toHaveLength(1);
+      expect(on(phone, root, '--bulma-carousel-indicator-gap-mobile')).toEqual(
+        []
+      );
+    }
+  });
+
+  it('puts a wrapped row of lines or bars 24px below the one above, center to center, and no closer than their gap', () => {
+    const row = (style: string) =>
+      `${styleRoot(style)} ${p('carousel-indicator')}`;
+    const mobileRowGap = (selector: string) =>
+      nested
+        .filter(
+          ({ rule, within }) =>
+            within.startsWith('@media screen and (max-width') &&
+            rule.selectorText === selector
+        )
+        .map(({ rule }) => rule.style.getPropertyValue('row-gap'))
+        .find(Boolean);
+    for (const [style, height] of [
+      ['lines', 'line-height'],
+      ['bars', 'bar-height'],
+    ]) {
+      expect(declared(row(style), 'row-gap')).toBe(
+        `max(var(--bulma-carousel-indicator-gap), 24px - var(--bulma-carousel-indicator-${height}))`
+      );
+      expect(mobileRowGap(row(style))).toBe(
+        `max(var(--bulma-carousel-indicator-gap-mobile), 24px - var(--bulma-carousel-indicator-${height}-mobile))`
+      );
+    }
   });
 
   it('fills the current indicator in the current color, with no ring', () => {
