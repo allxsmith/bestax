@@ -75,6 +75,15 @@ const meta: Meta<typeof Splitter> = {
       description:
         'How far an arrow key moves a handle, in percent; Shift moves ten times as far',
     },
+    stepButtons: {
+      control: 'boolean',
+      description:
+        'Buttons on each handle that step it, and collapse a collapsible pane, with a click',
+    },
+    labels: {
+      control: false,
+      description: 'The names of the step buttons, for another language',
+    },
     textColor: {
       control: 'select',
       options: [...validColors, 'inherit', 'current'],
@@ -174,6 +183,67 @@ export const CollapsibleInspector: Story = {
     await expect(canvas.getByRole('button')).toHaveTextContent(
       'Hide inspector'
     );
+  },
+};
+
+/**
+ * Buttons on each handle, for a pointer that can't drag: the arrows step the
+ * handle as the arrow keys do, and the double arrows collapse the
+ * collapsible pane and bring it back, as Enter does.
+ */
+export const StepButtons: Story = {
+  render: function StepButtonsExample() {
+    return (
+      <>
+        <Splitter height={280} className="box p-0" step={5} stepButtons>
+          <Splitter.Pane
+            label="Files"
+            defaultSize={30}
+            minSize={15}
+            collapsible
+          >
+            {words('Files')}
+          </Splitter.Pane>
+          <Splitter.Pane label="Editor">{words('Editor')}</Splitter.Pane>
+        </Splitter>
+        <Splitter
+          orientation="vertical"
+          height={320}
+          className="box p-0"
+          step={5}
+          stepButtons
+        >
+          <Splitter.Pane label="Query" defaultSize={40} minSize={15}>
+            {words('Query')}
+          </Splitter.Pane>
+          <Splitter.Pane label="Results">{words('Results')}</Splitter.Pane>
+        </Splitter>
+      </>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole('separator', { name: 'Files' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '30');
+    await userEvent.click(canvas.getByRole('button', { name: 'Grow Files' }));
+    await expect(handle).toHaveAttribute('aria-valuenow', '35');
+    await userEvent.click(canvas.getByRole('button', { name: 'Shrink Files' }));
+    await expect(handle).toHaveAttribute('aria-valuenow', '30');
+    const toggle = canvas.getByRole('button', { name: 'Files' });
+    await userEvent.click(toggle);
+    await expect(handle).toHaveAttribute('aria-valuenow', '0');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(toggle);
+    await expect(handle).toHaveAttribute('aria-valuenow', '30');
+    // The buttons' box lies over the handle, and a press away from the
+    // buttons still reaches the handle.
+    const line = handle.getBoundingClientRect();
+    await expect(
+      handle.ownerDocument.elementFromPoint(
+        line.left + line.width / 2,
+        line.top + line.height / 10
+      )
+    ).toBe(handle);
   },
 };
 

@@ -2706,6 +2706,112 @@ describe('AppFrame.Nav resizable', () => {
     expect(screen.queryByRole('separator')).toBeNull();
   });
 
+  describe('stepButtons', () => {
+    const shrink = () =>
+      screen.getByRole('button', { name: 'Shrink navigation' });
+    const grow = () => screen.getByRole('button', { name: 'Grow navigation' });
+
+    it('puts two buttons after the handle that step the width as the arrow keys do, within its limits', () => {
+      mockViewport(DESKTOP);
+      const onWidthChange = vi.fn();
+      render(
+        <ResizeFrame
+          nav={{ stepButtons: true, onWidthChange, minWidth: 200, step: 20 }}
+        />
+      );
+      const box = handle().nextElementSibling as HTMLElement;
+      expect(box).toHaveClass('app-frame-buttons');
+      expect(box.querySelectorAll('.app-frame-buttons-group')).toHaveLength(2);
+      expect(box).toContainElement(shrink());
+      expect(grow()).toHaveClass('app-frame-button');
+      expect(grow()).toHaveAttribute('aria-controls', nav().id);
+      fireEvent.click(grow());
+      expect(onWidthChange).toHaveBeenLastCalledWith(276);
+      expect(handle()).toHaveAttribute('aria-valuenow', '276');
+      fireEvent.click(shrink(), { shiftKey: true });
+      expect(onWidthChange).toHaveBeenLastCalledWith(200);
+      // At the limit, the column doesn't collapse: the burger does that.
+      onWidthChange.mockClear();
+      fireEvent.click(shrink());
+      expect(onWidthChange).not.toHaveBeenCalled();
+      expect(burger()).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('takes them away while the column is collapsed, and back as the burger opens it', () => {
+      mockViewport(DESKTOP);
+      render(<ResizeFrame nav={{ stepButtons: true, rail: true }} />);
+      fireEvent.click(burger());
+      expect(
+        screen.queryByRole('button', { name: /^(Shrink|Grow) navigation$/ })
+      ).toBeNull();
+      // The handle stays for its keys, on the rail.
+      expect(handle()).toBeInTheDocument();
+      fireEvent.click(burger());
+      expect(grow()).toBeInTheDocument();
+    });
+
+    it('hands focus to the handle when the column collapses under a focused button', () => {
+      mockViewport(DESKTOP);
+      const { rerender } = render(
+        <ResizeFrame navCollapsed={false} nav={{ stepButtons: true }} />
+      );
+      grow().focus();
+      rerender(<ResizeFrame navCollapsed nav={{ stepButtons: true }} />);
+      expect(handle()).toHaveFocus();
+    });
+
+    it('reads a rem again as a button is pressed, so a click uses the page’s font size', () => {
+      mockViewport(DESKTOP);
+      const setSize = fontSized();
+      const onWidthChange = vi.fn();
+      render(<ResizeFrame nav={{ stepButtons: true, onWidthChange }} />);
+      setSize('20px');
+      fireEvent.pointerDown(grow());
+      fireEvent.click(grow());
+      // From 16rem at 20px, 320 pixels.
+      expect(onWidthChange).toHaveBeenLastCalledWith(330);
+    });
+
+    it('takes their names from the frame’s labels', () => {
+      mockViewport(DESKTOP);
+      render(
+        <ResizeFrame
+          labels={{ shrinkNav: 'Narrower', growNav: 'Wider' }}
+          nav={{ stepButtons: true }}
+        />
+      );
+      expect(screen.getByRole('button', { name: 'Narrower' })).toBeVisible();
+      expect(screen.getByRole('button', { name: 'Wider' })).toBeVisible();
+    });
+
+    it('has none without stepButtons, or without resizable', () => {
+      mockViewport(DESKTOP);
+      const { unmount } = render(<ResizeFrame />);
+      expect(
+        screen.queryByRole('button', { name: /^(Shrink|Grow) navigation$/ })
+      ).toBeNull();
+      unmount();
+      render(<ResizeFrame nav={{ resizable: false, stepButtons: true }} />);
+      expect(
+        screen.queryByRole('button', { name: /^(Shrink|Grow) navigation$/ })
+      ).toBeNull();
+    });
+
+    it('prefixes their classes', () => {
+      mockViewport(DESKTOP);
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <ResizeFrame nav={{ stepButtons: true }} />
+        </ConfigProvider>
+      );
+      expect(
+        document.querySelector(
+          '.bestax-app-frame-buttons > .bestax-app-frame-buttons-group > .bestax-app-frame-button'
+        )
+      ).toBe(shrink());
+    });
+  });
+
   it('renders its handle on the server, with its values', () => {
     const html = renderToStaticMarkup(<ResizeFrame />);
     expect(html).toMatch(

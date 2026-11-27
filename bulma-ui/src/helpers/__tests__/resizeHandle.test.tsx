@@ -186,3 +186,151 @@ describe('ResizeHandle', () => {
     expect(body.cursor).toBe('wait');
   });
 });
+
+describe('ResizeHandle buttons', () => {
+  const buttons = {
+    className: 'buttons',
+    groupClass: 'buttons-group',
+    buttonClass: 'button',
+    start: 'Back',
+    end: 'On',
+  };
+  /** The way a button's chevrons point, from the first one's points. */
+  const pointsOf = (button: HTMLElement) =>
+    button.querySelector('polyline')!.getAttribute('points');
+  const PREV = '15 18 9 12 15 6';
+  const NEXT = '9 18 15 12 9 6';
+  const PREV_TWICE = '11 17 6 12 11 7';
+  const NEXT_TWICE = '13 17 18 12 13 7';
+
+  it('has none without buttons', () => {
+    render(<Handle />);
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('puts them after the separator, not in it, named and controlling what it resizes', () => {
+    const { container } = render(<Handle controls="pane" buttons={buttons} />);
+    const separator = screen.getByRole('separator');
+    expect(separator).toBeEmptyDOMElement();
+    const box = separator.nextElementSibling as HTMLElement;
+    expect(box).toHaveClass('buttons');
+    expect(container.children).toHaveLength(2);
+    const [back, on] = screen.getAllByRole('button');
+    expect(back).toHaveAccessibleName('Back');
+    expect(on).toHaveAccessibleName('On');
+    for (const button of [back, on]) {
+      expect(button).toHaveAttribute('type', 'button');
+      expect(button).toHaveClass('button');
+      expect(button).toHaveAttribute('aria-controls', 'pane');
+      expect(box).toContainElement(button);
+    }
+    // One in each half, around the middle, pointing the way each moves.
+    const halves = box.querySelectorAll(':scope > .buttons-group');
+    expect(halves).toHaveLength(2);
+    expect(halves[0]).toContainElement(back);
+    expect(halves[1]).toContainElement(on);
+    expect(pointsOf(back)).toBe(PREV);
+    expect(pointsOf(on)).toBe(NEXT);
+  });
+
+  it('takes an arrow key’s step back or on with a click, ten times as far with Shift, either way the page reads', () => {
+    const onStep = vi.fn();
+    const rtl = vi.fn(() => true);
+    render(<Handle onStep={onStep} rtl={rtl} buttons={buttons} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onStep).toHaveBeenLastCalledWith(-1);
+    fireEvent.click(screen.getByRole('button', { name: 'On' }));
+    expect(onStep).toHaveBeenLastCalledWith(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }), {
+      shiftKey: true,
+    });
+    expect(onStep).toHaveBeenLastCalledWith(-10);
+    fireEvent.click(screen.getByRole('button', { name: 'On' }), {
+      shiftKey: true,
+    });
+    expect(onStep).toHaveBeenLastCalledWith(10);
+    // A step toward the start is back right to left too.
+    expect(rtl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['start', false, 0, PREV_TWICE],
+    ['start', true, 0, NEXT_TWICE],
+    ['end', false, 1, NEXT_TWICE],
+    ['end', true, 1, PREV_TWICE],
+  ] as const)(
+    'puts the toggle at the outer end of the %s half (collapsed: %s), pointing the way it moves the line',
+    (side, collapsed, half, points) => {
+      const onEnter = vi.fn();
+      const { container } = render(
+        <Handle
+          onEnter={onEnter}
+          buttons={{ ...buttons, toggle: { name: 'Shut', side, collapsed } }}
+        />
+      );
+      const toggle = screen.getByRole('button', { name: 'Shut' });
+      expect(toggle).toHaveAttribute(
+        'aria-expanded',
+        collapsed ? 'false' : 'true'
+      );
+      const group = container.querySelectorAll('.buttons-group')[half];
+      expect(
+        half === 0 ? group.firstElementChild : group.lastElementChild
+      ).toBe(toggle);
+      expect(group.children).toHaveLength(2);
+      expect(pointsOf(toggle)).toBe(points);
+      fireEvent.click(toggle);
+      expect(onEnter).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('reads what the steps measure from as a button takes focus or is pressed', () => {
+    const onFocus = vi.fn();
+    render(<Handle onFocus={onFocus} buttons={buttons} />);
+    const on = screen.getByRole('button', { name: 'On' });
+    fireEvent.focus(on);
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    fireEvent.pointerDown(on);
+    expect(onFocus).toHaveBeenCalledTimes(2);
+  });
+
+  it('hands focus to the separator when the buttons go while one has it', () => {
+    const { rerender } = render(<Handle buttons={buttons} />);
+    screen.getByRole('button', { name: 'On' }).focus();
+    rerender(<Handle />);
+    expect(screen.getByRole('separator')).toHaveFocus();
+    // Focus elsewhere stays where it is.
+    rerender(<Handle buttons={buttons} />);
+    const outside = document.body.appendChild(document.createElement('input'));
+    outside.focus();
+    rerender(<Handle />);
+    expect(outside).toHaveFocus();
+    outside.remove();
+  });
+
+  it('hands focus to the separator in a shadow root too', () => {
+    const host = document.body.appendChild(document.createElement('div'));
+    const shadow = host.attachShadow({ mode: 'open' });
+    const container = shadow.appendChild(document.createElement('div'));
+    const view = render(<Handle buttons={buttons} />, { container });
+    shadow.querySelector<HTMLElement>('button')!.focus();
+    view.rerender(<Handle />);
+    expect(shadow.activeElement).toBe(
+      shadow.querySelector('[role="separator"]')
+    );
+    view.unmount();
+    host.remove();
+  });
+
+  it('keeps the separator, and its focus, as the buttons come and go', () => {
+    const { rerender } = render(<Handle buttons={buttons} />);
+    const separator = screen.getByRole('separator');
+    separator.focus();
+    rerender(<Handle />);
+    expect(screen.getByRole('separator')).toBe(separator);
+    expect(separator).toHaveFocus();
+    rerender(<Handle buttons={buttons} />);
+    expect(screen.getByRole('separator')).toBe(separator);
+    expect(separator).toHaveFocus();
+  });
+});

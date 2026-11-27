@@ -11,13 +11,15 @@
 //
 // With `AppFrame.Nav rail`, a collapsed column shrinks to a rail of the
 // menu's icons instead, each label visually hidden and shown in a Tooltip.
-// With `resizable`, a handle on the column's edge drags its width.
+// With `resizable`, a handle on the column's edge drags its width, and with
+// `stepButtons`, round buttons halfway down it step the width.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'bulma/sass/utilities/mixins' as mx;
 @use '../variables' as *;
 @use '../mixins' as *;
+@use '../resize-buttons' as *;
 
 // How far down the nav column starts sticking, and how far an in-page link
 // or a Tab scrolls clear of the sticky header. A header taller than Bulma's
@@ -50,6 +52,23 @@ $app-frame-handle-size: 0.75rem !default;
 $app-frame-handle-size-coarse: 1.5rem !default;
 $app-frame-line-active-color: cv.getVar('primary') !default;
 $app-frame-line-active-size: 2px !default;
+// The handle's step buttons, named and drawn as Splitter's: 24px across,
+// WCAG 2.5.8's minimum target, with an arrow in the text color. Under the
+// pointer they take the primary color in its on-scheme lightness, as
+// Splitter's active line does, which reads on both schemes.
+$app-frame-button-size: 1.5rem !default;
+$app-frame-button-icon-size: 1rem !default;
+$app-frame-button-color: cv.getVar('text') !default;
+$app-frame-button-background: cv.getVar('scheme-main') !default;
+$app-frame-button-border-width: 1px !default;
+$app-frame-button-border-color: cv.getVar('border') !default;
+$app-frame-button-radius: cv.getVar('radius-rounded') !default;
+$app-frame-button-gap: 0.25rem !default;
+$app-frame-button-hover-color: hsl(
+  #{cv.getVar('primary-h')},
+  #{cv.getVar('primary-s')},
+  #{cv.getVar('primary-on-scheme-l')}
+) !default;
 
 // The drawer leaves this much of the window showing beside it, so there's
 // backdrop to press.
@@ -85,6 +104,15 @@ $-drawer-gap: 3rem;
       'app-frame-handle-size-coarse': #{$app-frame-handle-size-coarse},
       'app-frame-line-active-color': #{$app-frame-line-active-color},
       'app-frame-line-active-size': #{$app-frame-line-active-size},
+      'app-frame-button-size': #{$app-frame-button-size},
+      'app-frame-button-icon-size': #{$app-frame-button-icon-size},
+      'app-frame-button-color': #{$app-frame-button-color},
+      'app-frame-button-background': #{$app-frame-button-background},
+      'app-frame-button-border-width': #{$app-frame-button-border-width},
+      'app-frame-button-border-color': #{$app-frame-button-border-color},
+      'app-frame-button-radius': #{$app-frame-button-radius},
+      'app-frame-button-gap': #{$app-frame-button-gap},
+      'app-frame-button-hover-color': #{$app-frame-button-hover-color},
     )
   );
 }
@@ -256,6 +284,14 @@ html:has(.#{iv.$class-prefix}app-frame) {
 .#{iv.$class-prefix}app-frame-handle {
   display: none;
 }
+
+// Its step buttons, likewise. Their halves and the buttons are drawn as
+// Splitter's are.
+.#{iv.$class-prefix}app-frame-buttons {
+  display: none;
+}
+
+@include extras-resize-buttons('app-frame');
 
 // ---- From the breakpoint up ------------------------------------------------------
 
@@ -431,6 +467,25 @@ html:has(.#{iv.$class-prefix}app-frame) {
       inline-size: cv.getVar('app-frame-handle-size-coarse');
       margin-inline: calc(-0.5 * #{cv.getVar('app-frame-handle-size-coarse')});
     }
+  }
+
+  // The step buttons' box shares the handle's place and sticks as it does.
+  // It has no width and sits at the column's edge, which is the handle's
+  // line, so it takes no room and the buttons hang over the edge.
+  > .#{iv.$class-prefix}app-frame-buttons {
+    grid-area: nav;
+    justify-self: end;
+    align-self: start;
+    position: sticky;
+    inset-block-start: cv.getVar('app-frame-header-height');
+    z-index: $extras-z-index-sticky - 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: cv.getVar('app-frame-button-gap');
+    inline-size: 0;
+    block-size: calc(100vh - #{cv.getVar('app-frame-header-height')});
+    block-size: calc(100dvh - #{cv.getVar('app-frame-header-height')});
   }
 
   // Collapsed out of view, the column has no edge to drag, so its handle

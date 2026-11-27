@@ -37,6 +37,25 @@ import {
 export type SplitterOrientation = 'horizontal' | 'vertical';
 
 /**
+ * The names a Splitter gives the step buttons `stepButtons` shows. Each gets
+ * the `label` of the pane the handle speaks for, and is English unless you
+ * give your own; a function that returns an empty string keeps the English.
+ * The collapse button is named by the pane's `label` alone.
+ */
+export interface SplitterLabels {
+  /**
+   * The name of the button that makes the pane smaller.
+   * @defaultValue (pane) => 'Shrink ' + pane
+   */
+  shrink?: (pane: string) => string;
+  /**
+   * The name of the button that makes the pane larger.
+   * @defaultValue (pane) => 'Grow ' + pane
+   */
+  grow?: (pane: string) => string;
+}
+
+/**
  * Props for Splitter.Pane, one of the panes. The helper props, the other
  * attributes and the `ref` land on its `<div>`.
  *
@@ -145,6 +164,23 @@ export interface SplitterProps
    * as far.
    */
   step?: number | undefined;
+  /**
+   * Shows buttons on each handle, so a pointer that can't drag can resize
+   * the panes with a click or a tap: one each side of the grip that moves
+   * the handle as an arrow key does, by `step`, and ten times as far with
+   * Shift, and on the handle a `collapsible` pane collapses through, one
+   * that collapses it and brings it back, as Enter does. The step buttons are
+   * named after the pane, as "Shrink Files" and "Grow Files", which `labels`
+   * can change, and the collapse button is named for the pane, as "Files",
+   * with `aria-expanded` saying whether it's open. They come
+   * after the handle in the Tab order, and they sit over the line, a little
+   * over the panes beside it, so a pane's content needs room at its edge
+   * there.
+   * @defaultValue false
+   */
+  stepButtons?: boolean;
+  /** The names of the buttons `stepButtons` shows. Each one left out keeps its English default. */
+  labels?: SplitterLabels;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -253,8 +289,10 @@ const handleFor = (pane: number, bounds: PaneBounds[]) =>
  * it speaks for. Sizes are percentages, so the server renders the layout
  * the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A
  * `collapsible` pane shuts when dragged below half its minimum, and Enter on
- * its handle shuts it and brings it back. It doesn't store sizes itself:
- * keep them with `sizes` and `onSizesChange`.
+ * its handle shuts it and brings it back. `stepButtons` puts buttons on the
+ * handles that move them, and shut a collapsible pane, with a click, for a
+ * pointer that can't drag. It doesn't store sizes itself: keep them with
+ * `sizes` and `onSizesChange`.
  *
  * @function
  * @param {SplitterProps} props - Props for the Splitter component.
@@ -279,6 +317,8 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       sizes: sizesProp,
       onSizesChange,
       step = 1,
+      stepButtons = false,
+      labels,
       children,
       ...props
     },
@@ -295,6 +335,9 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     });
     const handleClass = usePrefixedClassNames('splitter-handle');
     const activeClass = usePrefixedClassNames('is-active');
+    const buttonsClass = usePrefixedClassNames('splitter-buttons');
+    const buttonsGroupClass = usePrefixedClassNames('splitter-buttons-group');
+    const buttonClass = usePrefixedClassNames('splitter-button');
 
     const panes = flattenChildren(children).filter(isPane);
     const baseId = useId();
@@ -566,6 +609,39 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       }
     }, [unnamed]);
 
+    // A step button's name, from `labels` or in English, for a pane.
+    const nameFor = (
+      key: keyof SplitterLabels,
+      english: string,
+      pane: string
+    ) => labels?.[key]?.(pane) || `${english} ${pane}`;
+    // The buttons on handle `h`: toward the start shrinks the pane before
+    // it, and grows the one after.
+    const buttonsFor = (h: number, primary: number, shut: boolean) => {
+      if (!stepButtons) return undefined;
+      const pane = panes[primary].props.label ?? '';
+      const shrink = nameFor('shrink', 'Shrink', pane);
+      const grow = nameFor('grow', 'Grow', pane);
+      const before = primary === h;
+      return {
+        className: buttonsClass,
+        groupClass: buttonsGroupClass,
+        buttonClass,
+        start: before ? shrink : grow,
+        end: before ? grow : shrink,
+        // On the handle the pane collapses through, which a middle pane's
+        // first handle isn't, named after the pane as the handle is.
+        toggle:
+          bounds[primary].collapsible && handleFor(primary, bounds) === h
+            ? {
+                name: pane,
+                side: before ? ('start' as const) : ('end' as const),
+                collapsed: shut,
+              }
+            : undefined,
+      };
+    };
+
     const collapsed = collapsedAt(sizes);
     const items: React.ReactNode[] = [];
     panes.forEach((pane, i) => {
@@ -601,6 +677,7 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
           onEnd={toLimit(i, true)}
           onEnter={toggle(i)}
           onReset={reset(i)}
+          buttons={buttonsFor(i, primary, collapsed[primary])}
         />
       );
     });

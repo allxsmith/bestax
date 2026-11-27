@@ -26,6 +26,9 @@ colors, `_modal.scss` keeps a modal card's edge there). The `_index.scss` files 
 - `_select-field.scss` — `extras-select-field($name)`, the read-only field a tree picker opens its
   panel from: the chevron and the clear button at its inline end and the room they keep, which
   TreeSelect and Cascader share; it reads Bulma's class prefix and variables too
+- `_resize-buttons.scss` — `extras-resize-buttons($name)`, the step buttons `stepButtons` puts
+  beside a resize handle, which Splitter and AppFrame share; it reads Bulma's class prefix and
+  variables too
 - `_anchored-shift.scss` — `extras-anchored-shift`, `extras-anchored-left` and `extras-anchored-right`,
   the sideways shift `useAnchoredPosition` writes on a panel in place as `--bulma-anchored-shift`
   to keep it inside the viewport, and the corner edges that add it, which Popover, HoverCard,

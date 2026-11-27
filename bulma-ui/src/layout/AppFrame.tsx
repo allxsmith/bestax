@@ -67,6 +67,18 @@ export interface AppFrameLabels {
    * @defaultValue 'menu', Navbar.Burger's
    */
   burger?: string;
+  /**
+   * The name of the button that narrows the column, which `AppFrame.Nav`'s
+   * `stepButtons` shows.
+   * @defaultValue 'Shrink navigation'
+   */
+  shrinkNav?: string;
+  /**
+   * The name of the button that widens the column, which `AppFrame.Nav`'s
+   * `stepButtons` shows.
+   * @defaultValue 'Grow navigation'
+   */
+  growNav?: string;
 }
 
 /**
@@ -305,6 +317,17 @@ export interface AppFrameNavProps
    * @defaultValue 10
    */
   step?: number | undefined;
+  /**
+   * Shows two buttons on a `resizable` column's edge, so a pointer that
+   * can't drag can set its width with a click or a tap. They sit one above
+   * the other halfway down the handle, and move the edge as the arrow keys
+   * do, by `step`, and ten times as far with Shift. They show while the
+   * column is open: the burger collapses it and brings it back. Their names,
+   * "Shrink navigation" and "Grow navigation", come from the frame's
+   * `labels`, and they come after the handle in the Tab order.
+   * @defaultValue false
+   */
+  stepButtons?: boolean;
 }
 
 /**
@@ -517,6 +540,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       minWidth = '12rem',
       maxWidth = '32rem',
       step = 10,
+      stepButtons = false,
       onClick,
       onPointerDownCapture,
       children,
@@ -910,6 +934,9 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
 
     const handleClass = usePrefixedClassNames('app-frame-handle');
     const resizingClass = usePrefixedClassNames('is-resizing');
+    const buttonsClass = usePrefixedClassNames('app-frame-buttons');
+    const buttonsGroupClass = usePrefixedClassNames('app-frame-buttons-group');
+    const buttonClass = usePrefixedClassNames('app-frame-button');
 
     const navStyle =
       widthNow === undefined
@@ -991,6 +1018,19 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             onEnd={() => keyTo(maxPx)}
             onEnter={() => setCollapsed(!navCollapsed)}
             onReset={reset}
+            // Steps move an open column only, so they go while it's
+            // collapsed, and the burger brings it back.
+            buttons={
+              stepButtons && !navCollapsed
+                ? {
+                    className: buttonsClass,
+                    groupClass: buttonsGroupClass,
+                    buttonClass,
+                    start: frame.labels.shrinkNav,
+                    end: frame.labels.growNav,
+                  }
+                : undefined
+            }
           />
         )}
         {frame && overlay && (
@@ -1272,7 +1312,14 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
     const mainId = parts.find(isMain)?.props.id || `${baseId}-main`;
     const navId = parts.find(isNav)?.props.id || `${baseId}-nav`;
 
-    const { skipLink: skipText, nav, closeNav, burger } = labels ?? {};
+    const {
+      skipLink: skipText,
+      nav,
+      closeNav,
+      burger,
+      shrinkNav,
+      growNav,
+    } = labels ?? {};
     const value = useMemo<FrameContextValue>(
       () => ({
         state: {
@@ -1289,6 +1336,8 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
           nav: nav || 'Sections',
           closeNav: closeNav || 'Close navigation',
           burger: burger || undefined,
+          shrinkNav: shrinkNav || 'Shrink navigation',
+          growNav: growNav || 'Grow navigation',
         },
         mainId,
         modeKnown: wide !== null,
@@ -1305,6 +1354,8 @@ const AppFrameRoot = forwardRef<HTMLDivElement, AppFrameProps>(
         nav,
         closeNav,
         burger,
+        shrinkNav,
+        growNav,
         mainId,
         wide,
       ]
