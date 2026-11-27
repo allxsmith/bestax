@@ -6,6 +6,7 @@ import { Control } from './Control';
 import { LocaleProvider } from '../helpers/LocaleProvider';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
+import { Group } from '../layout/Group';
 
 const meta: Meta<typeof Slider> = {
   title: 'Form/Slider',
@@ -744,6 +745,31 @@ export const VerticalWithOutput: Story = {
           Value: <strong>{value}</strong>
         </p>
       </div>
+    );
+  },
+};
+
+/**
+ * Vertical range slider with dual thumbs. The fill runs between the thumbs.
+ */
+export const VerticalRange: Story = {
+  render: function VerticalRangeSlider() {
+    const [value, setValue] = useState<[number, number]>([20, 70]);
+
+    return (
+      <Group gap={6} alignItems="flex-start">
+        <Slider
+          range
+          aria-label="Price range"
+          value={value}
+          onChange={setValue}
+          orientation="vertical"
+          color="primary"
+        />
+        <p>
+          Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
+        </p>
+      </Group>
     );
   },
 };
