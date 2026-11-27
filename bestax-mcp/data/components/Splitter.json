@@ -26,6 +26,14 @@
       "code": "function example() {\n  const [hidden, setHidden] = useState(false);\n  return (\n    <>\n      <Button size=\"small\" mb=\"3\" onClick={() => setHidden(h => !h)}>\n        {hidden ? 'Show inspector' : 'Hide inspector'}\n      </Button>\n      <Splitter height={240} className=\"box p-0\">\n        <Splitter.Pane label=\"Canvas\">\n          <Content p=\"4\">\n            <p>The canvas.</p>\n          </Content>\n        </Splitter.Pane>\n        <Splitter.Pane\n          label=\"Inspector\"\n          defaultSize={35}\n          minSize=\"12rem\"\n          collapsible\n          collapsed={hidden}\n          onCollapsedChange={setHidden}\n        >\n          <Content p=\"4\">\n            <p>The inspector.</p>\n          </Content>\n        </Splitter.Pane>\n      </Splitter>\n    </>\n  );\n}"
     },
     {
+      "title": "Step Buttons",
+      "code": "<Splitter height={240} className=\"box p-0\" step={5} stepButtons>\n  <Splitter.Pane label=\"Files\" defaultSize={30} minSize={15} collapsible>\n    <Content p=\"4\">\n      <p>Click the arrows on the handle to step it.</p>\n    </Content>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Editor\">\n    <Content p=\"4\">\n      <p>The double arrows collapse the files and bring them back.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
+    },
+    {
+      "title": "Step Buttons",
+      "code": "<Splitter\n  stepButtons\n  labels={{\n    shrink: pane => `${pane} verkleinern`,\n    grow: pane => `${pane} vergrößern`,\n  }}\n>\n  …\n</Splitter>"
+    },
+    {
       "title": "Scrolling Panes",
       "code": "<Splitter height={240} className=\"box p-0\">\n  <Splitter.Pane label=\"Notes\" defaultSize={40}>\n    <ScrollArea height=\"100%\" aria-label=\"Notes\">\n      <Content p=\"4\">\n        <p>Search now matches tags as well as titles.</p>\n        <p>Exports include the time zone.</p>\n        <p>A CSV export keeps the column order you set in the table.</p>\n        <p>A new dashboard puts the numbers you check most at the top.</p>\n        <p>Long lists load faster.</p>\n      </Content>\n    </ScrollArea>\n  </Splitter.Pane>\n  <Splitter.Pane label=\"Preview\">\n    <Content p=\"4\">\n      <p>The preview.</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
     },
@@ -42,17 +50,17 @@
       "code": "<Splitter height={160} className=\"box p-0\">\n  <SplitterPane label=\"Left\">\n    <Content p=\"4\">\n      <p>SplitterPane</p>\n    </Content>\n  </SplitterPane>\n  <Splitter.Pane label=\"Right\">\n    <Content p=\"4\">\n      <p>Splitter.Pane</p>\n    </Content>\n  </Splitter.Pane>\n</Splitter>"
     }
   ],
-  "accessibility": "- **The WAI-ARIA Window Splitter pattern:** each handle is a focusable `separator` whose\n  `aria-valuenow`, `aria-valuemin` and `aria-valuemax` give the size of the pane it speaks for, in\n  percent, with `aria-controls` pointing at that pane.\n- **Names:** a handle is named by its pane's `label`, so a screen reader says \"Files, separator,\n  25\". A development build warns when a handle's pane has no `label`.\n- **Orientation:** `aria-orientation` describes the line, so a handle between side-by-side panes\n  is `vertical`, and one between stacked panes `horizontal`.\n- **Keyboard:** Left and Right Arrow (or Up and Down when stacked) move a handle by `step`, and\n  with Shift ten times as far. Home and End take its pane to its limits. Enter collapses a\n  collapsible pane and brings it back. Right to left, the arrows follow the screen.\n- **Pointer:** dragging works with a mouse, a finger or a pen, and a double-click puts the two\n  panes beside a handle back to their default sizes.\n- **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.\n- **Focus ring:** Bulma's focus outline, inside the handle.\n- **Grip:** the short bar that shows a handle can be dragged is the scheme's weak text color at\n  rest, and the primary color in its on-scheme shade while the handle is hovered, focused or\n  dragged, 3:1 or more against the page on both schemes either way.\n- **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which\n  meets WCAG 2.5.8's 24px.\n- **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active\n  handle is drawn in the system's highlight color.\n- **Not live:** a resize announces nothing beyond the handle's value, which a screen reader reads\n  on the focused handle as it changes.",
+  "accessibility": "- **The WAI-ARIA Window Splitter pattern:** each handle is a focusable `separator` whose\n  `aria-valuenow`, `aria-valuemin` and `aria-valuemax` give the size of the pane it speaks for, in\n  percent, with `aria-controls` pointing at that pane.\n- **Names:** a handle is named by its pane's `label`, so a screen reader says \"Files, separator,\n  25\". A development build warns when a handle's pane has no `label`.\n- **Orientation:** `aria-orientation` describes the line, so a handle between side-by-side panes\n  is `vertical`, and one between stacked panes `horizontal`.\n- **Keyboard:** Left and Right Arrow (or Up and Down when stacked) move a handle by `step`, and\n  with Shift ten times as far. Home and End take its pane to its limits. Enter collapses a\n  collapsible pane and brings it back. Right to left, the arrows follow the screen.\n- **Pointer:** dragging works with a mouse, a finger or a pen, and a double-click puts the two\n  panes beside a handle back to their default sizes. Setting a size or collapsing a pane takes a\n  drag unless `stepButtons` is on, so turn it on for a layout people resize (WCAG 2.5.7).\n- **Step buttons** are buttons beside each handle, not inside it, since a separator's children are\n  presentational. The arrows are named after the pane, as \"Shrink Files\" and \"Grow Files\", and the\n  collapse button by its `label`, as \"Files\", with `aria-expanded`. Each points `aria-controls` at\n  the pane. They come after their handle in the Tab\n  order, take an arrow key's step or Enter's collapse, and are 24px across, WCAG 2.5.8's target\n  size. Their arrows point the way they move the line, turned right to left.\n- **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.\n- **Focus ring:** Bulma's focus outline, inside the handle.\n- **Grip:** the short bar that shows a handle can be dragged is the scheme's weak text color at\n  rest, and the primary color in its on-scheme shade while the handle is hovered, focused or\n  dragged, 3:1 or more against the page on both schemes either way.\n- **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which\n  meets WCAG 2.5.8's 24px.\n- **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active\n  handle is drawn in the system's highlight color. A step button keeps its border and arrow, and\n  takes the highlight color under the pointer.\n- **Not live:** a resize announces nothing beyond the handle's value, which a screen reader reads\n  on the focused handle as it changes. A click on an arrow announces nothing, and the collapse\n  button announces its `aria-expanded`.",
   "related": ["Columns", "Menu", "ScrollArea", "TreeView", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-splitter--default",
-  "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
+  "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. `stepButtons` puts buttons on the handles that move them, and shut a collapsible pane, with a click, for a pointer that can't drag. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
   "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/layout/Splitter.tsx",
   "rootClass": "splitter",
   "parts": [
     {
       "path": "Splitter",
-      "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
+      "summary": "The `Splitter` component lays out two or more panes side by side or one above the other, with a handle between each pair to drag or move by keyboard. Each handle is a focusable `separator`, named by the `label` of the pane it speaks for. Sizes are percentages, so the server renders the layout the browser does, and `minSize` and `maxSize` also take `px` and `rem`. A `collapsible` pane shuts when dragged below half its minimum, and Enter on its handle shuts it and brings it back. `stepButtons` puts buttons on the handles that move them, and shut a collapsible pane, with a click, for a pointer that can't drag. It doesn't store sizes itself: keep them with `sizes` and `onSizesChange`.",
       "component": null,
       "props": [
         {
@@ -114,6 +122,24 @@
           "type": "number",
           "default": "1",
           "description": "How far an arrow key moves a handle, in percent. Shift moves ten times as far.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "stepButtons",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows buttons on each handle, so a pointer that can't drag can resize the panes with a click or a tap: one each side of the grip that moves the handle as an arrow key does, by `step`, and ten times as far with Shift, and on the handle a `collapsible` pane collapses through, one that collapses it and brings it back, as Enter does. The step buttons are named after the pane, as \"Shrink Files\" and \"Grow Files\", which `labels` can change, and the collapse button is named for the pane, as \"Files\", with `aria-expanded` saying whether it's open. They come after the handle in the Tab order, and they sit over the line, a little over the panes beside it, so a pane's content needs room at its edge there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ shrink?: (pane: string) => string; grow?: (pane: string) => string }",
+          "default": null,
+          "description": "The names of the buttons `stepButtons` shows. Each one left out keeps its English default.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -352,6 +378,60 @@
       "css": "--bulma-splitter-grip-radius",
       "sass": "$splitter-grip-radius",
       "default": "var(--bulma-radius-rounded)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-size",
+      "sass": "$splitter-button-size",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-icon-size",
+      "sass": "$splitter-button-icon-size",
+      "default": "1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-color",
+      "sass": "$splitter-button-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-background",
+      "sass": "$splitter-button-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-border-width",
+      "sass": "$splitter-button-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-border-color",
+      "sass": "$splitter-button-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-radius",
+      "sass": "$splitter-button-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-hover-color",
+      "sass": "$splitter-button-hover-color",
+      "default": "var(--bulma-splitter-line-active-color)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-splitter-button-gap",
+      "sass": "$splitter-button-gap",
+      "default": "0.25rem",
       "scope": "root"
     }
   ]

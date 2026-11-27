@@ -198,8 +198,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 42,
-      "exampleCount": 10
+      "propCount": 43,
+      "exampleCount": 11
     },
     {
       "name": "Autocomplete",
@@ -1364,8 +1364,8 @@
       "slug": "layout/splitter",
       "import": "import { Splitter } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
-      "exampleCount": 9
+      "propCount": 23,
+      "exampleCount": 11
     },
     {
       "name": "Stack",
@@ -1717,6 +1717,15 @@
     "--bulma-app-frame-backdrop-background": ["AppFrame"],
     "--bulma-app-frame-border-color": ["AppFrame"],
     "--bulma-app-frame-border-width": ["AppFrame"],
+    "--bulma-app-frame-button-background": ["AppFrame"],
+    "--bulma-app-frame-button-border-color": ["AppFrame"],
+    "--bulma-app-frame-button-border-width": ["AppFrame"],
+    "--bulma-app-frame-button-color": ["AppFrame"],
+    "--bulma-app-frame-button-gap": ["AppFrame"],
+    "--bulma-app-frame-button-hover-color": ["AppFrame"],
+    "--bulma-app-frame-button-icon-size": ["AppFrame"],
+    "--bulma-app-frame-button-radius": ["AppFrame"],
+    "--bulma-app-frame-button-size": ["AppFrame"],
     "--bulma-app-frame-drawer-shadow": ["AppFrame"],
     "--bulma-app-frame-handle-size": ["AppFrame"],
     "--bulma-app-frame-handle-size-coarse": ["AppFrame"],
@@ -3200,6 +3209,15 @@
     "--bulma-slider-track-height-small": ["Slider"],
     "--bulma-slider-transition-duration": ["Slider"],
     "--bulma-slider-vertical-height": ["Slider"],
+    "--bulma-splitter-button-background": ["Splitter"],
+    "--bulma-splitter-button-border-color": ["Splitter"],
+    "--bulma-splitter-button-border-width": ["Splitter"],
+    "--bulma-splitter-button-color": ["Splitter"],
+    "--bulma-splitter-button-gap": ["Splitter"],
+    "--bulma-splitter-button-hover-color": ["Splitter"],
+    "--bulma-splitter-button-icon-size": ["Splitter"],
+    "--bulma-splitter-button-radius": ["Splitter"],
+    "--bulma-splitter-button-size": ["Splitter"],
     "--bulma-splitter-grip-color": ["Splitter"],
     "--bulma-splitter-grip-length": ["Splitter"],
     "--bulma-splitter-grip-radius": ["Splitter"],
