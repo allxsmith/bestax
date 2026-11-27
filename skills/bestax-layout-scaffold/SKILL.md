@@ -196,7 +196,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   per pane. The handles go in on their own, each named by its pane's `label`, so give every pane
   one. Sizes are percentages, limits also take `px` or `rem`, `orientation="vertical"` stacks
   them (and needs a `height`), and `collapsible` with `collapsed`/`onCollapsedChange` lets a
-  button hide a pane. Put scrolling content in a `ScrollArea` inside the pane.
+  button hide a pane. Add `stepButtons`, so someone who can't drag can resize and collapse the
+  panes with a click (WCAG 2.5.7). Put scrolling content in a `ScrollArea` inside the pane.
 - **Content taller or wider than its space is `ScrollArea`** (release notes in a Card, a sidebar
   longer than the screen, a feed that grows then scrolls, a wide table on a phone), not a `Box`
   with `overflowY="auto"` and a height in a style: `<ScrollArea height={240} aria-label="…">`,

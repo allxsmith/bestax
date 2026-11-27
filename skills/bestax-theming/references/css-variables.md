@@ -339,7 +339,11 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 
 `--bulma-app-frame-aside-width`, `--bulma-app-frame-backdrop-background`,
 `--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
-`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-handle-size`,
+`--bulma-app-frame-button-background`, `--bulma-app-frame-button-border-color`,
+`--bulma-app-frame-button-border-width`, `--bulma-app-frame-button-color`,
+`--bulma-app-frame-button-gap`, `--bulma-app-frame-button-hover-color`,
+`--bulma-app-frame-button-icon-size`, `--bulma-app-frame-button-radius`,
+`--bulma-app-frame-button-size`, `--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-handle-size`,
 `--bulma-app-frame-handle-size-coarse`, `--bulma-app-frame-header-background`,
 `--bulma-app-frame-header-height`, `--bulma-app-frame-line-active-color`,
 `--bulma-app-frame-line-active-size`, `--bulma-app-frame-nav-background`,
@@ -1168,9 +1172,14 @@ so a shadow starts a little further out than the circle's edge.
 Declared on the root, `.splitter`. The handle reads them, and its line and grip are borders, so a
 forced-colors page keeps them and draws an active handle in `Highlight`.
 `--bulma-splitter-handle-size-coarse` is the strip's width for a coarse pointer, kept at 24px or
-more for WCAG 2.5.8.
+more for WCAG 2.5.8. The `button` variables draw the buttons `stepButtons` puts on each handle,
+24px across for the same reason, which leave the grip's length between them.
 
-`--bulma-splitter-grip-color`, `--bulma-splitter-grip-length`, `--bulma-splitter-grip-radius`,
+`--bulma-splitter-button-background`, `--bulma-splitter-button-border-color`,
+`--bulma-splitter-button-border-width`, `--bulma-splitter-button-color`,
+`--bulma-splitter-button-gap`, `--bulma-splitter-button-hover-color`,
+`--bulma-splitter-button-icon-size`, `--bulma-splitter-button-radius`,
+`--bulma-splitter-button-size`, `--bulma-splitter-grip-color`, `--bulma-splitter-grip-length`, `--bulma-splitter-grip-radius`,
 `--bulma-splitter-grip-size`, `--bulma-splitter-handle-size`,
 `--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
 `--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
