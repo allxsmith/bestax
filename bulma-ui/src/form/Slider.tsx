@@ -707,10 +707,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     // A range thumb at the default or small size takes presses on a box at
     // least 24px square (#2195), and the browser insets the box, so the
     // bubble follows the box. `_slider.scss` gives the same thumbs the box.
-    const boxedThumb =
-      range && !isCircle && size !== 'medium' && size !== 'large';
+    const boxedThumb = range && size !== 'medium' && size !== 'large';
     const travelThumbExpr = boxedThumb
-      ? `max(24px, ${thumbCssVar})`
+      ? `max(24px, ${effectiveThumbExpr})`
       : effectiveThumbExpr;
 
     // Measured from where the track starts: its inline start when
