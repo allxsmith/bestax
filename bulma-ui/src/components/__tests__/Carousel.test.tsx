@@ -1056,7 +1056,7 @@ describe('Carousel', () => {
         expect(onChange.mock.calls).toEqual([[1]]);
       });
 
-      it('leaves the arrow working, from the pointer and the keyboard', () => {
+      it('leaves the arrows and the arrow keys working after it', () => {
         const onChange = vi.fn();
         render(<TestCarousel onChange={onChange} />);
         const next = screen.getByLabelText('Next slide');
