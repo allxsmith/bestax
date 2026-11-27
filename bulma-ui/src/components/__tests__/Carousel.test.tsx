@@ -1035,6 +1035,73 @@ describe('Carousel', () => {
 
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    // The arrows move with the drag, so its release lands on the one it
+    // started on and clicks it, which stepped again (#2323).
+    describe('that starts on an arrow', () => {
+      /** A drag on `el`, 80px toward the start, and its release's click. */
+      const dragOn = (el: Element) => {
+        fireEvent.mouseDown(el, { clientX: 200 });
+        fireEvent.mouseMove(el, { clientX: 120 });
+        fireEvent.mouseUp(el);
+        fireEvent.click(el);
+      };
+
+      it('steps once, for the swipe', () => {
+        const onChange = vi.fn();
+        render(<TestCarousel onChange={onChange} />);
+
+        dragOn(screen.getByLabelText('Next slide'));
+
+        expect(onChange.mock.calls).toEqual([[1]]);
+      });
+
+      it('leaves the arrow working, from the pointer and the keyboard', () => {
+        const onChange = vi.fn();
+        render(<TestCarousel onChange={onChange} />);
+        const next = screen.getByLabelText('Next slide');
+
+        dragOn(next);
+        expect(onChange.mock.calls).toEqual([[1]]);
+        act(() => {
+          vi.advanceTimersByTime(0);
+        });
+        fireEvent.click(next);
+        next.focus();
+        fireEvent.keyDown(document, { key: 'ArrowLeft' });
+
+        expect(onChange.mock.calls).toEqual([[1], [2], [1]]);
+      });
+
+      it("doesn't follow a link in a slide that a drag starts on", () => {
+        const onChange = vi.fn();
+        const onFollow = vi.fn((e: React.MouseEvent) => e.preventDefault());
+        render(
+          <Carousel onChange={onChange}>
+            <CarouselItem>
+              <a href="#one" onClick={onFollow}>
+                One
+              </a>
+            </CarouselItem>
+            <CarouselItem>Two</CarouselItem>
+          </Carousel>
+        );
+
+        dragOn(screen.getAllByRole('link', { name: 'One' })[0]);
+
+        expect(onChange.mock.calls).toEqual([[1]]);
+        expect(onFollow).not.toHaveBeenCalled();
+      });
+
+      it('clicks the arrow when hasDrag is false', () => {
+        const onChange = vi.fn();
+        render(<TestCarousel hasDrag={false} onChange={onChange} />);
+
+        dragOn(screen.getByLabelText('Next slide'));
+
+        expect(onChange.mock.calls).toEqual([[1]]);
+      });
+    });
   });
 
   describe('Touch Navigation', () => {

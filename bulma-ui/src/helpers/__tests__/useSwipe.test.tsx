@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { useSwipe, type UseSwipeOptions } from '../useSwipe';
 
 function Surface(props: UseSwipeOptions) {
@@ -177,5 +177,85 @@ describe('useSwipe', () => {
 
     expect(onSwipe).not.toHaveBeenCalled();
     expect(surface()).toHaveTextContent('idle 0,0');
+  });
+
+  // A mouse drag that started on a button also pressed it, since the
+  // release fires a click on it (#2323).
+  describe('the click a release fires', () => {
+    /** A surface holding a button, whose presses `onPress` counts. */
+    function Pressable({ onPress }: { onPress: () => void }) {
+      const swipe = useSwipe<HTMLDivElement>({ onSwipe: vi.fn() });
+      return (
+        <div data-testid="surface" {...swipe.handlers}>
+          <button type="button" onClick={onPress}>
+            Press
+          </button>
+        </div>
+      );
+    }
+
+    const press = () => screen.getByRole('button', { name: 'Press' });
+
+    /** A mouse drag on the button, `by` pixels across, and its release's click. */
+    function dragOnPress(by: number) {
+      fireEvent.mouseDown(press(), { clientX: 200 });
+      fireEvent.mouseMove(press(), { clientX: 200 + by });
+      fireEvent.mouseUp(press());
+      const click = createEvent.click(press());
+      fireEvent(press(), click);
+      return click;
+    }
+
+    /** Waits out the task the release ran in. */
+    const nextTask = () => new Promise(resolve => setTimeout(resolve));
+
+    it('is swallowed after a swipe, so the button it started on is not pressed', () => {
+      const onPress = vi.fn();
+      render(<Pressable onPress={onPress} />);
+
+      for (const by of [-80, 80]) {
+        // A link's would be followed without the default prevented.
+        expect(dragOnPress(by).defaultPrevented).toBe(true);
+      }
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('goes through after a drag of 50px or less', () => {
+      const onPress = vi.fn();
+      render(<Pressable onPress={onPress} />);
+
+      expect(dragOnPress(-50).defaultPrevented).toBe(false);
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows only that click, and none after the release’s task', async () => {
+      const onPress = vi.fn();
+      render(<Pressable onPress={onPress} />);
+
+      dragOnPress(-80);
+      // A click the keyboard makes, or a second one, in the same task.
+      fireEvent.click(press());
+      expect(onPress).toHaveBeenCalledTimes(1);
+
+      // A swipe that ends as the pointer leaves, with no click after it.
+      fireEvent.mouseDown(press(), { clientX: 200 });
+      fireEvent.mouseMove(press(), { clientX: 100 });
+      fireEvent.mouseLeave(surface());
+      await nextTask();
+      fireEvent.click(press());
+      expect(onPress).toHaveBeenCalledTimes(2);
+    });
+
+    it('goes through on the tap after a touch swipe, which fires no click', async () => {
+      const onPress = vi.fn();
+      render(<Pressable onPress={onPress} />);
+
+      fireEvent.touchStart(press(), { touches: [{ clientX: 200 }] });
+      fireEvent.touchMove(press(), { touches: [{ clientX: 100 }] });
+      fireEvent.touchEnd(press());
+      await nextTask();
+      fireEvent.click(press());
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
   });
 });
