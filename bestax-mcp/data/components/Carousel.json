@@ -145,7 +145,7 @@
           "name": "hasDrag",
           "type": "boolean",
           "default": "true",
-          "description": "Enable drag/swipe navigation. Default: true. A swipe moves one step, however far it travels. A swipe toward the start of the line goes on, so on a right-to-left page a swipe right brings the next slide in.",
+          "description": "Enable drag/swipe navigation. Default: true. A swipe moves one step, however far it travels. A swipe toward the start of the line goes on, so on a right-to-left page a swipe right brings the next slide in. A press that becomes a swipe doesn't also click what it started on, an arrow or a link in a slide.",
           "required": false,
           "inherited": false,
           "deprecated": false
