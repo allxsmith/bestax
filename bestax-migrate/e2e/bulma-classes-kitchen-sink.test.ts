@@ -20,6 +20,7 @@ import { runTransform } from '../src/runner.js';
 import type { CssMode, TodoEntry } from '../src/types.js';
 import { compileMigratedScss } from './support/compile-scss.js';
 import { undocumentedRules } from './support/skill-rules.js';
+import { BESTAX_FLOOR } from '../src/sources/_shared/deps-common.js';
 import {
   loadModules,
   normalizeHtml,
@@ -295,7 +296,7 @@ describe('bulma-classes kitchen-sink e2e', () => {
       fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies).toEqual({
-      '@allxsmith/bestax-bulma': '^5.78.4',
+      '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
       bulma: '^0.9.4',
       react: '^18.2.0',
       'react-dom': '^18.2.0',
@@ -345,7 +346,7 @@ describe('bulma-classes kitchen-sink e2e, --css bestax', () => {
       fs.readFileSync(path.join(bestaxDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies).toEqual({
-      '@allxsmith/bestax-bulma': '^5.78.4',
+      '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
       bulma: '^1.0.4',
       react: '^18.2.0',
       'react-dom': '^18.2.0',

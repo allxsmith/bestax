@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { reactBulmaComponents } from '../src/sources/react-bulma-components/index.js';
 import { runTransform } from '../src/runner.js';
 import type { TodoEntry } from '../src/types.js';
+import { BESTAX_FLOOR } from '../src/sources/_shared/deps-common.js';
 import { compileMigratedScss } from './support/compile-scss.js';
 
 const packageRoot = path.join(
@@ -209,7 +210,9 @@ describe('kitchen-sink e2e', () => {
       fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
-    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe(
+      `^${BESTAX_FLOOR}`
+    );
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');

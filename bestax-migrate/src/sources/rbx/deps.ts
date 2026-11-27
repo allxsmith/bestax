@@ -1,8 +1,7 @@
 /**
  * package.json migration: swap rbx for @allxsmith/bestax-bulma and clear out
- * the stylesheet dependencies rbx dragged in with it. Pure data-in/data-out —
- * the CLI owns file IO, and no package manager is ever invoked (the report
- * tells the user to install).
+ * the stylesheet dependencies rbx dragged in with it. No package manager is
+ * ever invoked (the report tells the user to install).
  *
  * This is the step with the biggest visible payoff for an rbx app. Unlike
  * react-bulma-components, which peer-depends on Bulma and lets the app pick a

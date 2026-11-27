@@ -1,8 +1,8 @@
 /**
  * package.json migration: swap react-bulma-components for
  * @allxsmith/bestax-bulma, move Bulma to v1, and replace the dead node-sass
- * with dart-sass. Pure data-in/data-out — the CLI owns file IO, and no
- * package manager is ever invoked (the report tells the user to install).
+ * with dart-sass. No package manager is ever invoked (the report tells the
+ * user to install).
  */
 
 import type { DependenciesUpdate } from '../../types.js';

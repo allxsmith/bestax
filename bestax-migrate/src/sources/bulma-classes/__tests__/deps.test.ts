@@ -2,6 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { updateDependencies } from '../deps.js';
 import type { TodoEntry } from '../../../types.js';
+import { BESTAX_FLOOR } from '../../_shared/deps-common.js';
 
 // A directory with no tsconfig, so only the manifest decides the runtime.
 const manifestPath = path.join(
@@ -40,11 +41,11 @@ describe('bulma-classes updateDependencies', () => {
     expect(section(r)).toEqual({
       bulma: '^0.9.4',
       react: '^18.2.0',
-      '@allxsmith/bestax-bulma': '^5.78.4',
+      '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
     });
     expect(section(r, 'devDependencies')).toEqual({ 'node-sass': '^9.0.0' });
     expect(r.todos.map(t => t.message)).toEqual([
-      'added @allxsmith/bestax-bulma ^5.78.4 to dependencies',
+      `added @allxsmith/bestax-bulma ^${BESTAX_FLOOR} to dependencies`,
       expect.stringContaining('left bulma ^0.9.4 in dependencies as it is'),
     ]);
   });
@@ -100,14 +101,35 @@ describe('bulma-classes updateDependencies', () => {
       }
     );
 
-    it.each(['^5.1.0', '^4 || ^5', 'latest', 'workspace:*'])(
+    it.each(['^5.1.0', '^4 || ^5', '5.1.0'])(
+      'reports %s as admitting releases older than the migrated code needs (#2314)',
+      range => {
+        const r = run({
+          dependencies: { react: '^18.2.0', '@allxsmith/bestax-bulma': range },
+        });
+        expect(r.next).toBeNull();
+        expect(r.todos).toEqual([
+          expect.objectContaining({
+            rule: 'deps',
+            message: expect.stringContaining(
+              `${range} admits releases older than the ${BESTAX_FLOOR}`
+            ),
+          }),
+        ]);
+        expect(r.todos[0].message).toContain(
+          `raise it to start at ${BESTAX_FLOOR} or later`
+        );
+      }
+    );
+
+    it.each([`^${BESTAX_FLOOR}`, '^6.0.0', 'latest', 'workspace:*'])(
       'says nothing about %s',
       range => {
         const r = run({
           dependencies: { react: '^18.2.0', '@allxsmith/bestax-bulma': range },
         });
         expect(r.todos.map(t => t.message).join('\n')).not.toContain(
-          'is older than'
+          '@allxsmith/bestax-bulma'
         );
       }
     );

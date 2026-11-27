@@ -13,6 +13,7 @@ import {
 import { SOURCES } from '../sources/registry.js';
 import type { MigrateRunStats } from '../telemetry.js';
 import type { DepsOptions, MigrationSource } from '../types.js';
+import { BESTAX_FLOOR } from '../sources/_shared/deps-common.js';
 
 let tempDirs: string[] = [];
 
@@ -388,7 +389,7 @@ describe('the bulma-classes source', () => {
       next: '^14.0.0',
       bulma: '^1.0.2',
       react: '^18.2.0',
-      '@allxsmith/bestax-bulma': '^5.78.4',
+      '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
     });
   });
 
@@ -404,7 +405,7 @@ describe('the bulma-classes source', () => {
       fs.readFileSync(path.join(dir, 'src/Pages.tsx'), 'utf8');
     const converted = '<Pagination.Ellipsis className="has-text-grey" />';
 
-    it('converts where the run adds bestax-bulma, whose range starts at 5.78.4', async () => {
+    it('converts where the run adds bestax-bulma, whose range starts at 5.78.4 or later', async () => {
       const dir = app({ dependencies: { react: '^19.0.0' } });
       await runCli(['bulma-classes', dir]);
       expect(read(dir)).toContain(converted);
@@ -474,7 +475,7 @@ describe('the bulma-classes source', () => {
       expect(pkg.dependencies).toEqual({
         bulma: '^0.9.4',
         react: '^18.2.0',
-        '@allxsmith/bestax-bulma': '^5.78.4',
+        '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
       });
       expect(pkg.devDependencies).toEqual({ 'node-sass': '^9.0.0' });
       expect(logs.join('\n')).toContain('left bulma ^0.9.4');
@@ -921,7 +922,9 @@ describe('CLI', () => {
       fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies['react-bulma-components']).toBeUndefined();
-    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe('^5.78.4');
+    expect(pkg.dependencies['@allxsmith/bestax-bulma']).toBe(
+      `^${BESTAX_FLOOR}`
+    );
     expect(pkg.dependencies.bulma).toBe('^1.0.4');
     expect(pkg.devDependencies['node-sass']).toBeUndefined();
     expect(pkg.devDependencies.sass).toBe('^1.79.0');
