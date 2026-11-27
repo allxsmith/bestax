@@ -22,6 +22,7 @@ import { visuallyHidden } from '../helpers/statusRegion';
 import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { useSwipe } from '../helpers/useSwipe';
 import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
+import { moveFocusOut } from '../helpers/moveFocusOut';
 import { Modal } from './Modal';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -82,6 +83,27 @@ export interface LightboxLabels {
    * @defaultValue 'Reset zoom'
    */
   resetZoom?: string;
+  /**
+   * The name of the pan button that shows more of a zoomed image's left
+   * side, as Left Arrow does.
+   * @defaultValue 'Pan left'
+   */
+  panLeft?: string;
+  /**
+   * The name of the pan button that shows more of its right side.
+   * @defaultValue 'Pan right'
+   */
+  panRight?: string;
+  /**
+   * The name of the pan button that shows more of its top.
+   * @defaultValue 'Pan up'
+   */
+  panUp?: string;
+  /**
+   * The name of the pan button that shows more of its bottom.
+   * @defaultValue 'Pan down'
+   */
+  panDown?: string;
   /**
    * The `Loader`'s name while an image loads.
    * @defaultValue 'Loading image'
@@ -180,6 +202,16 @@ export interface LightboxProps
    */
   maxZoom?: number;
   /**
+   * Shows four buttons along the bottom while the image is zoomed, so a
+   * pointer that can't drag can pan it with a click or a tap. Each pans it
+   * as the arrow key pointing the same way does, and a click at an edge does
+   * nothing, as the key does there. Their names come from `labels`. They go
+   * as the image is fitted again, and focus on one then waits on the dialog.
+   * With `zoomable` off there's no zoom, so there are none.
+   * @defaultValue false
+   */
+  panButtons?: boolean;
+  /**
    * Close on Escape. Only the topmost open overlay answers, as with Modal.
    * @defaultValue true
    */
@@ -187,7 +219,8 @@ export interface LightboxProps
   /**
    * Close on a click on the dark background around the image. The space
    * around the image, beside the toolbar's buttons and under the caption is
-   * all background.
+   * all background, except between two of `panButtons`' buttons, where a
+   * click does nothing.
    * @defaultValue true
    */
   closeOnClickOutside?: boolean;
@@ -499,11 +532,60 @@ const ZoomOutIcon = () => (
   </svg>
 );
 
+/**
+ * An arrow pointing left, turned `turn` degrees clockwise, for a pan button.
+ */
+const PanIcon = ({ turn }: { turn: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M19 12H5M11 6l-6 6 6 6" transform={`rotate(${turn} 12 12)`} />
+  </svg>
+);
+
 const ResetZoomIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
   </svg>
 );
+
+/**
+ * The pan buttons along the bottom of a zoomed image, left, up, down and
+ * right, each moving it as that arrow key does. They go as the image is
+ * fitted again, by a key, a zoom button, a double click or the wheel, so
+ * focus on one waits on the dialog, as it does when Retry goes.
+ */
+function PanButtons({
+  className,
+  names,
+  pan,
+  dialogRef,
+}: {
+  className: string;
+  names: { left: string; up: string; down: string; right: string };
+  pan: (dx: number, dy: number) => void;
+  dialogRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  const barRef = useRef<HTMLDivElement | null>(null);
+  useClientLayoutEffect(() => {
+    const bar = barRef.current!;
+    const dialog = dialogRef.current;
+    return () => moveFocusOut([bar], dialog, null);
+  }, [dialogRef]);
+  const button = (name: string, turn: number, dx: number, dy: number) => (
+    <Button type="button" aria-label={name} onClick={() => pan(dx, dy)}>
+      <PanIcon turn={turn} />
+    </Button>
+  );
+  return (
+    <div ref={barRef} className={className}>
+      <Buttons>
+        {button(names.left, 0, PAN_STEP, 0)}
+        {button(names.up, 90, 0, PAN_STEP)}
+        {button(names.down, 270, 0, -PAN_STEP)}
+        {button(names.right, 180, -PAN_STEP, 0)}
+      </Buttons>
+    </div>
+  );
+}
 
 /**
  * A button around a thumbnail, or a line of text, that opens the viewer at its `index`.
@@ -636,6 +718,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       repeat,
       zoomable = true,
       maxZoom = 3,
+      panButtons = false,
       closeOnEscape = true,
       closeOnClickOutside = true,
       portal = true,
@@ -664,6 +747,10 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       zoomIn: labels?.zoomIn || 'Zoom in',
       zoomOut: labels?.zoomOut || 'Zoom out',
       resetZoom: labels?.resetZoom || 'Reset zoom',
+      panLeft: labels?.panLeft || 'Pan left',
+      panRight: labels?.panRight || 'Pan right',
+      panUp: labels?.panUp || 'Pan up',
+      panDown: labels?.panDown || 'Pan down',
       loading: labels?.loading || 'Loading image',
       loadError: labels?.loadError || "This image didn't load.",
       retry: labels?.retry || 'Retry',
@@ -1180,6 +1267,7 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
       'is-zoomed': zoomed,
     });
     const toolbarClass = usePrefixedClassNames('lightbox-toolbar');
+    const panClass = usePrefixedClassNames('lightbox-pan');
     const progressClass = usePrefixedClassNames('lightbox-progress');
     const figureClass = usePrefixedClassNames('lightbox-figure');
     const imageClass = usePrefixedClassNames('lightbox-image');
@@ -1367,6 +1455,19 @@ const LightboxViewer = forwardRef<HTMLDivElement, LightboxViewerProps>(
               <ChevronNextIcon />
             </Button>
           </>
+        )}
+        {zoomable && panButtons && zoomed && (
+          <PanButtons
+            className={panClass}
+            names={{
+              left: words.panLeft,
+              up: words.panUp,
+              down: words.panDown,
+              right: words.panRight,
+            }}
+            pan={pan}
+            dialogRef={rootRef}
+          />
         )}
         <div role="status" aria-live="polite" style={visuallyHidden}>
           {said}
