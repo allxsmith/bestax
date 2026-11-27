@@ -25,7 +25,6 @@
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
 import {
-  CLASSNAME_SINCE,
   HELPERLESS_TARGETS,
   MAPPING,
   NO_CLASSNAME_TARGETS,
@@ -59,9 +58,15 @@ import {
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
-import { bestaxFloorFor } from '../_shared/bestax-floor.js';
+import {
+  CLASSNAME_SINCE,
+  bestaxFloorFor,
+  classNameWaitsFor,
+  heldForRelease,
+  releaseHoldMessage,
+  releaseRaise,
+} from '../_shared/bestax-floor.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
-import { compareVersions } from '../_shared/semver-range.js';
 import {
   collectBoundNames,
   makeReserve,
@@ -360,31 +365,36 @@ export default function transform(
     // of its class, so a class cannot be written on either: every helper is
     // named instead, and anything else left on the divider would not compile.
     const since = CLASSNAME_SINCE[target];
-    const sinceUnmet =
-      since !== undefined &&
-      !(bestaxFloor && compareVersions(bestaxFloor, since) >= 0);
-    // What a TODO says about a release the project isn't sure to get.
-    const raise = `bestax \`${target}\` keeps its own class beside a \`className\` from @allxsmith/bestax-bulma ${since} on, and this project isn't sure to get ${since}`;
-    if (NO_CLASSNAME_TARGETS.has(target) || sinceUnmet) {
-      // A spread may carry a `className` that would replace the structural
-      // class, or props `Dropdown.Divider` silently ignores, and the codemod
-      // cannot read inside it. Keep bloomer's element.
-      const spread = (element.openingElement.attributes ?? []).some(
-        (a: any) => a.type === 'JSXSpreadAttribute'
+    const sinceUnmet = classNameWaitsFor(target, bestaxFloor) !== undefined;
+    const raise = releaseRaise(target, since);
+    // A `className` of its own, or a spread that may carry one, would
+    // replace that class. Keep bloomer's element.
+    const held = heldForRelease(element, target, bestaxFloor);
+    if (held) {
+      ctx.retained.add(sourcePath[0]);
+      addTodo(
+        ctx,
+        path,
+        `component:${dotted}`,
+        releaseHoldMessage(target, held, 'bloomer')
       );
-      // A `className` of its own would replace that class too.
-      const ownClass =
-        sinceUnmet &&
-        attributesOf(element).some((a: any) => a.name.name === 'className');
-      if (spread || ownClass) {
+      return;
+    }
+    if (NO_CLASSNAME_TARGETS.has(target) || sinceUnmet) {
+      // A spread may carry props `Dropdown.Divider` silently ignores, and
+      // the codemod cannot read inside it. Keep bloomer's element.
+      const spread =
+        NO_CLASSNAME_TARGETS.has(target) &&
+        (element.openingElement.attributes ?? []).some(
+          (a: any) => a.type === 'JSXSpreadAttribute'
+        );
+      if (spread) {
         ctx.retained.add(sourcePath[0]);
         addTodo(
           ctx,
           path,
           `component:${dotted}`,
-          sinceUnmet
-            ? `${raise}, and this element carries ${spread ? 'a spread whose contents the codemod cannot read, where a `className` would replace that class' : 'a `className`, which would replace that class'}, so it stays bloomer's: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run`
-            : `bestax \`${target}\` takes no props at all, and this element carries a spread whose contents the codemod cannot read, so it stays bloomer's`
+          `bestax \`${target}\` takes no props at all, and this element carries a spread whose contents the codemod cannot read, so it stays bloomer's`
         );
         return;
       }
