@@ -24,6 +24,7 @@ import { useDismissTimer } from '../helpers/useDismissTimer';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { passFocusOn, useFocusOrigin } from '../helpers/focusHandOff';
 import { useLatestRef } from '../helpers/useLatestRef';
+import { hoverHandlers } from '../helpers/hoverHandlers';
 
 /**
  * Props for the Notification component.
@@ -434,7 +435,7 @@ const NotificationItem: React.FC<{
     pauseOnHover = true,
   } = instance.options;
 
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const urgent = isUrgentColor(color);
 
   const handleClose = useCallback(() => {
@@ -464,7 +465,9 @@ const NotificationItem: React.FC<{
   // says.
   const { onFocus: handleFocus } = useDismissTimer(
     handleClose,
-    indefinite || duration === 0 || isPaused ? null : duration,
+    indefinite || duration === 0 || (pauseOnHover && isHovered)
+      ? null
+      : duration,
     notificationEl
   );
 
@@ -476,13 +479,7 @@ const NotificationItem: React.FC<{
     [handOffFocus, instance.id, notificationEl]
   );
 
-  const handleMouseEnter = useCallback(() => {
-    if (pauseOnHover) setIsPaused(true);
-  }, [pauseOnHover]);
-
-  const handleMouseLeave = useCallback(() => {
-    if (pauseOnHover) setIsPaused(false);
-  }, [pauseOnHover]);
+  const hover = hoverHandlers<HTMLDivElement>(setIsHovered);
 
   return (
     <Notification
@@ -491,8 +488,7 @@ const NotificationItem: React.FC<{
       hasDelete={hasDelete}
       ariaCloseLabel={ariaCloseLabel}
       onDelete={handleClose}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      {...hover}
       onFocus={handleFocus}
       style={{ pointerEvents: 'auto' }}
     >

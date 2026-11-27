@@ -17,6 +17,12 @@ import {
   announcementLifetime,
 } from '../../helpers/statusRegion';
 import { focusCheckInterval } from '../../helpers/useDismissTimer';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  mouseOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 import { ToastContainer, toast } from '../../components/Toast';
 
 describe('Notification Component', () => {
@@ -970,6 +976,33 @@ describe('Notification Programmatic API', () => {
         vi.advanceTimersByTime(3000);
       });
       expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
+    });
+
+    // A pointer that came onto a notification in a shadow root from the page
+    // around it didn't pause it (#2316), as with Carousel (#2309). The
+    // browser's mouseout on the page names only the shadow host, so React
+    // made no enter for the notification.
+    it('waits while a pointer that came from the page around its shadow root is over it, and closes once it leaves', () => {
+      render(
+        <ShadowPreview>
+          <NotificationContainer />
+        </ShadowPreview>
+      );
+      act(() => {
+        notification.show({ message: 'Hoverable', duration: 3000 });
+      });
+      const notif = () => previewRoot().querySelector('.notification')!;
+      mouseInFromPage(notif());
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(notif()).not.toBeNull();
+
+      mouseOutToPage(notif());
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(previewRoot().querySelector('.notification')).toBeNull();
     });
   });
 
