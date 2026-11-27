@@ -130,7 +130,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    install blockers: bestax-bulma needs **React 18 or 19** (react-bulma-components also ran
    on 17 — upgrade `react`/`react-dom` first), and its optional Font Awesome peer wants
    **FA ≥ 6.7** — an app pinned to FA 5 either upgrades or installs with
-   `npm install --legacy-peer-deps`.
+   `npm install --legacy-peer-deps`. A `deps` entry names an `@allxsmith/bestax-bulma` the app already declares or loads
+   that is older than the release the migrated code is written for.
 2. **Styling follow-ups** — pick a different [CSS flavor](../installation.md) if you need
    prefixed/no-helpers/light-only builds, and read the
    [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes that aren't

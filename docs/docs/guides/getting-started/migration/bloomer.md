@@ -131,7 +131,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 
 1. **Install** — the codemod already rewrote `package.json`; apply it with `npm install` (or
    pnpm/yarn). Expect a `peer-deps` report entry: bloomer peer-depended on React `^16.2` and
-   bestax-bulma needs **React 18 or 19**, so upgrade `react`/`react-dom` first.
+   bestax-bulma needs **React 18 or 19**, so upgrade `react`/`react-dom` first. A `deps` entry names an `@allxsmith/bestax-bulma` the app already declares or loads
+   that is older than the release the migrated code is written for.
 2. **Icons** — bloomer's era was Font Awesome 4, usually loaded from a CDN `<link>` no manifest
    pass can see. bestax's optional Font Awesome peer is **6.7+**, where many v4 names changed
    and brand icons moved to `variant="brands"`. Decide once whether to keep FA4 loaded or

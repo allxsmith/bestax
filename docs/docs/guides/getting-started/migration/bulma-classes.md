@@ -245,7 +245,9 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ## Finish the migration
 
 1. **Install**: the codemod rewrote `package.json`; apply it with `npm install` (or
-   pnpm/yarn). bestax-bulma needs React 18 or 19, and the report says so if you're older.
+   pnpm/yarn). bestax-bulma needs React 18 or 19, and the report says so if you're older. It
+   also says so when the bestax-bulma you declare or have installed is older than the release
+   the converted code is written for.
 2. **Stylesheet**: under the default there's nothing to do. If you ran with `--css bestax`
    from Bulma 0.9, read the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes
    that aren't code. One deliberate difference in `bestax.css`: its `$primary` is bestax blue

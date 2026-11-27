@@ -51,7 +51,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    Bulma v1 as well.
 2. Installs the rewritten dependencies (`npm install` / `pnpm install`) — the codemod never runs
    a package manager itself, and its `peer-deps` report entries call out React (older than 18)
-   or Font Awesome (older than 6) blockers first.
+   or Font Awesome (older than 6) blockers first. Its `deps` entries also name a bestax-bulma the
+   app declares or loads that's older than the release the migrated code is written for.
 3. Greps for `TODO(bestax-migrate)` comments and resolves each one using the skill's reference
    tables — the component map, the universal prop map, and per-case recipes for the patterns the
    codemod deliberately refuses to guess at (`Tile` → `Grid`, controlled `Dropdown`, `touch`

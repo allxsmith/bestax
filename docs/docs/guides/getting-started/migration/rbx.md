@@ -121,7 +121,8 @@ them by hand.
    pnpm/yarn). Expect a `peer-deps` report entry: rbx peer-depended on React `^16.8.6` and
    bestax-bulma needs **React 18 or 19**, so upgrade `react`/`react-dom` first. If you were on
    Font Awesome 5, bestax's optional peer wants **FA ≥ 6.7** — upgrade, or install with
-   `npm install --legacy-peer-deps`.
+   `npm install --legacy-peer-deps`. A `deps` entry names an `@allxsmith/bestax-bulma` the app already declares or loads
+   that is older than the release the migrated code is written for.
 2. **Styling follow-ups** — pick a different [CSS flavor](../installation.md) if you need
    prefixed/no-helpers/light-only builds, and read the
    [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes that aren't code-level.
