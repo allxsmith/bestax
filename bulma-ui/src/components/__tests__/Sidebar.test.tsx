@@ -12,6 +12,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { Sidebar } from '../Sidebar';
 import { Loading } from '../Loading';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Sidebar', () => {
   describe('Rendering', () => {
@@ -1336,6 +1337,129 @@ describe('Sidebar hydration', () => {
       errorSpy.mockRestore();
       container.remove();
       outside.remove();
+    }
+  });
+});
+
+describe('an unnamed Sidebar in development (#2261)', () => {
+  beforeEach(() => {
+    resetDevWarnings();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /** The warnings about a sidebar with no name. */
+  const unnamedWarnings = () =>
+    vi
+      .mocked(console.warn)
+      .mock.calls.filter(([message]) =>
+        String(message).includes('A Sidebar opened with no accessible name')
+      );
+
+  it('warns once about an open sidebar with no name', () => {
+    render(
+      <>
+        <Sidebar isOpen onClose={() => {}}>
+          Links
+        </Sidebar>
+        <Sidebar isOpen onClose={() => {}} position="right">
+          Details
+        </Sidebar>
+      </>
+    );
+    expect(screen.getAllByRole('dialog')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/aria-labelledby .*Sidebar\.Title.*aria-label/)],
+    ]);
+  });
+
+  it.each([
+    [
+      'an aria-label',
+      () => (
+        <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+          Links
+        </Sidebar>
+      ),
+    ],
+    [
+      'an aria-labelledby pointing at its Sidebar.Title',
+      () => (
+        <Sidebar isOpen onClose={() => {}} aria-labelledby="nav-title">
+          <Sidebar.Header>
+            <Sidebar.Title id="nav-title">Navigation</Sidebar.Title>
+          </Sidebar.Header>
+        </Sidebar>
+      ),
+    ],
+    [
+      'a title',
+      () => (
+        <Sidebar isOpen onClose={() => {}} title="Navigation">
+          Links
+        </Sidebar>
+      ),
+    ],
+  ])('stays quiet about a sidebar named by %s', (_how, element) => {
+    render(element());
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Navigation');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('stays quiet while a sidebar with no name is closed, and warns once it opens', () => {
+    const { rerender } = render(
+      <Sidebar isOpen={false} onClose={() => {}}>
+        Links
+      </Sidebar>
+    );
+    expect(unnamedWarnings()).toEqual([]);
+    rerender(
+      <Sidebar isOpen onClose={() => {}}>
+        Links
+      </Sidebar>
+    );
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('warns about an open sidebar given another role that needs a name', () => {
+    render(
+      <Sidebar isOpen onClose={() => {}} role="alertdialog">
+        Links
+      </Sidebar>
+    );
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it.each([
+    ['a role that takes no name', { role: 'presentation' }],
+    ['a spread that removes the role', { role: undefined }],
+  ])('leaves a sidebar given %s alone', (_how, props) => {
+    render(
+      <Sidebar isOpen onClose={() => {}} {...props}>
+        Links
+      </Sidebar>
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('stays quiet in production', () => {
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          Links
+        </Sidebar>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('');
+      expect(unnamedWarnings()).toEqual([]);
+    } finally {
+      process.env.NODE_ENV = previous;
     }
   });
 });

@@ -16,12 +16,14 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
+import { DeleteTarget, deleteContent } from '../helpers/deleteTarget';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { warnIfUnnamed } from '../helpers/devWarnings';
 import { useScrollLock } from '../helpers/scrollLock';
 import {
   getActiveElementInTree,
@@ -74,7 +76,8 @@ export interface ModalProps
    * `aria-labelledby`. With `type="content"` it isn't shown, and a title
    * that's a string still names the dialog, as its `aria-label`. Without one, give
    * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
-   * inside it. It's drawn in the card's `<header>`, which is a banner
+   * inside it: a development build warns about an open modal nothing names.
+   * It's drawn in the card's `<header>`, which is a banner
    * landmark unless the modal sits inside `<main>` or a sectioning element,
    * as it doesn't when `portal` renders it at the end of `<body>`. The props
    * form can't give the header a role, so point `portal` at an element
@@ -367,6 +370,10 @@ export const ModalCard = withSubComponents(ModalCardComponent, {
  * - 'floating': For floating overlay close button, renders with 'modal-close' class
  *
  * The size prop only applies to the 'floating' variant.
+ *
+ * Either variant holds a transparent box at least 24px square, centred on it, that takes its
+ * presses too, as `Delete` does, unless it's given `dangerouslySetInnerHTML`, which React won't
+ * render beside the box.
  */
 export const ModalClose: React.FC<ModalCloseProps> = ({
   className,
@@ -399,7 +406,9 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
       // through that handler, so a caller already closing there, as with
       // `onClick={onClose}`, would otherwise close twice.
       onClick={onClick ?? (onClose && (() => onClose()))}
-    />
+    >
+      {deleteContent(props)}
+    </button>
   );
 };
 
@@ -634,6 +643,22 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // spread carrying `data-testid: undefined` would otherwise erase the default.
   const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
 
+  // In development, an open dialog that nothing names says so, read from
+  // the rendered root, where the title's attribute and the caller's land.
+  const needsName = resolvedRole === 'dialog' || resolvedRole === 'alertdialog';
+  useEffect(() => {
+    if (isModalActive && needsName) {
+      warnIfUnnamed(
+        modalRootRef.current,
+        'Modal:unnamed',
+        '[bestax-bulma] A Modal opened with no accessible name. Give it an ' +
+          'aria-label, an aria-labelledby pointing at a heading inside it, ' +
+          'or in the props form a modalCardTitle, which names a modal drawn ' +
+          'as content only when it is a string.'
+      );
+    }
+  }, [isModalActive, needsName]);
+
   let modalElement: React.ReactElement;
 
   // If using compound components, render children as-is
@@ -704,7 +729,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
-                  />
+                  >
+                    <DeleteTarget />
+                  </button>
                 )}
               </header>
             )}
@@ -742,7 +769,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
             onClick={onClose}
             type="button"
             data-testid="modal-close-float"
-          />
+          >
+            <DeleteTarget />
+          </button>
         )}
       </div>
     );

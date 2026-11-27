@@ -51,6 +51,7 @@ import {
   type Glyph,
 } from './glyph.js';
 import { aTag } from '../_shared/articles.js';
+import { compareVersions } from '../_shared/semver-range.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -153,6 +154,12 @@ export interface ElementFacts {
    * The string the element's content renders, when it is one static text.
    */
   text?: string;
+  /**
+   * The oldest @allxsmith/bestax-bulma release the project is sure to
+   * install, when the run can tell (`_shared/bestax-floor.ts`). An entry with
+   * a `classNameSince` takes another class only from that release on.
+   */
+  bestaxFloor?: string;
   /**
    * The element's `className` is computed in a way the codemod doesn't read
    * whole (anything but a `clsx` or `classnames` call of parts it reads), so
@@ -1241,11 +1248,18 @@ function planElement(facts: ElementFacts): Plan {
   });
 
   const rest = tokens.filter(token => !converted.has(token));
-  if (entry.classNameReplaces && (rest.length > 0 || conditionalStays)) {
+  if (
+    entry.classNameSince &&
+    (rest.length > 0 || conditionalStays) &&
+    !(
+      facts.bestaxFloor &&
+      compareVersions(facts.bestaxFloor, entry.classNameSince) >= 0
+    )
+  ) {
     return refuse(
       'attr',
       'className',
-      `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
+      `bestax \`${target}\` keeps \`.${root}\` beside a \`className\` from @allxsmith/bestax-bulma ${entry.classNameSince} on, and an older release writes the \`className\` in its place. This project isn't sure to get ${entry.classNameSince}, so the element converts only with no other class: declare \`@allxsmith/bestax-bulma\` at \`^${entry.classNameSince}\` or later and re-run, or keep it as markup`
     );
   }
   todos.push(...secondComponents(carried, tokens, root, target, tag, rendered));

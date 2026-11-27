@@ -110,7 +110,10 @@ const meta: Meta<typeof Timeline> = {
           dateTime="2026-10-14T08:12"
         >
           <Paragraph>
-            Tracking number <Link href="#track">1Z999AA10123456784</Link>
+            Tracking number{' '}
+            <Link href="#track" textTransform="underlined">
+              1Z999AA10123456784
+            </Link>
           </Paragraph>
         </Timeline.Item>
         <Timeline.Item
@@ -553,10 +556,6 @@ export const ChangesOnScreen: Story = {
 };
 
 export const CompoundUsage: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'link-in-text-block', enabled: false }] } },
-  },
   render: function CompoundUsageExample() {
     return (
       <Timeline titleAs="h3" active={1} color="success">
@@ -566,7 +565,9 @@ export const CompoundUsage: Story = {
         <Timeline.Item title="Deploy to staging" time="10:15" icon="server">
           <Paragraph>
             Rolling out, two of four servers done.{' '}
-            <Link href="#logs">See the logs</Link>
+            <Link href="#logs" textTransform="underlined">
+              See the logs
+            </Link>
           </Paragraph>
         </Timeline.Item>
         <Timeline.Item title="Deploy to production" icon="globe" />

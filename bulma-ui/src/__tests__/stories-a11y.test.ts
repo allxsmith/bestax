@@ -34,37 +34,7 @@ const each = (file: string, stories: string[], rules: Record<string, Why>) =>
 
 /** The story file, `#`, and the story's export name. */
 const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
-  // Carousel's indicators are under the 24px target size.
-  ...each(
-    'components/Carousel.stories.tsx',
-    [
-      'ArrowOnHover',
-      'Autoplay',
-      'Controlled',
-      'Default',
-      'FontAwesomeIcons',
-      'IconSizes',
-      'IconVariants',
-      'IndicatorInsidePlain',
-      'IndicatorStyles',
-      'IndicatorTop',
-      'Labels',
-      'MaterialDesignIcons',
-      'NoArrows',
-      'NoDrag',
-      'NoRepeat',
-      'OverlayArrows',
-      'RightToLeft',
-      'SeveralInView',
-      'Testimonials',
-      'TransparentArrows',
-      'TransparentArrowsLight',
-      'WithImages',
-    ],
-    { 'target-size': 1926 }
-  ),
   'components/Carousel.stories.tsx#MaterialSymbols': {
-    'target-size': 1926,
     'label-content-name-mismatch':
       "axe can tell an icon font's ligature from text only once the font has loaded, so the arrows' Material Symbols names (arrow_back) can read as text the button shows, though the icon is aria-hidden.",
   },
@@ -97,43 +67,13 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
         "An option's name is its label, and its description and shortcut hint describe it (aria-describedby), so axe counts text the option shows that its name leaves out on purpose.",
     }
   ),
-  'components/Avatar.stories.tsx#Clickable': {
-    'label-content-name-mismatch': 2211,
-  },
-  // A Link in running text differs from the text around it only by color.
-  'components/Timeline.stories.tsx#CompoundUsage': {
-    'link-in-text-block': 1858,
-  },
-  'elements/IconText.stories.tsx#IconTextWithFlex': {
-    'link-in-text-block': 1858,
-  },
-  'elements/Link.stories.tsx#InlineWithText': { 'link-in-text-block': 1858 },
-  'form/Checkbox.stories.tsx#CheckboxWithLink': { 'link-in-text-block': 1858 },
-  'layout/Footer.stories.tsx#Default': { 'link-in-text-block': 1858 },
-  'skill-examples/Overview.stories.tsx#Overview': {
-    'link-in-text-block': 1858,
-  },
-  // A calendar's month cells show a short name (#2209), and a day with
-  // content is named in a different order from what it shows (#2210).
-  'form/Calendar.stories.tsx#FullWidth': {
-    'label-content-name-mismatch': 2210,
-  },
-  'form/Calendar.stories.tsx#LoadingEachMonth': {
-    'label-content-name-mismatch': 2210,
-  },
+  // A calendar's month cells show a short name (#2209).
   'form/Calendar.stories.tsx#MonthAndYear': {
     'label-content-name-mismatch': 2209,
   },
-  'form/Calendar.stories.tsx#Prices': { 'label-content-name-mismatch': 2210 },
   'form/DateInput.stories.tsx#InlineMonthPicker': {
     'label-content-name-mismatch': 2209,
   },
-  // The clear button is a 20px target beside the chevron.
-  ...each('form/Cascader.stories.tsx', ['Controlled', 'RightToLeft'], {
-    'target-size': 2198,
-  }),
-  'form/TreeSelect.stories.tsx#RightToLeft': { 'target-size': 2198 },
-  // The menu's scroll box can't take focus.
   ...each(
     'form/Combobox.stories.tsx',
     [
@@ -142,22 +82,10 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
       'MultipleWithTags',
       'SearchableSelect',
     ],
-    { 'scrollable-region-focusable': 2205 }
-  ),
-  // A range Slider's thumbs are 20px targets that can sit side by side.
-  ...each(
-    'form/Slider.stories.tsx',
-    [
-      'RangeDefault',
-      'RangeInHandWiredField',
-      'RangeInLabeledField',
-      'RangeMinDistance',
-      'RangePriceFilter',
-      'RangeWithLabel',
-      'RangeWithNames',
-      'RangeWithOutput',
-    ],
-    { 'target-size': 2195 }
+    {
+      'scrollable-region-focusable':
+        "The menu's panel scrolls, with the listbox inside it, and its options are reached from the combobox's input through aria-activedescendant, which the arrow keys move and scroll into view, with its group's heading when it's the group's first option. axe skips the rule only when the box that scrolls is itself the combobox's popup, as the listbox is in Combobox's inline mode.",
+    }
   ),
 };
 

@@ -123,6 +123,18 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
     },
   },
+  'Field.Body': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
+  'Field.Label': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
   File: {
     isFullWidth: {
       replacement: 'isFullwidth',
@@ -171,6 +183,18 @@ export const DEPRECATED_PROPS: Readonly<
     color: {
       replacement: null,
       note: 'No `.pagination.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version.',
+    },
+  },
+  'Pagination.Link': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
+    },
+  },
+  'Pagination.List': {
+    color: {
+      replacement: 'textColor',
+      note: 'Use `textColor` instead. This prop will be removed in the next major version.',
     },
   },
   'Panel.Icon': {

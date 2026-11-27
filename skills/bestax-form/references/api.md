@@ -141,7 +141,9 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 `color`, `size`, `checked`/`defaultChecked`, `onChange`, `isRounded`, `isThin`, `isOutlined`,
 `passiveType`, plus RTL support. It's a native checkbox, so a screen reader calls it one and Space
-toggles it. Pass `role="switch"` to have it announced as a switch.
+toggles it. Pass `role="switch"` to have it announced as a switch. A small switch, or a thin one
+with no text, takes the rest of its 24px target from a transparent band right below it, so leave
+room under it: stacked flush on another switch or a control, it keeps the smaller target it draws.
 
 ## File — `form/File.tsx`
 
@@ -180,7 +182,7 @@ them with no wiring.
 | `TreeSelect`   | `data` (nodes: `value`, `label`, `disabled`, `icon`, `children`, `hasChildren`, `isLoading`, `loadError`, `onRetry`), `selectionMode` (`'single'`, `'checkbox'`, `'checkbox-independent'`), `value`/`defaultValue`/`onChange` (`string \| null`, or `string[]` in the checkbox modes, shown as tags), `checkedStrategy` (`'child'` leaves, `'parent'` topmost, `'all'`), `parentsSelectable`, `closeOnSelect`, `searchable` with `query`/`defaultQuery`/`onQueryChange`, `filter(query, item, path)` and `empty`, `expanded`/`defaultExpanded`/`onExpandedChange` (fetch lazy branches here), `open`/`defaultOpen`/`onOpenChange`, `clearable`, `itemTemplate`, `labels` (`choose`, `search`, `clear`, `loading`, `retry`, `loadingAnnouncement`, `loadedAnnouncement`), `name`, `form`, `required`, `disabled`, `color`, `size`, `isRounded`, `position`, `appendToBody` and the Field props. The field is a read-only combobox that opens a dialog; the `ref` is the field's.                                                |
 | `Cascader`     | `data` (TreeSelect's nodes), `value`/`defaultValue`/`onChange` (the picked node's `value`, `string \| null`; the field shows its path from `data`, joined with `labels.separator`, `" / "` by default), `parentsSelectable` (leaves only without it), `closeOnSelect` (default `true`), `searchable` with `query`/`defaultQuery`/`onQueryChange`, `filter(query, item, path)` and `empty` (a flat list of matching paths replaces the columns), `expanded`/`defaultExpanded`/`onExpandedChange` (the open path; fetch lazy columns here), `open`/`defaultOpen`/`onOpenChange`, `clearable`, `itemTemplate`, `labels` (`choose`, `search`, `clear`, `separator`, `opens`, `loading`, `retry`, `loadingAnnouncement`, `loadedAnnouncement`), `name`, `form`, `required`, `disabled`, `color`, `size`, `isRounded`, `position`, `appendToBody` and the Field props. The field is a read-only combobox that opens a dialog of one listbox per level; a column opens on a click or Right, never on hover; the `ref` is the field's. |
 | `Slider`       | `min`, `max`, `step`, single or dual thumb (`value` number or `[number, number]`), `tooltip` (`'auto' \| 'always' \| 'hidden'`), vertical orientation, `color`, `size`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `Numberinput`  | `value`/`onChange`, `min`, `max`, `step`, increment/decrement buttons, stepper variant, `labels` (the buttons' names, `increase` and `decrease`, in the page's language), `color`, `size`, `isLoading` (set it here, not on a `Control` around it, whose spinner covers the right-hand button).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `Numberinput`  | `value`/`onChange`, `min`, `max`, `step`, increment/decrement buttons, stepper variant, `labels` (the buttons' names, `increase` and `decrease`, in the page's language), `color`, `size`, `isLoading` (set it here, not on a `Control` around it, whose spinner covers the right-hand button). A `variant="stepper"` at the default or small size takes its buttons' 24px targets from the room above and below it, 5px at the default size and 10px small, so leave that room, between two stacked steppers too.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `PinInput`     | `length` (6), `value`/`defaultValue`/`onChange` (the code as a string), `onComplete(code)` once a change fills the last box, `type` (`'number'` or `'alphanumeric'`), `isMasked`, `name`, `color`, `size`, `isRounded`, `disabled` and the Field props. One input holds the code (`autoComplete="one-time-code"`); a paste replaces it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `Rate`         | `value`/`onChange`, `max`, `precision` (1 / 0.5 / 0.25), `customIcon` or `iconName`, `showScore`/`showText`/`texts`, `disabled`, `labels` (`group`, `star(value)`) for the names a screen reader hears, in your language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `Taginput`     | `value` (array)/`onChange`, autocomplete suggestions, configurable confirm keys, closable tags, `color`, `size`; `labels.input` names the input in your language when no label does, and `labels.suggestions` the list when no label with an id does.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -293,13 +295,15 @@ pickers' grid with no `Field`, label or hidden input, so a form that posts a dat
 `DateRangeInput`, reported once both ends are picked). `readOnly` reads days without picking
 them and `disabled` stops both. `dayTemplate(date, state)` draws short content under a day's
 number, and because a day's name is its full date, which a screen reader reads instead, pair it
-with `getDayLabel(date, label)` to say the same thing. `month`/`defaultMonth`/`onMonthChange`
-hold the month on show, so load each month's data in `onMonthChange` and set `loading` while it
-arrives. `monthsToShow` sets months side by side, and `isFullwidth` stretches the days to the
-container. Name it with `aria-label` or `aria-labelledby`. On a server-rendered page give it a
-`month`, a `defaultMonth` or a picked `value`, since without one the first month comes from the
-clock, and a `locale` (or a `LocaleProvider` around it), since without one the month and weekday
-names come in the server's language on the server.
+with `getDayLabel(date, label, shownNumber)` to say the same thing: `shownNumber` (the day's
+number as it shows) and the words it draws first, then `label`, so speech input matches what
+shows.
+`month`/`defaultMonth`/`onMonthChange` hold the month on show, so load each month's data in
+`onMonthChange` and set `loading` while it arrives. `monthsToShow` sets months side by side, and
+`isFullwidth` stretches the days to the container. Name it with `aria-label` or `aria-labelledby`.
+On a server-rendered page give it a `month`, a `defaultMonth` or a picked `value`, since without one
+the first month comes from the clock, and a `locale` (or a `LocaleProvider` around it), since
+without one the month and weekday names come in the server's language on the server.
 
 ```tsx
 const [month, setMonth] = useState(new Date(2026, 10, 1));
@@ -314,7 +318,11 @@ const [day, setDay] = useState<Date | null>(null);
   onChange={setDay}
   shouldDisableDate={date => slotsLeft(date) === 0}
   dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
-  getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}
+  getDayLabel={(date, label, shownNumber) =>
+    slotsLeft(date) > 0
+      ? `${shownNumber}, ${slotsLeft(date)} left, ${label}`
+      : label
+  }
 />;
 ```
 

@@ -292,9 +292,14 @@ and `Pagination.Ellipsis` render a bare `<li>` of their own, so each converts on
 thing inside a bare `<li>`, which it takes the place of, `key` and all. A class or an attribute
 on the `<li>`, or anything beside the element in it, keeps it as markup. A `.pagination-link`'s
 `is-current` becomes `active` only beside an `aria-current` of its own, since `active` renders
-`aria-current="page"` otherwise; without one it stays a class. And `Pagination.Ellipsis` writes
-a `className` it's given in place of `.pagination-ellipsis`, so another class on it keeps it as
-markup with `attr:className`.
+`aria-current="page"` otherwise; without one it stays a class. And `Pagination.Ellipsis` keeps
+`.pagination-ellipsis` beside a `className` from bestax-bulma 5.78.4 on, where an older release
+writes the `className` in its place, so another class on it converts only where the run shows the
+project gets 5.78.4 or later: the package around the file declares `@allxsmith/bestax-bulma` at a
+range that can't resolve below it in `dependencies` or `devDependencies`, or declares none and the
+run adds it. Otherwise, under `--no-deps` too, it stays markup with `attr:className`. The run
+doesn't read an override (`overrides`, `resolutions`, `pnpm.overrides`), so check one that pins
+bestax-bulma lower by hand.
 
 A menu item with a nested list is the same rule from inside: its nested `<ul>` becomes a
 `Menu.List`, which renders `.menu-list` unless another `Menu.List` is around it. So the item
@@ -769,7 +774,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
   it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
-  children and renders its own arrows and indicators (`autoplay` for a timed one). Name it for
+  children and renders its own arrows and indicators (`autoplay` for a timed one, with
+  `rotationControl` for a button that stops it). Name it for
   what it shows with `ariaLabel`, without the word "carousel", which its role description
   already says. For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
@@ -850,7 +856,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   `has-navbar-fixed-bottom-touch`, `has-spaced-navbar-fixed-top` and
   `has-spaced-navbar-fixed-bottom` (`html-document:has-navbar-fixed-bottom` and so on): Bulma
   pads the page for a fixed navbar from it. Put the class on the `<html>` in `index.html`, since
-  bestax's `Navbar` adds none there, whatever its `fixed` says.
+  bestax's `Navbar` adds none there, whatever its `fixed` says. The `has-spaced-` pair pads only
+  where `--bulma-navbar-padding-vertical` is registered on `:root`, and sets the padding to 0
+  otherwise, in plain Bulma as in bestax, so register it there with the navbar's padding.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
   For a scheme the visitor switches, `Theme colorMode` writes the choice only after that paint,

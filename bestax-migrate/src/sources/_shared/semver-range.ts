@@ -194,3 +194,82 @@ function versionMajor(version: string): number | null {
 function majorOf(token: string): number | null {
   return versionMajor(token.replace(/^[~^=]/, ''));
 }
+
+/**
+ * The lowest version `range` admits, as `major.minor.patch` (with any
+ * prerelease kept), or null when the range isn't one this file reads.
+ *
+ * Asked of a declared `@allxsmith/bestax-bulma` range, to tell whether an
+ * install can resolve below a release a conversion needs. Like the rest of
+ * this file it answers only what it can prove: a `>` comparator, a dist-tag,
+ * a protocol (`workspace:`, `npm:`, a URL) or any shape the grammar rejects
+ * reads as null, and the caller treats null as "could be older".
+ */
+export function rangeFloor(range: string): string | null {
+  const alternatives = range.trim().split(/\s*\|\|\s*/);
+  let lowest: string | null = null;
+  for (const alternative of alternatives) {
+    const floor = setFloor(alternative);
+    if (floor === null) return null;
+    if (lowest === null || compareVersions(floor, lowest) < 0) lowest = floor;
+  }
+  return lowest;
+}
+
+function setFloor(set: string): string | null {
+  const text = glueOperators(set);
+  if (text === '' || /^(\*|x|X)$/.test(text)) return '0.0.0';
+  const hyphen = text.match(/^(\S+)\s+-\s+(\S+)$/);
+  if (hyphen) {
+    if (versionMajor(hyphen[2]) === null) return null;
+    return lowestOf(hyphen[1]);
+  }
+  let floor = '0.0.0';
+  for (const token of text.split(/\s+/)) {
+    const match = token.match(/^(>=|<=|<|=)?(.*)$/);
+    if (!match) return null;
+    const [, op = '', version] = match;
+    if (op === '<' || op === '<=') {
+      if (versionMajor(version) === null) return null;
+      continue;
+    }
+    // `^`, `~`, `=`, `>=` and a bare version all start at the version
+    // written, its missing parts zero.
+    const lowest = lowestOf(op ? version : version.replace(/^[~^=]/, ''));
+    if (lowest === null) return null;
+    if (compareVersions(lowest, floor) > 0) floor = lowest;
+  }
+  return floor;
+}
+
+/** `5`, `5.78`, `5.x`, `5.78.x` and `5.78.4[-pre]` as their lowest version. */
+function lowestOf(version: string): string | null {
+  const plain = version.replace(/^v/, '').replace(/\+.*$/, '');
+  if (versionMajor(plain) === null) return null;
+  const [core, ...pre] = plain.split('-');
+  const parts = core.split('.').map(part => (/^\d+$/.test(part) ? part : '0'));
+  while (parts.length < 3) parts.push('0');
+  return pre.length > 0
+    ? `${parts.join('.')}-${pre.join('-')}`
+    : parts.join('.');
+}
+
+/**
+ * Compare two versions `rangeFloor` writes: by major, minor and patch, and
+ * on a tie a prerelease below the release (`5.78.4-0` < `5.78.4`). Two
+ * prereleases of one version compare as their text, which is enough here:
+ * the callers ask only whether a floor reaches a release.
+ */
+export function compareVersions(a: string, b: string): number {
+  const [coreA, preA = ''] = a.split(/-(.*)/s);
+  const [coreB, preB = ''] = b.split(/-(.*)/s);
+  const numsA = coreA.split('.').map(Number);
+  const numsB = coreB.split('.').map(Number);
+  for (let i = 0; i < 3; i += 1) {
+    if (numsA[i] !== numsB[i]) return numsA[i] < numsB[i] ? -1 : 1;
+  }
+  if (preA === preB) return 0;
+  if (preA === '') return 1;
+  if (preB === '') return -1;
+  return preA < preB ? -1 : 1;
+}

@@ -3,6 +3,7 @@ import {
   UNSTYLED_MODIFIER_COLORS,
   resetColorDeprecationWarnings,
   warnDeprecatedColorProp,
+  warnTextHelperColorProp,
   warnUnstyledColor,
 } from '../colorDeprecations';
 
@@ -93,6 +94,41 @@ describe('colorDeprecations', () => {
 
     it('is silent for undefined', () => {
       warnDeprecatedColorProp('Tabs', undefined, 'Remove the prop.');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('says the prop has no visual effect', () => {
+      warnDeprecatedColorProp('Tabs', 'primary', 'Remove the prop.');
+      expect(warnSpy).toHaveBeenLastCalledWith(
+        '[bestax-bulma] The Tabs "color" prop is deprecated: Bulma ships no ' +
+          'tabs color CSS, so it has no visual effect. It will be removed in ' +
+          'the next major version. Remove the prop.'
+      );
+    });
+  });
+
+  describe('warnTextHelperColorProp', () => {
+    it('warns once, saying the prop renders the text color helper', () => {
+      warnTextHelperColorProp('Field.Label', { color: 'info' });
+      warnTextHelperColorProp('Field.Label', { color: 'danger' });
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toBe(
+        '[bestax-bulma] The Field.Label "color" prop is deprecated: it ' +
+          'renders the text color helper (has-text-<color>), not a modifier, ' +
+          'in place of textColor, and passed as undefined it still keeps ' +
+          'textColor from rendering. It will be removed in the next major ' +
+          'version. Use the textColor prop instead.'
+      );
+    });
+
+    it('warns for a color key with an undefined value', () => {
+      warnTextHelperColorProp('Field.Label', { color: undefined });
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('is silent when the props carry no color key', () => {
+      warnTextHelperColorProp('Field.Label', {});
       expect(warnSpy).not.toHaveBeenCalled();
     });
   });

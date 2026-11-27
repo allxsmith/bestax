@@ -25,6 +25,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withDeleteTargets,
   withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
@@ -249,7 +250,10 @@ describe('bulma-classes kitchen-sink e2e', () => {
               name,
               withLoadingButtonsBusy(
                 withImplicitListRoles(
-                  withV1Classes(html, after[file]?.[name] ?? ''),
+                  withV1Classes(
+                    withDeleteTargets(html, after[file]?.[name] ?? ''),
+                    after[file]?.[name] ?? ''
+                  ),
                   after[file]?.[name] ?? ''
                 ),
                 after[file]?.[name] ?? ''
@@ -291,7 +295,7 @@ describe('bulma-classes kitchen-sink e2e', () => {
       fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies).toEqual({
-      '@allxsmith/bestax-bulma': '^5',
+      '@allxsmith/bestax-bulma': '^5.78.4',
       bulma: '^0.9.4',
       react: '^18.2.0',
       'react-dom': '^18.2.0',
@@ -341,7 +345,7 @@ describe('bulma-classes kitchen-sink e2e, --css bestax', () => {
       fs.readFileSync(path.join(bestaxDir, 'package.json'), 'utf8')
     );
     expect(pkg.dependencies).toEqual({
-      '@allxsmith/bestax-bulma': '^5',
+      '@allxsmith/bestax-bulma': '^5.78.4',
       bulma: '^1.0.4',
       react: '^18.2.0',
       'react-dom': '^18.2.0',

@@ -588,16 +588,18 @@ export const TicksFan: Story = {
  * Range slider with dual thumbs.
  */
 export const RangeDefault: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: function RangeDefaultSlider() {
     const [value, setValue] = useState<[number, number]>([20, 80]);
 
     return (
       <div>
-        <Slider range value={value} onChange={setValue} color="primary" />
+        <Slider
+          range
+          aria-label="Price range"
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
         <p className="mt-4">
           Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
         </p>
@@ -610,10 +612,6 @@ export const RangeDefault: Story = {
  * Range slider with tooltip output.
  */
 export const RangeWithOutput: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: function RangeWithOutputSlider() {
     const [value, setValue] = useState<[number, number]>([30, 70]);
 
@@ -621,6 +619,7 @@ export const RangeWithOutput: Story = {
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
           range
+          aria-label="Price range"
           value={value}
           onChange={setValue}
           showOutput
@@ -638,10 +637,6 @@ export const RangeWithOutput: Story = {
  * Range slider with minimum distance between thumbs.
  */
 export const RangeMinDistance: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: function RangeMinDistanceSlider() {
     const [value, setValue] = useState<[number, number]>([20, 60]);
 
@@ -649,6 +644,7 @@ export const RangeMinDistance: Story = {
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
           range
+          aria-label="Price range"
           value={value}
           onChange={setValue}
           minDistance={10}
@@ -668,18 +664,14 @@ export const RangeMinDistance: Story = {
  * Practical price filter with range slider.
  */
 export const RangePriceFilter: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: function RangePriceFilterSlider() {
     const [value, setValue] = useState<[number, number]>([100, 400]);
 
     return (
       <div style={{ maxWidth: '400px', paddingTop: '2.5rem' }}>
-        <label className="label">Price Filter</label>
         <Slider
           range
+          label="Price Filter"
           value={value}
           onChange={setValue}
           min={0}
@@ -836,10 +828,6 @@ export const WithLabel: Story = {
  * thumbs read "Price range Minimum value" and "Price range Maximum value".
  */
 export const RangeWithLabel: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: () => <Slider range label="Price range" defaultValue={[20, 80]} />,
 };
 
@@ -848,10 +836,6 @@ export const RangeWithLabel: Story = {
  * way the Slider's own label does.
  */
 export const RangeInLabeledField: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: () => (
     <Field label="Price range">
       <Slider range defaultValue={[20, 80]} />
@@ -868,10 +852,6 @@ export const RangeInLabeledField: Story = {
  * default names.
  */
 export const RangeInHandWiredField: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: () => (
     <Field
       horizontal
@@ -946,10 +926,6 @@ export const RightToLeft: Story = {
  * submits as its own form field.
  */
 export const RangeWithNames: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
-  },
   render: function SliderForm() {
     const [submitted, setSubmitted] = useState<string>('');
     return (
@@ -962,6 +938,7 @@ export const RangeWithNames: Story = {
       >
         <Slider
           range
+          label="Price range"
           nameLow="priceMin"
           nameHigh="priceMax"
           defaultValue={[20, 80]}

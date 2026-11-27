@@ -252,6 +252,56 @@ export function withLoadingButtonsBusy(raw: string, converted: string): string {
   );
 }
 
+/** The hit area `Delete` writes as a delete button's last child, as `normalizeHtml` writes it. */
+const DELETE_TARGET = '<span aria-hidden="true" class="delete-target"></span>';
+
+/** A `<button>`'s opening tag, read the way `OPEN_TAG` reads one. */
+const BUTTON_OPEN = /^<button(?:\s+[^\s=>/]+(?:="[^"]*")?)*\s*>/;
+
+/** Each `<button>`, from its opening tag to the first `</button>` after it. */
+const BUTTON = new RegExp(
+  `${BUTTON_OPEN.source.slice(1)}[\\s\\S]*?<\\/button>`,
+  'g'
+);
+
+/** Whether a `<button>` from `BUTTON` has Bulma's `delete` class. */
+const isDeleteButton = (button: string) =>
+  classesOf(BUTTON_OPEN.exec(button)?.[0] ?? '').includes('delete');
+
+/**
+ * `raw`, normalised, with the hit area `Delete` writes, an empty
+ * `aria-hidden` span with the `delete-target` class, written as the last
+ * child of each `<button>` with Bulma's `delete` class that doesn't end in
+ * one, where the same button in `converted` does, so the two compare equal
+ * there and nowhere else.
+ *
+ * Bulma draws its delete button 20px across, 16px small, under WCAG 2.5.8's
+ * 24px minimum target, and bestax's `Delete` holds that span, which its
+ * stylesheet makes a transparent box at least 24px square, so a press beside
+ * the circle still reaches the button (#2198). It draws nothing and assistive
+ * tech skips it. A raw `.delete` converts to `Delete` on purpose, so a
+ * migrated app gets that target. Only that span, only as a delete button's
+ * last child, and only where the raw button doesn't end in one already: a
+ * conversion that writes it anywhere else, or writes something else there,
+ * still differs. Buttons pair up in document order, and a pair that doesn't
+ * line up differs anyway. Run it before the restatements that pair every
+ * element in document order, since the span is an element they count.
+ */
+export function withDeleteTargets(raw: string, converted: string): string {
+  const targeted = [...normalizeHtml(converted).matchAll(BUTTON)]
+    .map(([button]) => button)
+    .filter(isDeleteButton)
+    .map(button => button.endsWith(`${DELETE_TARGET}</button>`));
+  let at = 0;
+  return normalizeHtml(raw).replace(BUTTON, button =>
+    isDeleteButton(button) &&
+    targeted[at++] &&
+    !button.endsWith(`${DELETE_TARGET}</button>`)
+      ? `${button.slice(0, -'</button>'.length)}${DELETE_TARGET}</button>`
+      : button
+  );
+}
+
 /**
  * `raw`, normalised, with each Bulma 0.9 class v1 removed written as the v1
  * class `REPLACED_IN_V1` names for it, on each element where `converted` has

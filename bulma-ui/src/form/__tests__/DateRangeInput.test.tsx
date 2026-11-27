@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import React from 'react';
-import { render, fireEvent, act, screen } from '@testing-library/react';
+import { render, fireEvent, act, screen, within } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DateRangeInput } from '../DateRangeInput';
 import { DateRangeInputBase, type DateRangeValue } from '../DateRangeInputBase';
@@ -1202,6 +1202,29 @@ describe('DateRangeInput', () => {
       fireEvent.click(startInput());
       expect(screen.getByRole('dialog')).toContainElement(grids()[1]);
       expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it("keeps a day under its weekday's header past a blank day (#2194)", () => {
+      // July 2024 starts on a Monday. Its first week's Sunday is June 30,
+      // which June shows beside it, so July leaves that day blank: an empty
+      // cell that keeps its place, so the 1st stays under Monday.
+      render(
+        <DateRangeInput
+          inline
+          locale="en-US"
+          monthsToShow={2}
+          defaultValue={[june(28), july(3)]}
+        />
+      );
+      const [header, firstWeek] = within(grids()[1]).getAllByRole('row');
+      const days = within(firstWeek).getAllByRole('gridcell');
+      expect(days).toHaveLength(7);
+      expect(days[0].textContent).toBe('');
+      expect(days[0]).toHaveAccessibleName('');
+      expect(days[1]).toHaveAccessibleName('1');
+      expect(
+        within(header).getAllByRole('columnheader')[1]
+      ).toHaveAccessibleName('Monday');
     });
 
     it('reads monthsToShow down to a whole number, and less than two as one', () => {

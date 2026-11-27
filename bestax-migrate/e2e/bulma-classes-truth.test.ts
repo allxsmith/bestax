@@ -38,6 +38,10 @@
  *     `aria-busy="true"` and `aria-disabled="true"` and holds still while it
  *     loads (#1870), so the raw side has the two restated on each loading
  *     `.button` the conversion wrote them on (`withLoadingButtonsBusy`).
+ *   - A `.delete` becomes `Delete`, which holds an empty, `aria-hidden` span
+ *     its stylesheet makes a 24px target around the circle (#2198), so the
+ *     raw side has the span restated as the last child of each `.delete`
+ *     the conversion wrote it in (`withDeleteTargets`).
  */
 
 import fs from 'node:fs';
@@ -95,6 +99,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withDeleteTargets,
   withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
@@ -357,7 +362,10 @@ function renderBoth(
       child => child.becomes?.glyph?.longStyle !== undefined
     );
   const restated = withLoadingButtonsBusy(
-    withImplicitListRoles(withV1Classes(raw, html), html),
+    withImplicitListRoles(
+      withV1Classes(withDeleteTargets(raw, html), html),
+      html
+    ),
     html
   );
   return {

@@ -37,12 +37,15 @@ export interface TableProps
   isFullWidth?: boolean;
   /**
    * Wraps the table in Bulma's `.table-container`, which scrolls it sideways
-   * when it's wider than its parent. While it overflows, the container is a
-   * region you can tab to and scroll by keyboard, named by the table's own
-   * `aria-label` or `aria-labelledby`, so name the table with one of them; a
-   * development build warns when it overflows with neither. While the table
-   * fits, the container is a plain `div` with no tab stop, though one that
-   * has focus keeps its tab stop until focus leaves.
+   * when it's wider than its parent. Off unless set, and without it the table
+   * has no scroll box of its own, so one wider than its parent overflows it,
+   * and Bulma's default `overflow-x: hidden` on the page cuts off what runs
+   * past a narrow screen. While the table overflows the container, the
+   * container is a region you can tab to and scroll by keyboard, named by the
+   * table's own `aria-label` or `aria-labelledby`, so name the table with one
+   * of them; a development build warns when it overflows with neither. While
+   * the table fits, the container is a plain `div` with no tab stop, though
+   * one that has focus keeps its tab stop until focus leaves.
    */
   isResponsive?: boolean;
   /** Table content (should use subcomponents). */

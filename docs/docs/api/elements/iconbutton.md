@@ -271,30 +271,32 @@ function example() {
         setSearched(query);
       }}
     >
-      <Field hasAddons>
-        <Control isExpanded>
-          <Input
-            type="search"
-            aria-label="Search the docs"
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-          />
-        </Control>
-        <Control>
-          <IconButton
-            icon="xmark"
-            aria-label="Clear"
-            onClick={() => setQuery('')}
-          />
-        </Control>
-        <Control>
-          <IconButton
-            type="submit"
-            color="primary"
-            icon="magnifying-glass"
-            aria-label="Search"
-          />
-        </Control>
+      <Field label="Search the docs" labelProps={{ htmlFor: 'docs-search' }}>
+        <Field hasAddons>
+          <Control isExpanded>
+            <Input
+              id="docs-search"
+              type="search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+            />
+          </Control>
+          <Control>
+            <IconButton
+              icon="xmark"
+              aria-label="Clear"
+              onClick={() => setQuery('')}
+            />
+          </Control>
+          <Control>
+            <IconButton
+              type="submit"
+              color="primary"
+              icon="magnifying-glass"
+              aria-label="Search"
+            />
+          </Control>
+        </Field>
       </Field>
       <Paragraph>
         {searched ? `Searched for ${searched}.` : 'No search yet.'}
@@ -426,7 +428,7 @@ name and its focus, since it isn't `disabled`.
 | `isFocused`       | `boolean`                                                                                                                                                   | `false`    | Applies focused styling (visual only).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `isActive`        | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `isHovered`       | `boolean`                                                                                                                                                   | `false`    | Applies hovered styling (visual only).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `isDisabled`      | `boolean`                                                                                                                                                   | `false`    | Applies disabled styling.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `isDisabled`      | `boolean`                                                                                                                                                   | `false`    | Disables the button. With the default `as`, the `<button>` gets the `disabled` attribute. With any other `as`, such as a link or a component of your own, it gets `aria-disabled` and `tabIndex={-1}` in its place, its `onClick` doesn't run, and bestax's CSS draws it the way Bulma draws a disabled `<button>`, which Bulma alone doesn't.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `className`       | `string`                                                                                                                                                    | —          | Custom class name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                     | —          | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `bgColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                                                     | —          | Background color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

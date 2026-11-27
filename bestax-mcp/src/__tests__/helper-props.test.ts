@@ -140,6 +140,8 @@ describe('resolveGroup', () => {
     ['text', 'typography'],
     ['font', 'typography'],
     ['textWeight', 'typography'],
+    ['underline', 'typography'],
+    ['underlined', 'typography'],
     ['flexbox', 'flex'],
     ['justify', 'flex'],
     ['hidden', 'layout'],

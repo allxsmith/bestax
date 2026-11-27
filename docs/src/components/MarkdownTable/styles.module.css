@@ -1,0 +1,12 @@
+/* The wrapper takes over Infima's `table` rules for scrolling and spacing,
+   so the table draws as it did, and the table goes back to being a table. */
+.scroller {
+  margin-bottom: var(--ifm-spacing-vertical);
+  overflow: auto;
+}
+
+.scroller > table {
+  display: table;
+  margin-bottom: 0;
+  overflow: visible;
+}

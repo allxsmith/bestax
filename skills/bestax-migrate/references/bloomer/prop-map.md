@@ -180,10 +180,14 @@ written. Where the link was the intent, drop the `tag`.
 A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
 `Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
 `Panel.Heading`/`Tabs`/`Block`, `Tabs.Item`, `Message.Header`/`Body` and the `Modal`
-parts. A bloomer helper on one of those becomes the Bulma class in `className` — except on
-`Pagination.Ellipsis` and `Dropdown.Divider`, which write their own className last or take no
-props at all: there the helper is named in a TODO instead, and an element
-carrying a spread is left as bloomer's. Otherwise it is the Bulma class in `className` (`is-pulled-right`,
+parts. A bloomer helper on one of those becomes the Bulma class in `className`, except on
+`Dropdown.Divider`, which takes no props at all, and on `Pagination.Ellipsis` where the run can't
+show the project gets bestax-bulma 5.78.4 or later, since an older release writes a `className`
+in place of `.pagination-ellipsis`: there the helper is named in a TODO instead, and an element
+carrying a spread is left as bloomer's. The project gets 5.78.4 when the package around the file
+declares `@allxsmith/bestax-bulma` at a range that can't resolve below it in `dependencies` or
+`devDependencies`, or declares none and the run adds it. The run doesn't read an override that
+pins bestax-bulma lower, so check one by hand. Otherwise it is the Bulma class in `className` (`is-pulled-right`,
 `m-0`, `is-hidden-mobile`, …), since Bulma v1 still ships every one of them; only a dynamic
 value is flagged. The same conversion covers the modifiers bestax has no prop for anywhere —
 `Hero isBold`, `Media isSize`, `Subtitle isSpaced`, `Input isActive`, `PanelBlock isWrapped`,

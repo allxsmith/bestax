@@ -19,6 +19,33 @@ const focused = (css: string) =>
 /** `css` as it applies to an element under the pointer. */
 const hovered = (css: string) => css.split(':hover').join('');
 
+/** The media query Bulma's `mobile` mixin writes, below its tablet width. */
+const PHONE = '@media screen and (max-width: 768px)';
+
+/**
+ * `css` with every `query` block's rules in its place when the query
+ * `holds`, and without them when it doesn't, as a browser applies the
+ * blocks, since the shared cascade walks no `@media`.
+ */
+const atMedia = (css: string, query: string, holds: boolean) => {
+  let out = css;
+  for (let start = out.lastIndexOf(query); start >= 0;) {
+    const open = out.indexOf('{', start);
+    let depth = 1;
+    let end = open + 1;
+    for (; depth > 0 && end < out.length; end++) {
+      if (out[end] === '{') depth++;
+      else if (out[end] === '}') depth--;
+    }
+    out =
+      out.slice(0, start) +
+      (holds ? out.slice(open + 1, end - 1) : '') +
+      out.slice(end);
+    start = start > 0 ? out.lastIndexOf(query, start - 1) : -1;
+  }
+  return out;
+};
+
 const declared = (style: CSSStyleDeclaration, property: string) =>
   style.getPropertyValue(property).replace(/\s+/g, ' ').trim() || undefined;
 
@@ -62,7 +89,7 @@ describe.each([
   /** An arrow, Next unless `side` says, of a carousel rendered with `props`. */
   const nextArrow = (
     props: React.ComponentProps<typeof Carousel>,
-    side: 'next' | 'prev' = 'next'
+    side: 'next' | 'prev' | 'rotation' = 'next'
   ) => {
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
@@ -79,6 +106,25 @@ describe.each([
   };
 
   describe.each(orders)('with %s', (_order, css) => {
+    /**
+     * Runs `check` on `css` as it applies with `elements` in `state`. jsdom
+     * puts no element in a state, so while `check` runs the pseudo-class
+     * reads as a class set on them, which ranks as the pseudo-class does.
+     */
+    const inState = (
+      state: ':hover' | ':focus-visible',
+      elements: Element[],
+      check: (sheet: string) => void
+    ) => {
+      const stand = `test-${state.slice(1)}`;
+      elements.forEach(el => el.classList.add(stand));
+      try {
+        check(css.split(state).join(`.${stand}`));
+      } finally {
+        elements.forEach(el => el.classList.remove(stand));
+      }
+    };
+
     it.each(TRANSPARENT)(
       "gives a focused transparent arrow Bulma's focus outline, %s, and nothing new at rest",
       (_look, props) => {
@@ -125,15 +171,119 @@ describe.each([
       ).toBe('graytext');
     });
 
-    it('leaves a disabled arrowHover arrow as it was in forced colors', () => {
-      // Whether it shows at rest is #2145, so it keeps its fade there.
+    // A disabled arrowHover arrow showed faded at rest, where the others
+    // hide, and unfaded under the pointer, like an enabled one (#2145).
+    it('hides a disabled arrowHover arrow at rest and shows it disabled under the pointer', () => {
       const prev = nextArrow({ repeat: false, arrowHover: true }, 'prev');
       expect(prev).toBeDisabled();
-      for (const forcedColors of [false, true]) {
-        expect(
-          cascade(prev, css, ['opacity'], declared, { forcedColors })
-        ).toBe('var(--bulma-carousel-arrow-disabled-opacity)');
+      const carousel = prev.closest(`.${prefix}carousel`)!;
+      const next = carousel.querySelector(
+        `.${prefix}carousel-arrow.${prefix}is-next`
+      )!;
+      const value = (
+        el: Element,
+        sheet: string,
+        property: string,
+        forcedColors: boolean
+      ) => cascade(el, sheet, [property], declared, { forcedColors });
+      // Disabled as it renders, with the attribute and `is-disabled`, then
+      // with the class alone.
+      for (const attribute of [true, false]) {
+        if (!attribute) prev.removeAttribute('disabled');
+        expect(prev).toHaveClass(`${prefix}is-disabled`);
+        for (const forcedColors of [false, true]) {
+          expect(value(prev, css, 'opacity', forcedColors)).toBe('0');
+        }
+        // It keeps GrayText while it fades out as the pointer leaves.
+        expect(value(prev, css, 'color', true)).toBe('graytext');
+        // The pointer over the carousel, then over the disabled arrow, which
+        // puts it over the carousel too.
+        for (const pointed of [[carousel], [carousel, prev]]) {
+          inState(':hover', pointed, sheet => {
+            expect(value(prev, sheet, 'opacity', false)).toBe(
+              'var(--bulma-carousel-arrow-disabled-opacity)'
+            );
+            // GrayText marks it in forced colors, at full strength, as
+            // without arrowHover (#2049).
+            expect(value(prev, sheet, 'opacity', true)).toBe('1');
+            expect(value(prev, sheet, 'color', true)).toBe('graytext');
+            // The arrow that works shows as before.
+            expect(value(next, sheet, 'opacity', false)).toBe('1');
+          });
+        }
       }
+      // Marked by the class alone it can take focus, and shows while it has
+      // it, as any arrowHover arrow does.
+      expect(prev).not.toHaveAttribute('disabled');
+      inState(':focus-visible', [prev], sheet => {
+        expect(value(prev, sheet, 'opacity', false)).toBe('1');
+      });
+    });
+
+    // The button that stops autoplay (#1925) is drawn as the arrows are, at
+    // the top center of the slides.
+    it('keeps the rotation button in view with arrowHover, where the arrows hide', () => {
+      const props = { autoplay: true, rotationControl: true, arrowHover: true };
+      expect(valueOf(nextArrow(props, 'rotation'), css, 'opacity')).toBe('1');
+      expect(valueOf(nextArrow(props), css, 'opacity')).toBe('0');
+    });
+
+    it('draws the rotation button as an arrow, at the top center of the slides', () => {
+      const rotation = nextArrow(
+        { autoplay: true, rotationControl: true },
+        'rotation'
+      );
+      expect(rotation).not.toHaveClass(`${prefix}is-bottom`);
+      expect(valueOf(rotation, css, 'background-color')).toBe(
+        'var(--bulma-carousel-arrow-background)'
+      );
+      // Its translate centers it across, and takes back the arrows'
+      // centering on `top`, so `top` is its top edge.
+      expect(valueOf(rotation, css, 'left')).toBe('50%');
+      expect(valueOf(rotation, css, 'transform')).toBe('translateY(-50%)');
+      expect(valueOf(rotation, css, 'translate')).toBe('-50% 50%');
+      for (const side of ['inset-inline-start', 'inset-inline-end', 'right']) {
+        expect(valueOf(rotation, css, side)).toBeUndefined();
+      }
+      // A phone width moves it in, as it does the arrows, in a media query
+      // the shared cascade doesn't walk, so these read what's declared.
+      for (const [phone, offset] of [
+        [false, 'var(--bulma-carousel-arrow-offset)'],
+        [true, 'var(--bulma-carousel-arrow-offset-mobile)'],
+      ] as const) {
+        const sheet = atMedia(css, PHONE, phone);
+        expect(valueOf(rotation, sheet, 'top')).toBe(offset);
+        expect(valueOf(rotation, sheet, 'bottom')).toBeUndefined();
+      }
+    });
+
+    it('moves the rotation button to the bottom center while the indicators sit over the slides at the top', () => {
+      const rotation = nextArrow(
+        {
+          autoplay: true,
+          rotationControl: true,
+          indicatorInside: true,
+          indicatorPosition: 'top',
+        },
+        'rotation'
+      );
+      expect(rotation).toHaveClass(`${prefix}is-bottom`);
+      // The values that win, on a wider screen and on a phone.
+      for (const [phone, offset] of [
+        [false, 'var(--bulma-carousel-arrow-offset)'],
+        [true, 'var(--bulma-carousel-arrow-offset-mobile)'],
+      ] as const) {
+        const sheet = atMedia(css, PHONE, phone);
+        expect(valueOf(rotation, sheet, 'top')).toBe('auto');
+        expect(valueOf(rotation, sheet, 'bottom')).toBe(offset);
+      }
+      // Over the slides at the bottom, the indicators leave the top free.
+      expect(
+        nextArrow(
+          { autoplay: true, rotationControl: true, indicatorInside: true },
+          'rotation'
+        )
+      ).not.toHaveClass(`${prefix}is-bottom`);
     });
 
     it("leaves an arrow with its background Bulma's focus shadow", () => {
