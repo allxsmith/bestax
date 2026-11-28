@@ -219,6 +219,54 @@ describe('Slider', () => {
         'is-visible'
       );
     });
+
+    it('keeps the tooltip while the thumb keeps focus after the pointer leaves', () => {
+      const { container } = render(
+        <Slider tooltip="auto" aria-label="Volume" />
+      );
+      const input = screen.getByRole('slider');
+      const output = container.querySelector('.slider-output') as HTMLElement;
+
+      fireEvent.focus(input);
+      fireEvent.mouseEnter(input);
+      fireEvent.mouseLeave(input);
+      expect(output).toHaveClass('is-visible');
+    });
+
+    it('keeps the tooltip under the pointer after focus leaves', () => {
+      const { container } = render(
+        <Slider tooltip="auto" aria-label="Volume" />
+      );
+      const input = screen.getByRole('slider');
+      const output = container.querySelector('.slider-output') as HTMLElement;
+
+      fireEvent.mouseEnter(input);
+      fireEvent.focus(input);
+      fireEvent.blur(input);
+      expect(output).toHaveClass('is-visible');
+    });
+
+    it('shows the tooltip on focus when the caller passes onFocus', () => {
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
+      const { container } = render(
+        <Slider
+          tooltip="auto"
+          aria-label="Volume"
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      );
+      const input = screen.getByRole('slider');
+      const output = container.querySelector('.slider-output') as HTMLElement;
+
+      fireEvent.focus(input);
+      expect(output).toHaveClass('is-visible');
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      fireEvent.blur(input);
+      expect(output).not.toHaveClass('is-visible');
+      expect(onBlur).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('tooltip prop', () => {
@@ -1376,6 +1424,51 @@ describe('Slider', () => {
       expect(lowOutput).toHaveClass('is-visible');
       fireEvent.blur(inputs[0]);
       expect(lowOutput).not.toHaveClass('is-visible');
+    });
+
+    it('keeps the low tooltip while that thumb keeps focus after the pointer leaves', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} tooltip="auto" />
+      );
+      const inputs = screen.getAllByRole('slider');
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+
+      fireEvent.focus(inputs[0]);
+      fireEvent.mouseEnter(inputs[0]);
+      fireEvent.mouseLeave(inputs[0]);
+      expect(lowOutput).toHaveClass('is-visible');
+    });
+
+    it('keeps the high tooltip while that thumb keeps focus after the pointer leaves', () => {
+      const { container } = render(
+        <Slider range value={[20, 80]} tooltip="auto" />
+      );
+      const inputs = screen.getAllByRole('slider');
+      const highOutput = container.querySelector(
+        '.slider-output-high'
+      ) as HTMLElement;
+
+      fireEvent.focus(inputs[1]);
+      fireEvent.mouseEnter(inputs[1]);
+      fireEvent.mouseLeave(inputs[1]);
+      expect(highOutput).toHaveClass('is-visible');
+    });
+
+    it('shows the low tooltip on focus when the caller passes onFocus', () => {
+      const onFocus = vi.fn();
+      const { container } = render(
+        <Slider range value={[20, 80]} tooltip="auto" onFocus={onFocus} />
+      );
+      const inputs = screen.getAllByRole('slider');
+      const lowOutput = container.querySelector(
+        '.slider-output-low'
+      ) as HTMLElement;
+
+      fireEvent.focus(inputs[0]);
+      expect(lowOutput).toHaveClass('is-visible');
+      expect(onFocus).toHaveBeenCalledTimes(1);
     });
 
     it('shows high tooltip on mouseEnter of high thumb', () => {
