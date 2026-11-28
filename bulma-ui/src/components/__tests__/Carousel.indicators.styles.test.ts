@@ -72,7 +72,10 @@ describe.each([
       .map(rule => rule.style.getPropertyValue(property))
       .find(Boolean);
   const item = `${p('carousel')} ${p('indicator-item')}`;
-  const circle = `${p('carousel')}${p('is-indicator-circles')} ${p('indicator-item')}`;
+  /** The indicators of the carousel `root` names, and not a nested one's. */
+  const ownItems = (root: string) =>
+    `${root} > :where(${p('carousel-indicator')}) > ${p('indicator-item')}`;
+  const circle = ownItems(`${p('carousel')}${p('is-indicator-circles')}`);
 
   it('fills a resting indicator, on its own and as a Bulma button, inside its ring', () => {
     for (const selector of [item, `${item}${p('button')}`]) {
@@ -185,7 +188,7 @@ describe.each([
 
   it('puts a wrapped row of lines or bars 24px below the one above, center to center, and no closer than their gap', () => {
     const row = (style: string) =>
-      `${styleRoot(style)} ${p('carousel-indicator')}`;
+      `${styleRoot(style)} > ${p('carousel-indicator')}`;
     const mobileRowGap = (selector: string) =>
       nested
         .filter(
@@ -238,7 +241,7 @@ describe.each([
     for (const style of ['lines', 'bars']) {
       expect(
         declared(
-          `${p('carousel')}${p(`is-indicator-${style}`)} ${p('indicator-item')}`,
+          ownItems(`${p('carousel')}${p(`is-indicator-${style}`)}`),
           'border-width'
         )
       ).toBe('var(--bulma-carousel-indicator-line-border-width)');
@@ -246,7 +249,7 @@ describe.each([
   });
 
   it('fills the indicators over the slides in the overlay colors, a ring on circles alone', () => {
-    const inside = `${p('carousel-indicator')}${p('is-inside')} ${p('indicator-item')}`;
+    const inside = `> ${p('carousel-indicator')}${p('is-inside')} > ${p('indicator-item')}`;
     const overlay = `${p('carousel')}${p('is-overlay')} ${inside}`;
     expect(declared(overlay, 'background-color')).toBe(
       'var(--bulma-carousel-overlay-indicator-background)'

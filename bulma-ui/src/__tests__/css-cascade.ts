@@ -289,3 +289,27 @@ export const customProperty = (el: Element, css: string, name: string) =>
     [name],
     (style, property) => style.getPropertyValue(property).trim() || undefined
   );
+
+/**
+ * `css` with every `query` block's rules in its place when the query
+ * `holds`, and without them when it doesn't, as a browser applies the
+ * blocks, for a query `cascade` doesn't model.
+ */
+export const atMedia = (css: string, query: string, holds: boolean) => {
+  let out = css;
+  for (let start = out.lastIndexOf(query); start >= 0;) {
+    const open = out.indexOf('{', start);
+    let depth = 1;
+    let end = open + 1;
+    for (; depth > 0 && end < out.length; end++) {
+      if (out[end] === '{') depth++;
+      else if (out[end] === '}') depth--;
+    }
+    out =
+      out.slice(0, start) +
+      (holds ? out.slice(open + 1, end - 1) : '') +
+      out.slice(end);
+    start = start > 0 ? out.lastIndexOf(query, start - 1) : -1;
+  }
+  return out;
+};
