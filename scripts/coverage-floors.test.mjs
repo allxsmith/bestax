@@ -12,6 +12,7 @@
 import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -27,6 +28,11 @@ import { tokenize } from './lib/shell-words.mjs';
 
 const ROOT = join(tmpdir(), 'repo');
 const REPO = join(import.meta.dirname, '..');
+// The fixture lives in a temporary directory with no node_modules, so it names
+// Vitest's V8 provider by the path this repo resolves it to.
+const V8_PROVIDER = createRequire(import.meta.url).resolve(
+  '@vitest/coverage-v8'
+);
 const TABLE = 'scripts/coverage-floors.json';
 
 /** Istanbul's percentage for `covered` of `total`, which calls an empty metric 100. */
@@ -372,7 +378,7 @@ function runFixture(floors, { failTest = false } = {}) {
         include: ['lib.test.mjs'],
         coverage: {
           provider: 'custom',
-          customProviderModule: here('./vitest-v8-coverage.mjs'),
+          customProviderModule: V8_PROVIDER,
           exclude: ['lib.test.mjs', 'floors.mjs', 'vitest.config.mjs'],
           reporter: [],
         },

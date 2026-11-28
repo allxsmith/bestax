@@ -1,6 +1,6 @@
 {
   "name": "bestax-mcp",
-  "version": "1.18.98",
+  "version": "1.18.99",
   "mcpName": "io.github.allxsmith/bestax-mcp",
   "description": "MCP server for @allxsmith/bestax-bulma — component props, examples, CSS variables and agent skills, served offline from a version-pinned index",
   "type": "module",
@@ -61,9 +61,9 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
-    "@vitest/coverage-istanbul": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.1",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "publishConfig": {
     "access": "public"

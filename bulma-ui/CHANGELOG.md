@@ -1,3 +1,12 @@
+## [5.81.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.81.1...@allxsmith/bestax-bulma@5.81.2) (2026-11-28)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.49 in the peer range ([1460072](https://github.com/allxsmith/bestax/commit/1460072bf9bc9cbb141d0d2c64544100bb4676f3))
+* **create-bestax:** catch the starters up to create-vite 9.4.0 ([ae5c6f3](https://github.com/allxsmith/bestax/commit/ae5c6f3e1a89986f77c98ea96e3d3ba271666c05))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([bd6a435](https://github.com/allxsmith/bestax/commit/bd6a435ce639c62dd1385c2b8c7a387de6bf73b8))
+
 ## [5.81.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.81.0...@allxsmith/bestax-bulma@5.81.1) (2026-11-24)
 
 
