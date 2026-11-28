@@ -342,6 +342,22 @@ $-focus-shadow-alpha: cv.getVarWithBackup("input-focus-shadow-alpha", "focus-sha
       &:focus-within {
         border-color: Highlight;
       }
+
+      // The box's focus ring is a box-shadow, which doesn't show here, and a
+      // read-only text box, as it is with `readonly` or at `maxTags`, can't
+      // count on a text caret to show focus. The box draws Bulma's focus
+      // outline then, as a read-only `.input` does. Forced colors paints it
+      // in a system color.
+      &:has(.#{iv.$class-prefix}input[readonly]:focus-visible) {
+        outline-color: hsl(
+          cv.getVar("focus-h"),
+          cv.getVar("focus-s"),
+          cv.getVar("focus-l")
+        );
+        outline-offset: cv.getVar("focus-offset");
+        outline-style: cv.getVar("focus-style");
+        outline-width: cv.getVar("focus-width");
+      }
     }
 
     .#{iv.$class-prefix}tag {

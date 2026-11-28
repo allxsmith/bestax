@@ -34,8 +34,9 @@
   }
 
   // Taginput's text box is a borderless input inside the box that shows the
-  // field's focus, and turns its own outline off. It's read-only at its tag
-  // limit, and keeps the outline off then too, whichever partial loads first.
+  // field's focus, and turns its own outline off. It's read-only with
+  // `readonly` or at its tag limit, and keeps the outline off then too,
+  // whichever partial loads first, since the box draws one around it.
   .#{iv.$class-prefix}taginput .#{iv.$class-prefix}input[readonly] {
     &:focus-visible,
     &.#{iv.$class-prefix}is-focused {
