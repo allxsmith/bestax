@@ -284,6 +284,100 @@ describe.each([
   });
 });
 
+// The box's focus ring is a box-shadow, which forced colors doesn't show, and
+// its text box, read-only with `readonly` or at `maxTags`, can't count on a
+// caret to show focus, so there the box draws Bulma's focus outline while
+// that text box is focused (#2161), and the text box itself keeps none, so
+// there's one outline rather than two.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the focus outline in forced colors, with %s', (_n, prefix) => {
+  const bulma = compileSource(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'bulma/sass/form/input-textarea';`
+  );
+  const taginput = compilePartial('form/taginput', prefix);
+  const inputTextarea = compilePartial('form/input-textarea', prefix);
+  const OUTLINE = {
+    'outline-style': 'var(--bulma-focus-style)',
+    'outline-width': 'var(--bulma-focus-width)',
+    'outline-offset': 'var(--bulma-focus-offset)',
+    'outline-color':
+      'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
+  };
+
+  /** The box, with its text box focused. */
+  const focusedBox = (element: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+    );
+    const box = container.querySelector(`.${prefix}taginput-container`)!;
+    const input = box.querySelector<HTMLInputElement>(`input.${prefix}input`)!;
+    input.focus();
+    expect(input).toHaveFocus();
+    expect(input.matches(':focus-visible')).toBe(true);
+    return { box, input };
+  };
+
+  /** What wins for each of the outline's longhands, against the shorthand. */
+  const outlineOf = (el: Element, css: string, forcedColors: boolean) =>
+    Object.fromEntries(
+      Object.keys(OUTLINE).map(property => [
+        property,
+        cascade(
+          el,
+          css,
+          ['outline', property],
+          (style, p) => style.getPropertyValue(p) || undefined,
+          { forcedColors }
+        ),
+      ])
+    );
+
+  const READ_ONLY: [string, ReactElement][] = [
+    [
+      'at its tag limit',
+      <Taginput key="limit" label="Tags" defaultValue={['a']} maxTags={1} />,
+    ],
+    [
+      'with readonly',
+      <Taginput key="readonly" label="Tags" defaultValue={['a']} readonly />,
+    ],
+  ];
+
+  describe.each([
+    ['Bulma first', () => bulma + inputTextarea + taginput],
+    ['the partials first', () => taginput + inputTextarea + bulma],
+  ])('with %s', (_order, sheet) => {
+    it.each(READ_ONLY)(
+      "draws Bulma's focus outline on the box %s, and none on its text box",
+      (_n, element) => {
+        const { box, input } = focusedBox(element);
+        expect(input).toHaveAttribute('readonly');
+        expect(outlineOf(box, sheet(), true)).toEqual(OUTLINE);
+        expect(outlineOf(input, sheet(), true)['outline-style']).toBe('none');
+      }
+    );
+
+    it('leaves a box that can be typed in to its caret', () => {
+      const { box, input } = focusedBox(
+        <Taginput label="Tags" defaultValue={['a']} maxTags={2} />
+      );
+      expect(input).not.toHaveAttribute('readonly');
+      expect(outlineOf(box, sheet(), true)['outline-style']).toBeUndefined();
+    });
+  });
+
+  it('leaves the box as it was outside forced colors, and at rest', () => {
+    const css = bulma + taginput;
+    const { box, input } = focusedBox(READ_ONLY[0][1]);
+    expect(outlineOf(box, css, false)['outline-style']).toBeUndefined();
+    input.blur();
+    expect(outlineOf(box, css, true)['outline-style']).toBeUndefined();
+  });
+});
+
 describe("a tag's remove button", () => {
   // The button comes after the tag's text, so its gap from the text belongs
   // on its inline start. A physical margin-left put the gap on the side away

@@ -6,6 +6,11 @@ import path from 'path';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  cascade,
+  compilePartial,
+  compileSource,
+} from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -305,5 +310,100 @@ describe('under a class prefix', () => {
     expect(
       style(container.querySelector('.bestax-daterangeinput-field')!).color
     ).toBe('var(--bulma-input-disabled-color)');
+  });
+});
+
+// The field is the one Bulma `.input`, and its ring for `:focus-within` is a
+// box-shadow, which forced colors doesn't show, and a read-only input can't
+// count on a caret to show focus, so in forced colors the field draws Bulma's
+// focus outline while a read-only input in it is focused (#2161). These
+// resolve the partial beside Bulma's input rules, in either order.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the focus outline in forced colors, with %s', (_label, prefix) => {
+  const partial = compilePartial('form/daterangeinput', prefix);
+  const bulma = compileSource(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'bulma/sass/form/input-textarea';`
+  );
+  const OUTLINE = {
+    'outline-style': 'var(--bulma-focus-style)',
+    'outline-width': 'var(--bulma-focus-width)',
+    'outline-offset': 'var(--bulma-focus-offset)',
+    'outline-color':
+      'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
+  };
+
+  /** The field, with its start input focused. */
+  const focusedField = (props: {
+    editable?: boolean;
+    readOnly?: boolean;
+    mobileNative?: boolean;
+  }) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <DateRangeInput label="Stay" {...props} />
+      </ConfigProvider>
+    );
+    const field = container.querySelector(`.${prefix}daterangeinput-field`)!;
+    const input = screen.getByLabelText('Start date');
+    expect(input).toHaveClass(`${prefix}daterangeinput-input`);
+    input.focus();
+    expect(input).toHaveFocus();
+    expect(input.matches(':focus-visible')).toBe(true);
+    return { field, input };
+  };
+
+  /** What wins for each of the outline's longhands, against the shorthand. */
+  const outlineOf = (el: Element, css: string, forcedColors: boolean) =>
+    Object.fromEntries(
+      Object.keys(OUTLINE).map(property => [
+        property,
+        cascade(
+          el,
+          css,
+          ['outline', property],
+          (style, p) => style.getPropertyValue(p) || undefined,
+          { forcedColors }
+        ),
+      ])
+    );
+
+  describe.each([
+    ['Bulma first', () => bulma + partial],
+    ['the partial first', () => partial + bulma],
+  ])('with %s', (_order, sheet) => {
+    it.each([
+      ['editable={false}', { editable: false }, 'text'],
+      ['readOnly', { readOnly: true }, 'text'],
+      [
+        'readOnly on the native date inputs',
+        { readOnly: true, mobileNative: true },
+        'date',
+      ],
+    ])(
+      "draws Bulma's focus outline on the field with %s",
+      (_n, props, type) => {
+        const { field, input } = focusedField(props);
+        expect(input).toHaveAttribute('type', type);
+        expect(input).toHaveAttribute('readonly');
+        expect(outlineOf(field, sheet(), true)).toEqual(OUTLINE);
+      }
+    );
+
+    it('leaves a field that can be typed in to its caret', () => {
+      const { field, input } = focusedField({});
+      expect(input).not.toHaveAttribute('readonly');
+      expect(outlineOf(field, sheet(), true)['outline-style']).toBe('none');
+    });
+  });
+
+  it('leaves the field as it was outside forced colors, and at rest', () => {
+    const css = bulma + partial;
+    const { field, input } = focusedField({ editable: false });
+    expect(outlineOf(field, css, false)['outline-style']).toBe('none');
+    input.blur();
+    expect(outlineOf(field, css, true)['outline-style']).toBeUndefined();
   });
 });

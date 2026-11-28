@@ -61,3 +61,25 @@ $daterangeinput-separator-color: cv.getVar('text-weak') !default;
     color: cv.getVar('input-disabled-placeholder-color');
   }
 }
+
+// Forced colors (Windows' contrast themes) doesn't show the field's focus
+// ring, which is a box-shadow, and paints its border in the same system color
+// whether it's focused or not, and a read-only input can't count on a text
+// caret to show focus. So there the field draws Bulma's focus outline while a
+// read-only input in it is focused, as a read-only `.input` does, painted in
+// a system color. The `:has()` ranks it above Bulma's `outline: none` on the
+// focused `.input` whichever stylesheet loads first.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}daterangeinput-field:has(
+      .#{iv.$class-prefix}daterangeinput-input[readonly]:focus-visible
+    ) {
+    outline-color: hsl(
+      cv.getVar('focus-h'),
+      cv.getVar('focus-s'),
+      cv.getVar('focus-l')
+    );
+    outline-offset: cv.getVar('focus-offset');
+    outline-style: cv.getVar('focus-style');
+    outline-width: cv.getVar('focus-width');
+  }
+}
