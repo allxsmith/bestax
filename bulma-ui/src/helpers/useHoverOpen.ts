@@ -110,7 +110,7 @@ function isKeyboardFocus(el: Element): boolean {
 }
 
 /** Whether `node` is `container` or inside it, when there are both. */
-const within = (container: Node | null, node: Node | null): boolean =>
+export const within = (container: Node | null, node: Node | null): boolean =>
   Boolean(container && node && container.contains(node));
 
 /** A hook that wants Escape: its floating element is open, or an open is on its way. */
