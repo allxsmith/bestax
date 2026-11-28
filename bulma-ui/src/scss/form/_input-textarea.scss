@@ -44,10 +44,9 @@
 }
 
 // Bulma shows a focused field with a border in the focus color and turns the
-// outline off. The ring it adds as a box-shadow doesn't show in forced colors
-// (Windows' contrast themes), so there only the border's color changes, and a
-// read-only field has no text caret to show focus the way a field you can type
-// in does. So in forced colors a read-only input or textarea that matches
+// outline off. Forced colors (Windows' contrast themes) paints that border in
+// one system color, focused or not, and doesn't show the ring, a box-shadow.
+// So in forced colors a read-only input or textarea that matches
 // `:focus-visible`, or has `is-focused`, draws Bulma's focus outline, as a
 // Select does there. Forced colors paints it in a system color. The
 // `[readonly]` attribute ranks the rule above Bulma's `outline: none`
