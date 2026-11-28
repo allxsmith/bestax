@@ -159,7 +159,7 @@ A build with a responsive `Table` also wants bestax's `elements/table` partial, 
 
 A build with a `Select` also wants bestax's `form/select` partial, which outlines a focused select in forced colors and draws a disabled one's arrow in the disabled color there.
 
-A build with an `Input` or a `TextArea` also wants bestax's `form/input-textarea` partial, which outlines a focused read-only field in forced colors, and so does one with a `TreeSelect` or a `Cascader`, whose field is read-only.
+A build with an `Input` or a `TextArea` also wants bestax's `form/input-textarea` partial, which gives a focused read-only field Bulma's focus ring, and an outline in forced colors, and so does one with a `TreeSelect` or a `Cascader`, whose field is read-only.
 
 Pull in only the helper categories you use:
 
@@ -234,7 +234,7 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `form/select` outlines a focused `Select` in forced colors (Windows' contrast themes), where Bulma's focus ring is a shadow those themes drop and only the border's color would change, and draws a disabled one's arrow there in the system's disabled color at full strength, so a build that uses `bulma/sass/form/select` wants it too.
 
-- `form/input-textarea` outlines a focused read-only `Input` or `TextArea` in forced colors (Windows' contrast themes), and the read-only field of a `TreeSelect`, a `Cascader`, a `ColorInput` or `PasswordInput`, or a `DateInput`, `TimeInput`, `DateTimeInput` or `Numberinput` that can't be typed in, where a read-only field shows no caret and only the border's color would change, so a build that uses `bulma/sass/form/input-textarea` wants it too.
+- `form/input-textarea` draws Bulma's focus ring on a focused read-only `Input` or `TextArea`, which Bulma's module leaves off, and an outline in forced colors (Windows' contrast themes), where the ring doesn't show. The read-only field of a `TreeSelect`, a `Cascader`, a `ColorInput` or `PasswordInput`, or a `DateInput`, `TimeInput`, `DateTimeInput` or `Numberinput` that can't be typed in gets them too, so a build that uses `bulma/sass/form/input-textarea` wants it too.
 
 - `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 

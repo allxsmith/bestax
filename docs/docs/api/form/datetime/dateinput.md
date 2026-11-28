@@ -975,6 +975,7 @@ function DateInputFormDemo() {
 ## Accessibility
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
+- A focused input that can't be typed in, with `readOnly` or `editable={false}`, shows Bulma's focus ring, as one you can type in does.
 - In forced colors (Windows' contrast themes), a focused input that can't be typed in, with `readOnly` or `editable={false}`, draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there.
 - Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date, month or year.
 - An `inline` picker has no input for its `label` to name, so its root is a `role="group"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its grid or year list inside keep their own names.
