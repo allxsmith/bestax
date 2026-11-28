@@ -258,7 +258,7 @@ Inside a `Control` with no `Field` around it, `TextArea` renders no `Field` of i
 - Use the `rows` prop to set an appropriate height for your content.
 - **Help and errors:** the `message` describes the textarea through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the textarea takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 - A `readOnly` textarea shows Bulma's focus ring, in its own focus color, while it's focused or has `isFocused`, as one you can type in does.
-- In forced colors (Windows' contrast themes), a focused `readOnly` textarea draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there. With `readOnly`, `isFocused` draws it too.
+- In forced colors (Windows' contrast themes), a focused `readOnly` textarea draws an outline in Bulma's focus style and width, painted in a system color. With `readOnly`, `isFocused` draws it too.
 
 ---
 

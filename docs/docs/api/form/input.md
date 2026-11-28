@@ -758,7 +758,7 @@ Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its 
 - Use the correct input `type` for semantics (`text`, `email`, etc.).
 - **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 - A `readOnly` input shows Bulma's focus ring, in its own focus color, while it's focused or has `isFocused`, as one you can type in does, unless it's `isStatic`, which reads as plain text.
-- In forced colors (Windows' contrast themes), a focused `readOnly` input draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there. With `readOnly`, `isFocused` draws it too.
+- In forced colors (Windows' contrast themes), a focused `readOnly` input draws an outline in Bulma's focus style and width, painted in a system color. With `readOnly`, `isFocused` draws it too.
 
 ---
 

@@ -217,8 +217,7 @@ those yourself.
 - **Forced colors:** the swatch keeps its color with an edge in the system's text color. A
   disabled launcher draws in the system's color for a disabled control, at full strength rather
   than faded. A disabled swatch stays faded, since its color is the value it shows. A focused
-  `readOnly` field draws an outline in Bulma's focus style and width, painted in a system color,
-  since it shows no text caret and only its border's color would change there.
+  `readOnly` field draws an outline in Bulma's focus style and width, painted in a system color.
 - **Strings** come from `labels`, with English defaults.
 - A panel that would run past the left or right edge of the screen, as on a phone with the
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than
