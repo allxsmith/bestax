@@ -6,6 +6,12 @@ import { Toast, ToastContainer, toast } from '../Toast';
 import { Modal } from '../Modal';
 import { ConfigProvider } from '../../helpers/Config';
 import { focusCheckInterval } from '../../helpers/useDismissTimer';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  mouseOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 vi.useFakeTimers();
 
@@ -654,10 +660,81 @@ describe('Toast', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('mouseLeave is a no-op when pauseOnHover is false (covers if-false branch)', () => {
-      render(<Toast message="Test" duration={3000} pauseOnHover={false} />);
-      const toastEl = screen.getByRole('alert');
-      expect(() => fireEvent.mouseLeave(toastEl)).not.toThrow();
+    // The pause used to be set on the enter and cleared on the leave only
+    // while pauseOnHover was on, so one turned off in between stayed paused.
+    it('closes on time once pauseOnHover turns off with the pointer over it', () => {
+      const onClose = vi.fn();
+      const { rerender } = render(
+        <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
+      );
+      fireEvent.mouseEnter(screen.getByRole('alert'));
+      rerender(
+        <Toast
+          message="Test"
+          duration={3000}
+          pauseOnHover={false}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // A pointer that came onto a toast in a shadow root from the page around
+    // it didn't pause it (#2316), as with Carousel (#2309). The browser's
+    // mouseout on the page names only the shadow host, so React made no
+    // enter for the toast.
+    describe('in a shadow root the page portals into', () => {
+      const toastEl = () => previewRoot().querySelector('.toast')!;
+
+      it('waits while the pointer that came from the page is over it, and closes once it leaves', () => {
+        const onClose = vi.fn();
+        render(
+          <ShadowPreview>
+            <Toast
+              message="Test"
+              duration={3000}
+              pauseOnHover
+              onClose={onClose}
+            />
+          </ShadowPreview>
+        );
+        mouseInFromPage(toastEl());
+        act(() => {
+          vi.advanceTimersByTime(5000);
+        });
+        expect(onClose).not.toHaveBeenCalled();
+
+        mouseOutToPage(toastEl());
+        act(() => {
+          vi.advanceTimersByTime(3000);
+        });
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('waits with a mouseover handler of the caller’s own, which runs too', () => {
+        const onClose = vi.fn();
+        const onMouseOver = vi.fn();
+        render(
+          <ShadowPreview>
+            <Toast
+              message="Test"
+              duration={3000}
+              pauseOnHover
+              onMouseOver={onMouseOver}
+              onClose={onClose}
+            />
+          </ShadowPreview>
+        );
+        mouseInFromPage(toastEl());
+        act(() => {
+          vi.advanceTimersByTime(5000);
+        });
+        expect(onMouseOver).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+      });
     });
   });
 

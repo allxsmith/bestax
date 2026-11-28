@@ -6,6 +6,12 @@ import { Field } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  mouseOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -172,6 +178,31 @@ describe('Rate', () => {
       expect(stars[0]).not.toHaveClass('is-hovered');
       expect(stars[1]).not.toHaveClass('is-hovered');
       expect(stars[2]).not.toHaveClass('is-hovered');
+    });
+
+    // A pointer that came onto a star in a shadow root from the page around
+    // it previewed nothing (#2339), as with Carousel (#2309) and Toast
+    // (#2316). The browser's mouseout on the page names only the shadow host,
+    // so React made no enter for the star.
+    it('previews up to a star the pointer came onto from the page around its shadow root, until it leaves', () => {
+      render(
+        <ShadowPreview>
+          <Rate defaultValue={0} />
+        </ShadowPreview>
+      );
+      const stars = () => previewRoot().querySelectorAll('.rate-item');
+      const hovered = () => previewRoot().querySelectorAll('.is-hovered');
+      mouseInFromPage(stars()[2]);
+      expect(hovered()).toHaveLength(3);
+      expect(stars()[2]).toHaveClass('is-hovered');
+
+      // On to the star before it, inside the root.
+      fireEvent.mouseOut(stars()[2], { relatedTarget: stars()[1] });
+      fireEvent.mouseOver(stars()[1], { relatedTarget: stars()[2] });
+      expect(hovered()).toHaveLength(2);
+
+      mouseOutToPage(stars()[1]);
+      expect(hovered()).toHaveLength(0);
     });
   });
 
@@ -972,6 +1003,27 @@ describe('Rate', () => {
       // SVG with a clip rect of width 12 should be present.
       const widths = Array.from(clipPaths).map(r => r.getAttribute('width'));
       expect(widths).toContain('12');
+    });
+
+    // The pointer moving off a star's icon onto the star, or back, is no
+    // new star, so it keeps the fraction the move set.
+    it('keeps a hover’s fraction while the pointer moves within the star', () => {
+      const { container } = render(<Rate value={0} precision={0.5} />);
+      stubRectsOnRateItems(container);
+      const stars = screen.getAllByRole('radio');
+      // Index 1, clientX 25 -> 1.25, snapped to 1.5: half the second star.
+      fireEvent.mouseEnter(stars[1]);
+      fireEvent.mouseMove(stars[1], { clientX: 25 });
+      const widths = () =>
+        Array.from(container.querySelectorAll('clipPath rect')).map(r =>
+          r.getAttribute('width')
+        );
+      expect(widths()).toContain('12');
+
+      fireEvent.mouseOver(stars[1].querySelector('svg')!, {
+        relatedTarget: stars[1],
+      });
+      expect(widths()).toContain('12');
     });
 
     it.each([

@@ -8,6 +8,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 import { useClassPrefix, useIconLibrary } from '../helpers/Config';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
+import { hoverHandlers } from '../helpers/hoverHandlers';
 import {
   useInsideField,
   useInsideControl,
@@ -592,9 +593,10 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
               'is-hovered': isHovered,
             })}
             onClick={e => handleClick(iconIndex, e)}
-            onMouseEnter={() => handleMouseEnter(iconIndex)}
+            {...hoverHandlers<HTMLSpanElement>(hovered =>
+              hovered ? handleMouseEnter(iconIndex) : handleMouseLeave()
+            )}
             onMouseMove={e => handleMouseMove(iconIndex, e)}
-            onMouseLeave={handleMouseLeave}
             id={`${starBaseId}-${iconIndex}`}
             role="radio"
             aria-checked={iconIndex === checkedIndex}

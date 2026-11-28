@@ -30,7 +30,7 @@ import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
 import { useDismissTimer } from '../helpers/useDismissTimer';
-import { chain } from '../helpers/useHoverOpen';
+import { hoverHandlers } from '../helpers/hoverHandlers';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -192,7 +192,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     // once the client takes over, as Modal's `portal` does.
     const portal = usePortalProp(container || true);
     const [isVisible, setIsVisible] = useState(true);
-    const [isPaused, setIsPaused] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
     const toastRef = useRef<HTMLDivElement | null>(null);
 
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
@@ -237,21 +237,13 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     // here while another toast closes.
     const { onFocus: handleTimerFocus } = useDismissTimer(
       handleClose,
-      !isVisible || indefinite || duration === 0 || isPaused ? null : duration,
+      !isVisible || indefinite || duration === 0 || (pauseOnHover && isHovered)
+        ? null
+        : duration,
       () => toastRef.current
     );
 
-    const handleMouseEnter = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(true);
-      }
-    }, [pauseOnHover]);
-
-    const handleMouseLeave = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(false);
-      }
-    }, [pauseOnHover]);
+    const hover = hoverHandlers<HTMLDivElement>(setIsHovered, rest);
 
     // Click-outside dismiss — deferred so the click that spawned the toast
     // doesn't immediately dismiss it before it's even visible.
@@ -367,8 +359,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         // than replacing the toast's: the hover pause, the close on a click
         // where it applies, and the focus that holds the timer, which comes
         // first so it holds whatever the caller's does.
-        onMouseEnter={chain(rest.onMouseEnter, handleMouseEnter)}
-        onMouseLeave={chain(rest.onMouseLeave, handleMouseLeave)}
+        {...hover}
         // The caller's first, then the close where it applies, both when the
         // click comes, so nothing reads the toast's refs while it renders.
         onClick={e => {
