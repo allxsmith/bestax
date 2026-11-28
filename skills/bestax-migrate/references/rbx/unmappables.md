@@ -164,6 +164,13 @@ structure collapses to one.
 </Dropdown>
 ```
 
+bestax's `Dropdown.Divider` declares no props and renders its own `<hr>`. Once the other passes
+have taken what they can (a `tooltip` or `badge` still becomes its wrapper, and a helper, `as` or
+`innerRef` still gets its own `prop:` TODO), whatever is left on rbx's divider, a `className` or an
+`id`, is removed and named in a `component:Dropdown.Divider` TODO, apart from its `key`. A spread
+stays in the code with a `component:Dropdown.Divider` TODO, since the divider drops whatever it
+carries. Put what you need on a wrapping element.
+
 ## `Navbar.Item dropdown` — open/close state is not carried over
 
 The structural rewrite is automatic (`<Navbar.Item dropdown>` becomes
