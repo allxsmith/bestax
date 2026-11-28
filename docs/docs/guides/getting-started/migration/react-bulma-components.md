@@ -55,7 +55,10 @@ in place:
   plain markup), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
-  (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
+  (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`). On the parts bestax gives
+  no helper props (`Panel.Heading`, `Message.Body`, `Tabs.Item`, the `Modal` parts and the rest),
+  a helper becomes the Bulma class it stood for in `className` instead (`pull="right"` →
+  `className="is-pulled-right"`), and a breakpoint object there is flagged.
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,
   `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
   one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
