@@ -944,7 +944,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                     'is-active': index === highlightedIndex,
                   })}
                   onClick={() => addTags([item])}
-                  onMouseEnter={() => setHighlightedIndex(index)}
+                  // On a mouseover rather than the enter. React makes the
+                  // enter out of the mouseout on the element the pointer
+                  // left, and coming from a React page around a shadow root,
+                  // that mouseout names only the shadow host.
+                  onMouseOver={() => setHighlightedIndex(index)}
                   role="option"
                   aria-selected={optionId(index) === activeOptionId}
                 >

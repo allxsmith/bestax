@@ -10,6 +10,11 @@ import userEvent from '@testing-library/user-event';
 import { Taginput, TagInput, TaginputTag } from '../Taginput';
 import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
 
@@ -1094,6 +1099,31 @@ describe('Taginput', () => {
 
       const updatedOptions = screen.getAllByRole('option');
       expect(updatedOptions[0]).toHaveClass('is-active');
+    });
+
+    // A pointer that came onto an option in a shadow root from the page
+    // around it didn't highlight it (#2340), as with Carousel (#2309) and
+    // Toast (#2316). The browser's mouseout on the page names only the shadow
+    // host, so React made no enter for the option.
+    it('highlights an option the pointer came onto from the page around its shadow root', () => {
+      render(
+        <ShadowPreview>
+          <Taginput data={['apple', 'avocado']} />
+        </ShadowPreview>
+      );
+      const combobox = () =>
+        previewRoot().querySelector<HTMLInputElement>('[role="combobox"]')!;
+      fireEvent.change(combobox(), { target: { value: 'a' } });
+      const options = previewRoot().querySelectorAll('[role="option"]');
+      expect(options).toHaveLength(2);
+
+      mouseInFromPage(options[1]);
+      expect(options[1]).toHaveClass('is-active');
+      expect(options[1]).toHaveAttribute('aria-selected', 'true');
+      expect(options[0]).not.toHaveClass('is-active');
+
+      fireEvent.keyDown(combobox(), { key: 'Enter' });
+      expect(previewRoot().querySelector('.tag')).toHaveTextContent('avocado');
     });
   });
 
