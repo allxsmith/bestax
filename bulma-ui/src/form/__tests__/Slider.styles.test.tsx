@@ -429,6 +429,63 @@ describe.each([
   );
 });
 
+// A single slider draws its track on its input, and a range slider on
+// `.slider-track`, so `isRounded` rounded only a single slider's (#2357). jsdom
+// works out no layout, so this reads the radius the cascade gives the element
+// each one draws its track on, with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider rounded track, with %s', (_label, prefix) => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const radiusOf = (ui: ReactElement, part: string) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    return getComputedStyle(container.querySelector(`.${prefix}${part}`)!)
+      .borderRadius;
+  };
+
+  it.each([
+    ['horizontal', undefined],
+    ['vertical', 'vertical'],
+  ] as const)('rounds a %s slider’s track', (_name, orientation) => {
+    expect(
+      radiusOf(
+        <Slider aria-label="Level" isRounded orientation={orientation} />,
+        'slider-input'
+      )
+    ).toBe('var(--bulma-radius-rounded)');
+    expect(
+      radiusOf(
+        <Slider range aria-label="Level" isRounded orientation={orientation} />,
+        'slider-track'
+      )
+    ).toBe('var(--bulma-radius-rounded)');
+  });
+
+  it('leaves a range slider’s track the slider’s radius without it', () => {
+    expect(radiusOf(<Slider range aria-label="Level" />, 'slider-track')).toBe(
+      'var(--bulma-slider-radius)'
+    );
+  });
+});
+
 // Forced colors turns the value bubble's fill into the page's and paints every
 // side of its arrow, which then draws as a square (#1502). jsdom evaluates no
 // media query, so the rules are read off the compiled sheet, with no prefix

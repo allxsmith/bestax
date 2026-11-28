@@ -590,9 +590,14 @@ $slider-vertical-height: 200px !default;
   }
 }
 
-// Rounded track
-.#{iv.$class-prefix}slider.#{iv.$class-prefix}is-rounded .#{iv.$class-prefix}slider-input {
-  border-radius: cv.getVar("radius-rounded");
+// Rounded track. A range slider draws its track on `.slider-track`. This
+// rule's selector ties with the range rule's, and comes later, so it wins
+// (#2357).
+.#{iv.$class-prefix}slider.#{iv.$class-prefix}is-rounded {
+  .#{iv.$class-prefix}slider-input,
+  .#{iv.$class-prefix}slider-track {
+    border-radius: cv.getVar("radius-rounded");
+  }
 }
 
 // Circle thumb (more prominent)
