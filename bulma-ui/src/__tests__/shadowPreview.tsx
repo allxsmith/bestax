@@ -46,25 +46,35 @@ const host = () => page().nextElementSibling!;
 export const previewRoot = () => host().shadowRoot!;
 
 /**
- * The mouse events a browser sends as the pointer moves from `from` onto `to`:
- * a mouseout on `from` naming `outRelated`, and a mouseover on `to` naming
- * `overRelated`. Each names the other end as the browser shows it from that
- * event's side of the shadow boundary, where the host stands for anything
- * inside the shadow root.
+ * The mouse or pointer events a browser sends as the pointer moves from
+ * `from` onto `to`: an out on `from` naming `outRelated`, and an over on `to`
+ * naming `overRelated`. Each names the other end as the browser shows it from
+ * that event's side of the shadow boundary, where the host stands for
+ * anything inside the shadow root.
  */
 const move = (
+  kind: 'mouse' | 'pointer',
   from: Element,
   to: Element,
   outRelated: Element,
   overRelated: Element
 ) => {
-  fireEvent.mouseOut(from, { relatedTarget: outRelated });
-  fireEvent.mouseOver(to, { relatedTarget: overRelated });
+  fireEvent[`${kind}Out`](from, { relatedTarget: outRelated });
+  fireEvent[`${kind}Over`](to, { relatedTarget: overRelated });
 };
 
 /** The pointer moves from the page onto `el`, inside the shadow root. */
 export const mouseInFromPage = (el: Element) =>
-  move(page(), el, host(), page());
+  move('mouse', page(), el, host(), page());
 
 /** The pointer moves from `el`, inside the shadow root, back onto the page. */
-export const mouseOutToPage = (el: Element) => move(el, page(), page(), host());
+export const mouseOutToPage = (el: Element) =>
+  move('mouse', el, page(), page(), host());
+
+/** `mouseInFromPage` with the pointer events, `pointerout` and `pointerover`. */
+export const pointerInFromPage = (el: Element) =>
+  move('pointer', page(), el, host(), page());
+
+/** `mouseOutToPage` with the pointer events, `pointerout` and `pointerover`. */
+export const pointerOutToPage = (el: Element) =>
+  move('pointer', el, page(), page(), host());

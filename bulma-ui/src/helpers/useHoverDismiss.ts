@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getActiveElementInTree, isEventInside } from './shadowDom';
 import { useLatestRef } from './useLatestRef';
+import { within } from './useHoverOpen';
 
 /** What `useHoverDismiss` gives the component that shows a menu on hover. */
 export interface HoverDismiss {
@@ -23,6 +24,17 @@ export interface HoverDismiss {
    * pointer coming back is a new hover, and brings the menu back.
    */
   onPointerEnter: () => void;
+  /**
+   * Call from the root's `onPointerOver` when focus shows the menu too: one
+   * on the root from outside it is the pointer coming back, as the enter is.
+   * React makes the enter out of the `pointerout` on the element the pointer
+   * left, and when the page around a root in a shadow root is React's too, as
+   * through a portal, that `pointerout` names only the shadow host, so no
+   * enter reaches the root. One from inside is the pointer moving about
+   * within, and one on content the root portals elsewhere isn't on the root,
+   * so neither brings the menu back.
+   */
+  onPointerOver: (e: React.PointerEvent) => void;
   /**
    * Call from the root's `onFocus` when focus shows the menu too: focus
    * moving onto something in the root brings the menu back, the way the
@@ -123,6 +135,16 @@ export function useHoverDismiss(
     onPointerLeave: bringBack,
     onPointerEnter: () => {
       if (dismissed) setDismissed(false);
+    },
+    onPointerOver: e => {
+      const root = rootRef.current;
+      if (
+        dismissed &&
+        within(root, e.target as Node) &&
+        !within(root, e.relatedTarget as Node | null)
+      ) {
+        setDismissed(false);
+      }
     },
     onFocus: () => {
       const fromWindow = windowBlurRef.current;

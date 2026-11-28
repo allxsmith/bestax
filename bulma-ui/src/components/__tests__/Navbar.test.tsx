@@ -21,6 +21,12 @@ import Navbar, {
   NavbarDivider,
 } from '../Navbar';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  ShadowPreview,
+  pointerInFromPage,
+  pointerOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 describe('Navbar', () => {
   it('renders children content', () => {
@@ -1166,13 +1172,93 @@ describe('Navbar.Dropdown', () => {
     });
 
     it('brings it back when the pointer comes back, focus still in it', () => {
-      const { root, trigger } = renderHoverable();
+      const { root, trigger, elsewhere } = renderHoverable();
       trigger.focus();
       escape(trigger);
       point(root, false);
       expect(root).not.toHaveClass('is-hoverable');
-      fireEvent.pointerEnter(root);
+      // React makes the enter out of the pointerout on what the pointer
+      // left, with no pointerover, so this is the enter on its own.
+      fireEvent.pointerOut(elsewhere, { relatedTarget: root });
       expect(root).toHaveClass('is-hoverable');
+    });
+
+    // The stylesheet's :hover follows where things are drawn, not React's
+    // tree, so coming from that content onto the dropdown is coming back.
+    it('keeps it away while the pointer moves about content it portals elsewhere, until it comes onto the dropdown', () => {
+      render(
+        <Navbar.Dropdown hoverable data-testid="dropdown">
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+          {createPortal(
+            <p>
+              <span>One</span>
+              <span>Two</span>
+            </p>,
+            document.body
+          )}
+        </Navbar.Dropdown>
+      );
+      const root = screen.getByTestId('dropdown');
+      const trigger = screen.getByRole('button', { name: 'More' });
+      trigger.focus();
+      escape(trigger);
+      expect(root).not.toHaveClass('is-hoverable');
+      fireEvent.pointerOver(screen.getByText('Two'), {
+        relatedTarget: screen.getByText('One'),
+      });
+      expect(root).not.toHaveClass('is-hoverable');
+      fireEvent.pointerOver(trigger, {
+        relatedTarget: screen.getByText('Two'),
+      });
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    // A pointer coming back onto a dropdown in a shadow root from the page
+    // around it didn't bring the menu back (#2342), as with Carousel (#2309)
+    // and Toast (#2316). The browser's pointerout on the page names only the
+    // shadow host, so React made no enter for the dropdown.
+    describe('in a shadow root the page portals into', () => {
+      const renderInShadow = () => {
+        render(
+          <ShadowPreview>
+            <Navbar.Dropdown hoverable data-testid="dropdown">
+              <Navbar.Link>More</Navbar.Link>
+              <Navbar.DropdownMenu>
+                <Navbar.Item href="#about">About</Navbar.Item>
+              </Navbar.DropdownMenu>
+            </Navbar.Dropdown>
+          </ShadowPreview>
+        );
+        const shadow = previewRoot();
+        const trigger = shadow.querySelector<HTMLElement>('.navbar-link')!;
+        act(() => trigger.focus());
+        escape(trigger);
+        return {
+          root: shadow.querySelector('[data-testid="dropdown"]')!,
+          trigger,
+          item: shadow.querySelector('a[href="#about"]')!,
+        };
+      };
+
+      it('brings it back when the pointer comes back from the page, focus still in it', () => {
+        const { root, trigger } = renderInShadow();
+        expect(root).not.toHaveClass('is-hoverable');
+        pointerOutToPage(trigger);
+        expect(root).not.toHaveClass('is-hoverable');
+        expect(previewRoot().activeElement).toBe(trigger);
+        pointerInFromPage(trigger);
+        expect(root).toHaveClass('is-hoverable');
+      });
+
+      it('keeps it away while the pointer moves about inside it', () => {
+        const { root, trigger, item } = renderInShadow();
+        fireEvent.pointerOut(trigger, { relatedTarget: item });
+        fireEvent.pointerOver(item, { relatedTarget: trigger });
+        expect(root).not.toHaveClass('is-hoverable');
+      });
     });
 
     it('brings it back when focus moves onto something in it', () => {
@@ -1229,11 +1315,13 @@ describe('Navbar.Dropdown', () => {
 
     it('still calls the pointer and focus handlers it is given', () => {
       const onPointerEnter = vi.fn();
+      const onPointerOver = vi.fn();
       const onPointerLeave = vi.fn();
       const onFocus = vi.fn();
       const onBlur = vi.fn();
       const { root, trigger, elsewhere } = renderHoverable({
         onPointerEnter,
+        onPointerOver,
         onPointerLeave,
         onFocus,
         onBlur,
@@ -1245,6 +1333,8 @@ describe('Navbar.Dropdown', () => {
       expect(onFocus).toHaveBeenCalledTimes(1);
       expect(onBlur).toHaveBeenCalledTimes(1);
       expect(onPointerEnter).toHaveBeenCalledTimes(1);
+      // Testing Library sends a pointerover with the enter.
+      expect(onPointerOver).toHaveBeenCalledTimes(1);
       expect(onPointerLeave).toHaveBeenCalledTimes(1);
     });
 
