@@ -2387,6 +2387,131 @@ describe('Carousel with several items in view', () => {
     });
   });
 
+  // The stylesheet's `is-fade` takes the items out of view off the track,
+  // and the track went on moving, so the shown slide moved out of view
+  // (#2368).
+  describe('with animation="fade"', () => {
+    it('sets is-fade and holds the track still, from any position', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel animation="fade" onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(screen.getByRole('region')).toHaveClass('carousel', 'is-fade');
+      expect(track().style.transform).toBe('');
+      // No transition either, so a change into a fade doesn't slide.
+      expect(track().style.transition).toBe('none');
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(track().style.transform).toBe('');
+      expect(screen.getByTestId('item-1')).toHaveClass('is-active');
+    });
+
+    it('steps past either end straight to the other, with no loop to wait out', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel animation="fade" onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      const tabs = () => screen.getAllByRole('tab');
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(tabs()[2]).toHaveAttribute('aria-selected', 'true');
+
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(tabs()[0]).toHaveAttribute('aria-selected', 'true');
+      // And it goes on from there, as it couldn't while it waited for a
+      // transition that never came.
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+    });
+
+    it('finishes a step past the end that was under way when it turned on', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <Carousel onChange={onChange}>{itemsOf(3)}</Carousel>
+      );
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).not.toHaveBeenCalled();
+
+      rerender(
+        <Carousel animation="fade" onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(screen.getAllByRole('tab')[2]).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+    });
+
+    it('goes round from a swipe past the end at once too', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel animation="fade" value={2} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      const container = document.querySelector('.carousel-container')!;
+      fireEvent.mouseDown(container, { clientX: 200 });
+      fireEvent.mouseMove(container, { clientX: 100 });
+      fireEvent.mouseUp(container);
+      expect(onChange).toHaveBeenLastCalledWith(0);
+    });
+
+    it('shows one item at a time, whatever the counts say', () => {
+      render(
+        <Carousel
+          animation="fade"
+          itemsToShow={3}
+          itemsToShowDesktop={2}
+          itemsToScroll={3}
+        >
+          {itemsOf(5)}
+        </Carousel>
+      );
+      const root = screen.getByRole('region');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show')
+      ).toBe('');
+      expect(
+        root.style.getPropertyValue('--bulma-carousel-items-to-show-desktop')
+      ).toBe('');
+      expect(track().querySelectorAll('.carousel-item.is-active')).toHaveLength(
+        1
+      );
+      // A position for every item, one step apart.
+      expect(screen.getAllByRole('tab')).toHaveLength(5);
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(screen.getByTestId('item-1')).toHaveClass('is-active');
+    });
+
+    it('prefixes is-fade', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Carousel animation="fade">{itemsOf(3)}</Carousel>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('region')).toHaveClass(
+        'bestax-carousel',
+        'bestax-is-fade'
+      );
+    });
+
+    it('slides by default, and leaves an is-fade className to move the track as before', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      expect(screen.getByRole('region')).not.toHaveClass('is-fade');
+      expect(track().style.transform).toMatch(/^translateX\(/);
+      rerender(<Carousel className="is-fade">{itemsOf(3)}</Carousel>);
+      expect(track().style.transform).toMatch(/^translateX\(/);
+    });
+  });
+
   describe('focus on an indicator', () => {
     const tabs = () => screen.getAllByRole('tab');
 

@@ -65,6 +65,12 @@ const meta: Meta<typeof Carousel> = {
       control: 'boolean',
       description: 'Enable drag/swipe navigation',
     },
+    animation: {
+      control: 'select',
+      options: ['slide', 'fade'],
+      description:
+        'How the view changes: slide moves the track across, fade holds it still and fades the next slide in as the last fades out, one slide at a time. Default: slide',
+    },
     itemsToShow: {
       control: 'number',
       description:
@@ -466,6 +472,32 @@ export const NoRepeat: Story = {
           Does not loop back to first slide after last
         </Paragraph>
         <Carousel repeat={false}>
+          {heroColors.map((color, i) => (
+            <CarouselItem key={i}>
+              <Hero color={color} size="medium">
+                <Hero.Body textAlign="centered">
+                  <Title as="p">Slide {i + 1}</Title>
+                </Hero.Body>
+              </Hero>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * Fading - the track holds still and the next slide fades in.
+ */
+export const Fade: Story = {
+  render: function FadeExample() {
+    return (
+      <Block p="5">
+        <Paragraph mb="4" className="help">
+          Each slide fades in as the last fades out, round both ends
+        </Paragraph>
+        <Carousel ariaLabel="Fading slides" animation="fade">
           {heroColors.map((color, i) => (
             <CarouselItem key={i}>
               <Hero color={color} size="medium">
