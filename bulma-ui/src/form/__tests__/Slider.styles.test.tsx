@@ -427,6 +427,41 @@ describe.each([
       ]);
     }
   );
+
+  // A range slider draws its track on `.slider-track`, and a vertical
+  // slider's track runs the slider's height, so the size's height above
+  // never reached their thickness (#2291). Each size tells the slider its
+  // track's height as `--slider-size-track-height`, and they take it.
+  it.each(sizes)(
+    'draws a %s range or vertical slider’s track at its size’s thickness',
+    (_name, size) => {
+      const sized =
+        'var(--slider-size-track-height, var(--bulma-slider-track-height))';
+      const sliderOf = (ui: ReactElement) =>
+        render(
+          <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+        ).container.querySelector(`.${prefix}slider`) as HTMLElement;
+      const part = (slider: HTMLElement, name: string) =>
+        getComputedStyle(slider.querySelector(`.${prefix}${name}`)!);
+      const range = sliderOf(<Slider range size={size} />);
+      const vertical = sliderOf(
+        <Slider aria-label="Level" orientation="vertical" size={size} />
+      );
+      const verticalRange = sliderOf(
+        <Slider range orientation="vertical" size={size} />
+      );
+      for (const slider of [range, vertical, verticalRange]) {
+        expect(
+          getComputedStyle(slider).getPropertyValue(
+            '--slider-size-track-height'
+          )
+        ).toBe(size ? `var(--bulma-slider-track-height-${size})` : '');
+      }
+      expect(part(range, 'slider-track').height).toBe(sized);
+      expect(part(vertical, 'slider-input').width).toBe(sized);
+      expect(part(verticalRange, 'slider-track').width).toBe(sized);
+    }
+  );
 });
 
 // Forced colors turns the value bubble's fill into the page's and paints every
@@ -674,10 +709,10 @@ describe.each([
     // The track is drawn in CanvasText, which most contrast themes make the
     // same color as ButtonText, the line's, so the line merged into the track
     // where it crossed it (#2032). A Canvas hairline, half the line's width
-    // and the track's height, now runs down its middle. Every slider with
-    // ticks gets it, a range one too since its ticks cross its track
-    // (#2101). jsdom drops a gradient, so it's read from the compiled sheet,
-    // with its whitespace collapsed.
+    // and the track's height at its size (#2291), now runs down its middle.
+    // Every slider with ticks gets it, a range one too since its ticks cross
+    // its track (#2101). jsdom drops a gradient, so it's read from the
+    // compiled sheet, with its whitespace collapsed.
     const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
     const across = `${p('slider')}${p('has-ticks')} ${line}`;
     const vertical = `${p('slider')}${p('is-vertical')} ${line}`;
@@ -687,7 +722,8 @@ describe.each([
       expect(at).toBeGreaterThan(-1);
       return flat.slice(at, flat.indexOf('}', at));
     };
-    const band = 'var(--bulma-slider-track-height)';
+    const band =
+      'var(--slider-size-track-height, var(--bulma-slider-track-height))';
     expect(block(across)).toContain(
       `background: linear-gradient(Canvas, Canvas) center/50% ${band} no-repeat, currentColor;`
     );

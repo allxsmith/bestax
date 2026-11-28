@@ -1143,7 +1143,11 @@ A mark's label sits inside its tick, so outside forced colors `--bulma-slider-ti
 the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
 colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
 system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
-has a hairline in the page's color as long as `--bulma-slider-track-height`.
+has a hairline in the page's color as long as the track is thick.
+
+A Slider's track, a range or vertical one's too, is as thick as its size's variable:
+`--bulma-slider-track-height-small`, `--bulma-slider-track-height-medium` or
+`--bulma-slider-track-height-large`. With no size it's `--bulma-slider-track-height`.
 
 At the stock thumb sizes, a range Slider's thumb at the default or small size (not a circle one)
 takes presses on a box 24px square around the circle it draws. There `--bulma-slider-thumb-border`
