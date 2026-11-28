@@ -66,7 +66,10 @@ in place:
   `rounded` → `isRounded`), `state="loading"` → `isLoading`, and the Bulma v1 spacing helpers
   replace the removed `is-*less` classes (`marginless` → `m="0"`, `radiusless` →
   `radius="radiusless"`). Most of rbx's helper values need no remapping at all — its
-  `textAlign`, `textWeight` and `display` unions are already bestax's.
+  `textAlign`, `textWeight` and `display` unions are already bestax's. On the parts bestax gives no
+  helper props (`Pagination.Ellipsis`, `Panel.Heading`, `Message.Body`, `Tabs.Item`, the `Modal`
+  parts and the rest), a helper becomes the Bulma class it stood for in `className` instead
+  (`pull="right"` → `className="is-pulled-right"`).
 - **Breakpoint objects** — all three rbx shapes flatten:
   `responsive={{ tablet: { display: { value: 'flex' } } }}` → `displayTablet="flex"`,
   `<Column tablet={{ size: 6 }}>` → `sizeTablet={6}`, and

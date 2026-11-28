@@ -5,7 +5,7 @@
  */
 
 import transform from '../transform.js';
-import { CLASSNAME_SINCE } from '../mapping.js';
+import { CLASSNAME_SINCE } from '../../_shared/bestax-floor.js';
 import { runSpecial } from '../specials.js';
 import { ROOTS } from '../../bulma-classes/class-map.js';
 import { runTransform } from '../../../runner.js';
@@ -890,6 +890,18 @@ describe('bloomer navigation handlers', () => {
     ]);
     expect(output).toContain('<PageEllipsis {...p.rest} />');
     expect(output).toContain("from 'bloomer'");
+  });
+
+  it("keeps a DropdownDivider's key, which belongs to the list around it", () => {
+    const { output, todos } = migrate(
+      dyn(
+        'DropdownDivider',
+        '<>{[1].map(i => <DropdownDivider key={i} id="d" xlink:href="#a" />)}</>'
+      )
+    );
+    expect(todos.map(t => t.rule)).toEqual(['component:DropdownDivider']);
+    expect(todos[0].message).toContain('`id`, `xlink:href` were removed');
+    expect(output).toContain('<Dropdown.Divider key={i} />');
   });
 
   it('converts a NavbarDivider with helpers or a spread', () => {

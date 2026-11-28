@@ -29,6 +29,20 @@ this automatically for literal values; dynamic values get TODOs.
 | flexbox props                     | same names/values (`flexDirection`, `justifyContent`, …)                                                                                                                                                                                                                                                             |
 | `clearfix`, `overlay`             | same                                                                                                                                                                                                                                                                                                                 |
 
+A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
+`Navbar.Dropdown`/`DropdownMenu`/`Divider`, `Panel.Heading`/`Tabs`/`Block`, `Tabs.Item`,
+`Message.Header`/`Body` and the `Modal` parts. A helper on one of those becomes the Bulma class it
+stood for in `className` (`pull="right"` → `is-pulled-right`, `m={2}` → `m-2`,
+`textAlign="center"` → `has-text-centered`, `textColor="primary"` → `has-text-primary`), since
+Bulma v1 still ships every one of them, and a falsy value wrote no class, so it goes. A dynamic
+value, a dynamic `className` or a spread the class cannot be merged into is flagged with the
+class to add, and a breakpoint object (`mobile={{ … }}`) is flagged too, each quoted, since it
+leaves the code. `hidden` stays as written: react-bulma-components passed it to the DOM as HTML's
+own attribute, which these parts take. `colorVariant` is flagged as on any component that takes
+none. `Dropdown.Divider` takes no props at all, so a helper on it is named in a `prop:` TODO, and
+whatever else it carries (a `className`, an `id`, `hidden`, `renderAs`) is removed and named once
+in a `component:Dropdown.Divider` TODO, apart from its `key`.
+
 ## `renderAs` → `as`, and the props that follow it
 
 `renderAs` becomes `as` on the components bestax declares one on: `Button`, `Title` and

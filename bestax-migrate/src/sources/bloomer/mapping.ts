@@ -140,54 +140,10 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
 };
 
 /**
- * bestax targets that extend only React's HTML attributes — no
- * `BulmaClassesProps` — so bloomer's universal helpers have no prop to land
- * on. The transform turns each into a TODO naming the Bulma class instead of
- * emitting an excess-property type error.
+ * The Bulma class a helper prop stood for, written on a target that takes no
+ * helper props (`HELPERLESS_TARGETS` in `_shared/props.ts`) or named in its
+ * TODO.
  */
-/**
- * Targets whose `className` cannot be used: `Dropdown.Divider` is a bare
- * `React.FC` that declares no props at all and renders its own `<hr>`
- * regardless. A helper on one of these is named, never converted.
- */
-export const NO_CLASSNAME_TARGETS = new Set(['Dropdown.Divider']);
-
-/**
- * Targets that keep their own class beside a `className` only from a
- * bestax-bulma release, by target. An older release writes the `className`
- * in place of the class that makes the element work, so the transform takes
- * one as a `NO_CLASSNAME_TARGETS` entry unless the run shows the project gets
- * that release (`_shared/bestax-floor.ts`), and as a `HELPERLESS_TARGETS` one
- * when it does. bulma-classes' class map holds the same release as
- * `classNameSince`.
- */
-export const CLASSNAME_SINCE: Readonly<Record<string, string>> = {
-  'Pagination.Ellipsis': '5.78.4',
-};
-
-export const HELPERLESS_TARGETS = new Set([
-  'Pagination.Previous',
-  'Pagination.Next',
-  'Navbar.Dropdown',
-  'Navbar.DropdownMenu',
-  'Navbar.Divider',
-  'Panel.Heading',
-  'Panel.Tabs',
-  'Panel.Block',
-  'Tabs.Item',
-  'Message.Header',
-  'Message.Body',
-  'Modal.Background',
-  'Modal.Content',
-  'Modal.Card',
-  'Modal.Card.Head',
-  'Modal.Card.Title',
-  'Modal.Card.Body',
-  'Modal.Card.Foot',
-  'Modal.Close',
-]);
-
-/** The Bulma class a helper prop stood for, for the hint on those targets. */
 export function helperClassHint(
   name: string,
   value: string | number | boolean | undefined
@@ -744,7 +700,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
   PageEllipsis: {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
-    // Classes, where the project gets the release in CLASSNAME_SINCE.
+    // Classes, where the project gets the release `CLASSNAME_SINCE` in
+    // `_shared/bestax-floor.ts` names.
     props: {
       isActive: { toClass: 'is-active' },
       isFocused: { toClass: 'is-focused' },

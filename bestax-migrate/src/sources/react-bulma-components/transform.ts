@@ -16,10 +16,17 @@
 
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
-import { MAPPING, UNIVERSAL_PROPS, resolveMapping } from './mapping.js';
+import {
+  MAPPING,
+  RESPONSIVE_BREAKPOINTS,
+  UNIVERSAL_PROPS,
+  helperClassHint,
+  resolveMapping,
+} from './mapping.js';
 import {
   addTodo,
   attributesOf,
+  findAttr,
   forgetJsxParens,
   jsxNameParts,
   renameElement,
@@ -27,7 +34,14 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyBackgroundColor } from '../_shared/background-props.js';
-import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  HELPERLESS_TARGETS,
+  NO_CLASSNAME_TARGETS,
+  applyPropAction,
+  applyUniversalProps,
+  dropPropsTargetIgnores,
+  writeHelpersAsClasses,
+} from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import { keepBaseDisplay } from '../_shared/display.js';
@@ -413,6 +427,21 @@ export default function transform(
 
     if (!target) return;
 
+    // Targets that extend only React's HTML attributes take none of RBC's
+    // universal helpers, so each becomes the Bulma class it stood for, as
+    // bloomer's and rbx's do (`writeHelpersAsClasses`).
+    if (HELPERLESS_TARGETS.has(target) || NO_CLASSNAME_TARGETS.has(target)) {
+      // RBC passed `hidden` to the DOM as HTML's own attribute, which these
+      // parts take as it is.
+      if (!NO_CLASSNAME_TARGETS.has(target) && findAttr(element, 'hidden')) {
+        handled.add('hidden');
+      }
+      writeHelpersAsClasses(ctx, path, element, target, handled, {
+        classOf: helperClassHint,
+        isBreakpoints: name => Object.hasOwn(RESPONSIVE_BREAKPOINTS, name),
+      });
+    }
+
     // Rename to the bestax name, aliasing the import root on collision.
     const [targetRoot, ...targetRest] = target.split('.');
     const localTarget = [ctx.reserve(targetRoot), ...targetRest].join('.');
@@ -453,6 +482,12 @@ export default function transform(
 
     // Read off the attributes the element ends up with.
     askForModalName(ctx, path, element, target);
+
+    // Last, so every pass above takes what it can first: a target that takes
+    // no props keeps none of what they left.
+    if (NO_CLASSNAME_TARGETS.has(target)) {
+      dropPropsTargetIgnores(ctx, path, element, target, `component:${dotted}`);
+    }
   });
 
   // ---- 2b. Value references to RBC components ---------------------------

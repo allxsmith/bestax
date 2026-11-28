@@ -27,6 +27,7 @@ import {
   MAPPING,
   TOOLTIP_PROPS,
   UNIVERSAL_PROPS,
+  helperClassHint,
   resolveMapping,
 } from './mapping.js';
 import {
@@ -42,7 +43,14 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyBackgroundColor } from '../_shared/background-props.js';
-import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  HELPERLESS_TARGETS,
+  NO_CLASSNAME_TARGETS,
+  applyPropAction,
+  applyUniversalProps,
+  dropPropsTargetIgnores,
+  writeHelpersAsClasses,
+} from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import { askForModalName } from '../_shared/modal-name.js';
@@ -55,6 +63,12 @@ import {
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
+import {
+  bestaxFloorFor,
+  classNameWaitsFor,
+  heldForRelease,
+  releaseHoldMessage,
+} from '../_shared/bestax-floor.js';
 import {
   collectBoundNames,
   makeAliasRegistry,
@@ -94,6 +108,14 @@ export default function transform(
     overrides: new WeakMap<object, string>(),
     dirty: false,
   };
+
+  // The oldest bestax-bulma release this file can count on, for the targets
+  // in CLASSNAME_SINCE (`_shared/bestax-floor.ts`).
+  const bestaxFloor = bestaxFloorFor(
+    fileInfo.path,
+    options.bestaxPackages,
+    options.deps
+  );
 
   // ---- 1. Collect rbx imports -------------------------------------------
   /** local identifier → imported rbx name ('*' for namespace imports). */
@@ -303,6 +325,16 @@ export default function transform(
     }
   });
 
+  /**
+   * Whether an element `heldForRelease` names stays rbx's. One reached
+   * through an alias destructured from its root converts all the same, with
+   * the TODO, since that declaration goes with the other names destructured
+   * beside it.
+   */
+  function heldStays(path: any, head: string): boolean {
+    return aliasAt(head, path) === undefined;
+  }
+
   /** Resolve a JSX name into a canonical rbx component path, or null. */
   function resolveJsxPath(name: any, at?: unknown): string[] | null {
     const parts = jsxNameParts(name);
@@ -398,12 +430,21 @@ export default function transform(
   // Scanned rather than reserved wholesale: adding every partial root to
   // `bound` would alias them in every file that uses one, whether or not
   // anything is actually retained.
+  // An element the release keeps rbx's (`heldForRelease`, `heldStays`)
+  // retains its root too.
   root.find(j.JSXElement).forEach(path => {
     const head = jsxNameParts(path.node.openingElement.name)?.[0];
     if (!head || !imports.has(head)) return;
     const parts = resolveJsxPath(path.node.openingElement.name, path);
     const mapping = parts ? resolveMapping(parts) : undefined;
-    if (!mapping || mapping.status === 'todo') bound.add(head);
+    if (
+      !mapping ||
+      mapping.status === 'todo' ||
+      (heldStays(path, head) &&
+        heldForRelease(path.node, mapping.target, bestaxFloor))
+    ) {
+      bound.add(head);
+    }
   });
   // The same root can be retained by a VALUE chain -- `const X = Icon.Unknown`
   // -- which only the value-reference pass discovers, after `reserve` has
@@ -598,6 +639,36 @@ export default function transform(
 
     if (!target) return;
 
+    const held = heldForRelease(element, target, bestaxFloor);
+    if (held) {
+      const stays = jsxHead !== undefined && heldStays(path, jsxHead);
+      addTodo(
+        ctx,
+        path,
+        `component:${dotted}`,
+        releaseHoldMessage(target, held, stays ? 'rbx' : undefined)
+      );
+      if (stays) {
+        ctx.retained.add(rbxPath[0]);
+        return;
+      }
+    }
+
+    // Targets that extend only React's HTML attributes take none of rbx's
+    // universal helpers, so each becomes the Bulma class it stood for, as
+    // bloomer's do (`writeHelpersAsClasses`).
+    if (HELPERLESS_TARGETS.has(target) || NO_CLASSNAME_TARGETS.has(target)) {
+      writeHelpersAsClasses(ctx, path, element, target, handled, {
+        classOf: helperClassHint,
+        isBreakpoints: name => name === 'responsive',
+        since: classNameWaitsFor(target, bestaxFloor),
+        // A tooltip or badge still becomes its wrapper.
+        keepForLater: name =>
+          Object.hasOwn(BADGE_PROPS, name) ||
+          Object.hasOwn(TOOLTIP_PROPS, name),
+      });
+    }
+
     // Rename to the bestax name, aliasing the import root on collision.
     const [targetRoot, ...targetRest] = target.split('.');
     const localTarget = [ctx.reserve(targetRoot), ...targetRest].join('.');
@@ -664,6 +735,11 @@ export default function transform(
       'tooltip'
     );
     if (tooltip) wrapped = tooltip;
+    // Last, so every pass above takes what it can first: a target that takes
+    // no props keeps none of what they left.
+    if (NO_CLASSNAME_TARGETS.has(target)) {
+      dropPropsTargetIgnores(ctx, path, element, target, `component:${dotted}`);
+    }
     if (wrapped !== element) path.replace(wrapped);
   });
 

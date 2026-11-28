@@ -164,6 +164,13 @@ structure collapses to one.
 </Dropdown>
 ```
 
+bestax's `Dropdown.Divider` declares no props and renders its own `<hr>`. A `tooltip` or `badge` on
+rbx's divider still becomes its wrapper, and a helper gets its own `prop:` TODO. Whatever else it
+carried (a `className`, an `id`, `as`, `innerRef`) is removed and named once in a
+`component:Dropdown.Divider` TODO, apart from its `key`. A spread stays in the code with a
+`component:Dropdown.Divider` TODO, since the divider drops whatever it carries. Put what you need
+on a wrapping element.
+
 ## `Navbar.Item dropdown` — open/close state is not carried over
 
 The structural rewrite is automatic (`<Navbar.Item dropdown>` becomes
@@ -204,6 +211,21 @@ does, render a plain `<fieldset>` instead, which leaves their scope alone:
   <Input />
 </fieldset>
 ```
+
+## `component:Pagination.Ellipsis`: a `className` before bestax-bulma 5.78.4
+
+bestax's `Pagination.Ellipsis` keeps `.pagination-ellipsis` beside a `className` from bestax-bulma
+5.78.4 on, and an older release writes the `className` in its place. So an ellipsis carrying a
+`className`, or a spread that may hold one, converts only where the run shows the project gets
+5.78.4 or later: the package around the file declares `@allxsmith/bestax-bulma` at a range that
+can't resolve below it in `dependencies` or `devDependencies`, or declares none and the run adds
+it. Otherwise, under `--no-deps` too, it stays rbx's, and so does the rbx import it needs, while
+the rest of the file moves to bestax. A run without `--no-deps` still removes rbx from
+`package.json`, so declare `@allxsmith/bestax-bulma` at `^5.78.4` or later and re-run before you
+install. One reached through a name destructured from `Pagination`, as in
+`const { Ellipsis } = Pagination`, converts with the TODO all the same, so declare that range
+before you install. The run doesn't read an override (`overrides`, `resolutions`,
+`pnpm.overrides`), so check one that pins bestax-bulma lower by hand.
 
 ## `component:Numeric`, `component:Highlight`
 
