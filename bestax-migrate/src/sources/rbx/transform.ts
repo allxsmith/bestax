@@ -57,8 +57,10 @@ import {
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   bestaxFloorFor,
+  classNameWaitsFor,
   heldForRelease,
   releaseHoldMessage,
+  makeReferenceHold,
 } from '../_shared/bestax-floor.js';
 import {
   collectBoundNames,
@@ -472,7 +474,14 @@ export default function transform(
       }
     }
     const mapping = resolveMapping(chain);
-    if (!mapping || mapping.status === 'todo') bound.add(head);
+    // A chain the release keeps rbx's (`holdReference`) retains it too.
+    if (
+      !mapping ||
+      mapping.status === 'todo' ||
+      (mapping.target && classNameWaitsFor(mapping.target, bestaxFloor))
+    ) {
+      bound.add(head);
+    }
   });
 
   ctx.reserve = makeReserve(ctx, bound);
@@ -725,6 +734,14 @@ export default function transform(
   // marking the root retained when it was not.
   const handledValueRefs = new WeakSet<object>();
 
+  // A reference to a target that waits for a release stays rbx's, retaining
+  // its root, unless it is reached through an alias, whose declaration goes
+  // with the names destructured beside it (`heldStays`).
+  const holdReference = makeReferenceHold(ctx, bestaxFloor, 'rbx', imported => {
+    if (imported === '*') namespaceStillReferenced = true;
+    else ctx.retained.add(imported);
+  });
+
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
     // were already handled by the element walker above.
@@ -880,6 +897,9 @@ export default function transform(
         memberMapping.target &&
         !memberMapping.special
       ) {
+        if (holdReference(outer, memberMapping.target, imported, !!aliasPath)) {
+          return;
+        }
         if (memberMapping.target === dotted) {
           if (isNamespace) {
             // `rbx.Button` → `Button`: the namespace prefix has to go, so
@@ -976,6 +996,13 @@ export default function transform(
         shorthandMapping.target &&
         !shorthandMapping.special
       ) {
+        if (
+          holdReference(path, shorthandMapping.target, imported, !!aliasPath)
+        ) {
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
+          return;
+        }
         const [root, ...rest] = shorthandMapping.target.split('.');
         const local = ctx.reserve(root);
         let value: any = j.identifier(local);
@@ -1018,6 +1045,7 @@ export default function transform(
       mapping.target &&
       !mapping.special
     ) {
+      if (holdReference(path, mapping.target, imported, !!aliasPath)) return;
       const [root, ...rest] = mapping.target.split('.');
       const local = ctx.reserve(root);
       if (rest.length > 0) {

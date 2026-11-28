@@ -64,6 +64,7 @@ import {
   classNameWaitsFor,
   heldForRelease,
   releaseHoldMessage,
+  makeReferenceHold,
   releaseRaise,
 } from '../_shared/bestax-floor.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
@@ -536,6 +537,17 @@ export default function transform(
   // marking the root retained when it was not.
   const handledValueRefs = new WeakSet<object>();
 
+  // A reference to a target that waits for a release stays bloomer's.
+  const heldReference = makeReferenceHold(
+    ctx,
+    bestaxFloor,
+    'bloomer',
+    imported => {
+      if (imported === '*') namespaceStillReferenced = true;
+      else ctx.retained.add(imported);
+    }
+  );
+
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
     // were already handled by the element walker above.
@@ -689,6 +701,7 @@ export default function transform(
         memberMapping.target &&
         !memberMapping.special
       ) {
+        if (heldReference(outer, memberMapping.target, imported)) return;
         // `B.CardHeaderTitle` → `Card.Header.Title`: the namespace prefix has
         // to go and the target may be dotted, so rebuild the whole chain from
         // the target rather than renaming anything in place.
@@ -732,6 +745,11 @@ export default function transform(
         shorthandMapping.status !== 'todo' &&
         shorthandMapping.target
       ) {
+        if (heldReference(path, shorthandMapping.target, imported)) {
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
+          return;
+        }
         const [root, ...rest] = shorthandMapping.target.split('.');
         const local = ctx.reserve(root);
         let value: any = j.identifier(local);
@@ -773,6 +791,7 @@ export default function transform(
     // bestax component (`const Old = Icon` → bestax's Icon). Only a
     // target-less special (NavbarItem, Help, …) has nothing to rename to.
     if (mapping && mapping.status !== 'todo' && mapping.target) {
+      if (heldReference(path, mapping.target, imported)) return;
       const [root, ...rest] = mapping.target.split('.');
       const local = ctx.reserve(root);
       if (rest.length > 0) {

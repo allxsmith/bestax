@@ -16,8 +16,9 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import type { JSXElement } from 'jscodeshift';
+import type { ASTPath, JSXElement } from 'jscodeshift';
 import { BESTAX_FLOOR } from './deps-common.js';
+import { addTodo, type TransformContext } from './jsx-utils.js';
 import {
   innermostAround,
   readManifests,
@@ -170,8 +171,56 @@ export function releaseHoldMessage(
   const carries = spread
     ? 'a spread whose contents the codemod cannot read, where a `className` would replace that class'
     : 'a `className`, which would replace that class';
+  return `${releaseRaise(target, since)}, and this element carries ${carries}${releaseAsk(since, source)}`;
+}
+
+/**
+ * How a release TODO ends: what to declare, and that the code stays
+ * `source`'s until a re-run, or only what to declare when it converted.
+ */
+function releaseAsk(since: string, source?: string): string {
   const declare = `declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later`;
-  return `${releaseRaise(target, since)}, and this element carries ${carries}${source ? `, so it stays ${source}'s: ${declare} and re-run` : `: ${declare}`}`;
+  return source
+    ? `, so it stays ${source}'s: ${declare} and re-run`
+    : `: ${declare}`;
+}
+
+/**
+ * Decides, for a reference to a component as a value, whether it waits for
+ * a release: where its `target` takes a `className` only from a release
+ * `floor` doesn't reach (`classNameWaitsFor`), whatever renders the
+ * reference can hand it one, which the codemod can't see. The returned
+ * function then writes a `value-reference` TODO naming the release at `at`
+ * and returns true when the reference stays `source`'s: `retain` is told
+ * which import it keeps (the local's imported name, `'*'` for a namespace).
+ * One reached through an alias (`viaAlias`) converts all the same, with the
+ * TODO, and gets false. A reference in a type (`typeof X`) renders nothing,
+ * so it converts with no TODO.
+ */
+export function makeReferenceHold(
+  ctx: TransformContext,
+  floor: string | undefined,
+  source: string,
+  retain: (imported: string) => void
+): (
+  at: ASTPath,
+  target: string,
+  imported: string,
+  viaAlias?: boolean
+) => boolean {
+  return (at, target, imported, viaAlias = false) => {
+    const since = classNameWaitsFor(target, floor);
+    if (!since || at.parent?.node?.type === 'TSTypeQuery') return false;
+    addTodo(
+      ctx,
+      at,
+      'value-reference',
+      `${releaseRaise(target, since)}, and whatever renders this reference can give it a \`className\`, which would replace that class${releaseAsk(since, viaAlias ? undefined : source)}`
+    );
+    if (viaAlias) return false;
+    retain(imported);
+    return true;
+  };
 }
 
 /**

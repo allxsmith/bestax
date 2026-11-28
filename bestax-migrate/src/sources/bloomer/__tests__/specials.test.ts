@@ -1144,3 +1144,77 @@ describe('bloomer PageEllipsis and the bestax-bulma release it needs (#2178)', (
     );
   });
 });
+
+describe('bloomer PageEllipsis referenced as a value (#2351)', () => {
+  const added = {
+    bestaxPackages: [{ dir: '/app', written: true }],
+    deps: true,
+  };
+  const older = {
+    bestaxPackages: [{ dir: '/app', floor: '5.70.0', written: true }],
+  };
+  function migrateIn(source: string, options: Record<string, unknown>) {
+    const todos: TodoEntry[] = [];
+    const { output } = runTransform(
+      transform,
+      '/app/src/case.tsx',
+      source,
+      { add: entry => todos.push(entry) },
+      options
+    );
+    return { output: output ?? '', todos };
+  }
+  const refs = [
+    'export const Gap = PageEllipsis;',
+    'export const parts = { PageEllipsis };',
+    "export const made = createElement(PageEllipsis, { className: 'x' });",
+  ];
+  const source = [
+    "import { createElement } from 'react';",
+    "import { PageEllipsis } from 'bloomer';",
+    ...refs,
+  ].join('\n');
+  const viaNamespace =
+    "import * as B from 'bloomer';\nexport const Gap = B.PageEllipsis;\n";
+
+  it('converts each where the project gets 5.78.4', () => {
+    const { output, todos } = migrateIn(source, added);
+    expect(todos).toEqual([]);
+    expect(output).not.toContain("'bloomer'");
+    expect(output).toContain('export const Gap = Pagination.Ellipsis;');
+    expect(output).toContain('PageEllipsis: Pagination.Ellipsis');
+    expect(output).toContain('createElement(Pagination.Ellipsis,');
+    const namespaced = migrateIn(viaNamespace, added);
+    expect(namespaced.todos).toEqual([]);
+    expect(namespaced.output).toContain(
+      'export const Gap = Pagination.Ellipsis;'
+    );
+  });
+
+  it("keeps each bloomer's, naming the release, where the project may get an older one", () => {
+    for (const options of [older, {}, { ...added, deps: false }]) {
+      const { output, todos } = migrateIn(source, options);
+      expect(todos.map(t => t.rule)).toEqual(refs.map(() => 'value-reference'));
+      for (const todo of todos) {
+        expect(todo.message).toContain('`^5.78.4` or later and re-run');
+        expect(todo.message).toContain("stays bloomer's");
+      }
+      expect(output).toContain("import { PageEllipsis } from 'bloomer';");
+      for (const ref of refs) expect(output).toContain(ref);
+      const namespaced = migrateIn(viaNamespace, options);
+      expect(namespaced.todos.map(t => t.rule)).toEqual(['value-reference']);
+      expect(namespaced.output).toContain("import * as B from 'bloomer';");
+      expect(namespaced.output).toContain('export const Gap = B.PageEllipsis;');
+    }
+  });
+
+  it('converts one in a type, which renders nothing', () => {
+    const { output, todos } = migrateIn(
+      "import { PageEllipsis } from 'bloomer';\nexport type P = typeof PageEllipsis;\n",
+      older
+    );
+    expect(todos).toEqual([]);
+    expect(output).toContain('export type P = typeof Pagination.Ellipsis;');
+    expect(output).not.toContain("'bloomer'");
+  });
+});
