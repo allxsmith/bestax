@@ -649,6 +649,16 @@ $slider-vertical-height: 200px !default;
   }
 }
 
+// Firefox draws a thumb's 2px border outside its size, where Chromium and
+// Safari draw it inside, so its thumb is 4px wider and the browser insets it
+// 2px further from each end. The value bubble is placed by the thumb's box,
+// so `Slider.tsx` adds this to it (#2346).
+@supports selector(::-moz-range-thumb) {
+  .#{iv.$class-prefix}slider {
+    --slider-thumb-outset: 4px;
+  }
+}
+
 // --- Range thumbs' target ---
 // A range slider's inputs take no presses, so its thumbs are its only
 // targets, and two of them can sit side by side, where spacing can't make up

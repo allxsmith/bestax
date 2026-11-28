@@ -359,6 +359,55 @@ describe.each([
   );
 });
 
+// Firefox draws a thumb's border outside its size, where Chromium and Safari
+// draw it inside, so a value bubble placed by the thumb's size sat off a
+// Firefox thumb, toward the middle of the track (#2346). The stylesheet tells
+// the slider how much wider Firefox draws it, and only there. jsdom applies no
+// `@supports` rule, so this reads the rule off the compiled sheet, with no
+// prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider thumb outset, with %s', (_label, prefix) => {
+  const compiled = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+  it('is the 4px of the border Firefox draws outside its thumb, set where the thumb is Firefox’s', () => {
+    const sheet = document.createElement('style');
+    sheet.textContent = compiled;
+    document.head.appendChild(sheet);
+    const found: string[][] = [];
+    const walk = (list: CSSRuleList, within: string) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) {
+          const outset = rule.style.getPropertyValue('--slider-thumb-outset');
+          if (outset) found.push([within, rule.selectorText, outset.trim()]);
+        } else if ('cssRules' in rule) {
+          walk(
+            (rule as CSSGroupingRule).cssRules,
+            rule.cssText.split('{')[0].trim()
+          );
+        }
+      }
+    };
+    try {
+      walk((sheet.sheet as CSSStyleSheet).cssRules, '');
+    } finally {
+      sheet.remove();
+    }
+    expect(found).toEqual([
+      ['@supports selector(::-moz-range-thumb)', `.${prefix}slider`, '4px'],
+    ]);
+  });
+});
+
 // A size gives the input its track's height, a horizontal track's thickness,
 // in rules that tied with the vertical slider's `height: 100%` and came
 // later, so a vertical slider with a size shrank to a few pixels (#2293).
