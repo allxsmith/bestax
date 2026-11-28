@@ -3,6 +3,8 @@
 // `.modal-close.is-large`, the image centred as large as the viewer allows,
 // a bar along the top with the counter and the zoom buttons, round previous
 // and next buttons at the inline edges, and the caption under the image.
+// With `panButtons`, a zoomed image has a bar of pan buttons along the
+// bottom.
 //
 // The root carries both `modal` and `lightbox`, so these rules outrank
 // Bulma's `.modal` ones in either stylesheet order. The space around the
@@ -34,7 +36,8 @@ $lightbox-arrow-color: cv.getVar('white') !default;
 $lightbox-arrow-size: 3rem !default;
 $lightbox-arrow-offset: 1rem !default;
 $lightbox-arrow-icon-size: 1.5rem !default;
-// The zoom buttons in the toolbar start from the arrows' look.
+// The zoom buttons in the toolbar, and the pan buttons, start from the
+// arrows' look.
 $lightbox-toolbar-button-background: cv.getVar(
   'lightbox-arrow-background'
 ) !default;
@@ -46,7 +49,8 @@ $lightbox-toolbar-icon-size: 1.25rem !default;
 $lightbox-button-border-width: 1px !default;
 // A button that does nothing at an end, or at a zoom limit.
 $lightbox-disabled-opacity: 0.4 !default;
-// The close button, the toolbar and the arrows sit over the image.
+// The close button, the toolbar, the arrows and the pan buttons sit over the
+// image.
 $lightbox-controls-z-index: $extras-z-index-base !default;
 // The modal's background stays near-black in Bulma's dark theme too, so the
 // text on it is white in both.
@@ -61,7 +65,7 @@ $lightbox-error-gap: 0.75rem !default;
 $lightbox-error-padding: 1rem !default;
 $lightbox-loader-size: 2.5rem !default;
 // The band kept free above the image for the toolbar and the close button,
-// and below it, so the image stays centred.
+// and below it, so the image stays centred, where the pan buttons sit.
 $lightbox-spacing: 4.5rem !default;
 // The image and its caption share the viewer's height less the two bands.
 $lightbox-image-max-height: calc(
@@ -172,10 +176,41 @@ $lightbox-animation-duration: cv.getVar('duration') !default;
   white-space: nowrap;
 }
 
+// ---- The pan buttons ------------------------------------------------------------
+
+// Along the band under the image while it's zoomed, as the toolbar is along
+// the top. Beside the row of buttons the bar takes no pointer events, so a
+// click there lands on the background, as one around the image does, while
+// a tap that misses a button, between two of them, does nothing. Left stays
+// left and right right, whichever way the page reads, as the arrow keys pan.
+.#{iv.$class-prefix}lightbox-pan {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: cv.getVar('lightbox-controls-z-index');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: cv.getVar('lightbox-spacing');
+  direction: ltr;
+  pointer-events: none;
+
+  > .#{iv.$class-prefix}buttons {
+    flex-wrap: nowrap;
+    margin-block-end: 0;
+    pointer-events: auto;
+    // Taps in quick succession pan twice rather than zoom the page.
+    touch-action: manipulation;
+  }
+}
+
 // ---- The buttons over the dark background ------------------------------------------
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
   .#{iv.$class-prefix}lightbox-toolbar
+  .#{iv.$class-prefix}button,
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-pan
   .#{iv.$class-prefix}button,
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
   .#{iv.$class-prefix}lightbox-arrow {
@@ -206,6 +241,9 @@ $lightbox-animation-duration: cv.getVar('duration') !default;
 
 .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
   .#{iv.$class-prefix}lightbox-toolbar
+  .#{iv.$class-prefix}button,
+.#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+  .#{iv.$class-prefix}lightbox-pan
   .#{iv.$class-prefix}button {
   background-color: cv.getVar('lightbox-toolbar-button-background');
   color: cv.getVar('lightbox-toolbar-color');
@@ -379,6 +417,9 @@ $lightbox-animation-duration: cv.getVar('duration') !default;
 @media (forced-colors: active) {
   .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
     .#{iv.$class-prefix}lightbox-toolbar
+    .#{iv.$class-prefix}button,
+  .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
+    .#{iv.$class-prefix}lightbox-pan
     .#{iv.$class-prefix}button,
   .#{iv.$class-prefix}modal.#{iv.$class-prefix}lightbox
     .#{iv.$class-prefix}lightbox-arrow {

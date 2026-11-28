@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { Lightbox, LightboxTrigger, type LightboxItem } from './Lightbox';
 import { Button } from '../elements/Button';
 import { Image } from '../elements/Image';
@@ -133,6 +133,11 @@ const meta: Meta<typeof Lightbox> = {
     maxZoom: {
       control: 'number',
       description: 'How far an image zooms, as a multiple of its fitted size',
+    },
+    panButtons: {
+      control: 'boolean',
+      description:
+        'Buttons along the bottom that pan a zoomed image with a click, as the arrow keys do',
     },
     closeOnEscape: {
       control: 'boolean',
@@ -272,6 +277,36 @@ export const DeeperZoom: Story = {
   args: { maxZoom: 6 },
 };
 
+/**
+ * Buttons along the bottom while the image is zoomed, for a pointer that
+ * can't drag: each pans it as the arrow key pointing the same way does.
+ */
+export const PanButtons: Story = {
+  args: { panButtons: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      canvas.getByRole('button', {
+        name: 'A waterfall dropping into a green forest gorge',
+      })
+    );
+    const page = within(canvasElement.ownerDocument.body);
+    await page.findByRole('dialog', { name: 'Image viewer' });
+    const zoomIn = page.getByRole('button', { name: 'Zoom in' });
+    await waitFor(() =>
+      expect(zoomIn).not.toHaveAttribute('aria-disabled', 'true')
+    );
+    await expect(page.queryByRole('button', { name: 'Pan left' })).toBeNull();
+    await userEvent.click(zoomIn);
+    await expect(
+      page.getByRole('button', { name: 'Pan left' })
+    ).toBeInTheDocument();
+    await userEvent.click(page.getByRole('button', { name: 'Reset zoom' }));
+    await expect(page.queryByRole('button', { name: 'Pan left' })).toBeNull();
+    await userEvent.keyboard('{Escape}');
+  },
+};
+
 /** Numbers as the page writes them, for the progress line. */
 const arabic = new Intl.NumberFormat('ar-EG');
 
@@ -285,6 +320,10 @@ export const RightToLeft: Story = {
       zoomIn: 'تكبير',
       zoomOut: 'تصغير',
       resetZoom: 'إعادة الحجم',
+      panLeft: 'تحريك لليسار',
+      panUp: 'تحريك للأعلى',
+      panDown: 'تحريك للأسفل',
+      panRight: 'تحريك لليمين',
       loading: 'جارٍ تحميل الصورة',
       loadError: 'تعذّر تحميل هذه الصورة.',
       retry: 'إعادة المحاولة',

@@ -82,7 +82,7 @@ function find(rules: Rule[], selector: string, context: string[] = []) {
 }
 
 const ROOT = '.modal.lightbox';
-const CONTROLS = `${ROOT} .lightbox-toolbar .button, ${ROOT} .lightbox-arrow`;
+const CONTROLS = `${ROOT} .lightbox-toolbar .button, ${ROOT} .lightbox-pan .button, ${ROOT} .lightbox-arrow`;
 
 describe('Lightbox styles', () => {
   it('registers its variables, and widens Bulma’s modal content, on the root', () => {
@@ -193,21 +193,32 @@ describe('Lightbox styles', () => {
     expect(find(PLAIN, CONTROLS)).toMatchObject({
       border: 'var(--bulma-lightbox-button-border-width) solid transparent',
     });
-    // The zoom buttons and the arrows each in their own variables.
-    expect(find(PLAIN, `${ROOT} .lightbox-toolbar .button`)).toEqual({
+    // The toolbar's and the pan bar's buttons, and the arrows, each in
+    // their own variables.
+    expect(
+      find(
+        PLAIN,
+        `${ROOT} .lightbox-toolbar .button, ${ROOT} .lightbox-pan .button`
+      )
+    ).toEqual({
       'background-color': 'var(--bulma-lightbox-toolbar-button-background)',
       color: 'var(--bulma-lightbox-toolbar-color)',
     });
     expect(
       find(
         PLAIN,
-        `${ROOT} .lightbox-toolbar .button:hover:not([aria-disabled=true])`
+        `${ROOT} .lightbox-toolbar .button:hover:not([aria-disabled=true]), ${ROOT} .lightbox-pan .button:hover:not([aria-disabled=true])`
       )
     ).toEqual({
       'background-color':
         'var(--bulma-lightbox-toolbar-button-background-hover)',
     });
-    expect(find(PLAIN, `${ROOT} .lightbox-toolbar .button svg`)).toEqual({
+    expect(
+      find(
+        PLAIN,
+        `${ROOT} .lightbox-toolbar .button svg, ${ROOT} .lightbox-pan .button svg`
+      )
+    ).toEqual({
       width: 'var(--bulma-lightbox-toolbar-icon-size)',
       height: 'var(--bulma-lightbox-toolbar-icon-size)',
     });
@@ -227,7 +238,7 @@ describe('Lightbox styles', () => {
     expect(
       find(
         PLAIN,
-        `${ROOT} .lightbox-toolbar .button:focus-visible, ${ROOT} .lightbox-arrow:focus-visible`
+        `${ROOT} .lightbox-toolbar .button:focus-visible, ${ROOT} .lightbox-pan .button:focus-visible, ${ROOT} .lightbox-arrow:focus-visible`
       )
     ).toMatchObject({
       'outline-color': 'currentColor',
@@ -236,7 +247,7 @@ describe('Lightbox styles', () => {
     expect(
       find(
         PLAIN,
-        `${ROOT} .lightbox-toolbar .button[aria-disabled=true], ${ROOT} .lightbox-arrow[aria-disabled=true]`
+        `${ROOT} .lightbox-toolbar .button[aria-disabled=true], ${ROOT} .lightbox-pan .button[aria-disabled=true], ${ROOT} .lightbox-arrow[aria-disabled=true]`
       )
     ).toEqual({
       opacity: 'var(--bulma-lightbox-disabled-opacity)',
@@ -295,10 +306,32 @@ describe('Lightbox styles', () => {
     expect(
       find(
         PLAIN,
-        `${ROOT} .lightbox-toolbar .button[aria-disabled=true], ${ROOT} .lightbox-arrow[aria-disabled=true]`,
+        `${ROOT} .lightbox-toolbar .button[aria-disabled=true], ${ROOT} .lightbox-pan .button[aria-disabled=true], ${ROOT} .lightbox-arrow[aria-disabled=true]`,
         forced
       )
     ).toEqual({ 'border-color': 'GrayText', color: 'GrayText', opacity: '1' });
+  });
+
+  it('lays the pan buttons along the band under the image, in left to right order either way the page reads, and lets clicks through around them', () => {
+    expect(find(PLAIN, '.lightbox-pan')).toEqual({
+      position: 'absolute',
+      'inset-block-end': '0',
+      'inset-inline': '0',
+      'z-index': 'var(--bulma-lightbox-controls-z-index)',
+      display: 'flex',
+      'align-items': 'center',
+      'justify-content': 'center',
+      'min-height': 'var(--bulma-lightbox-spacing)',
+      direction: 'ltr',
+      'pointer-events': 'none',
+    });
+    // A tap between two buttons does nothing, rather than close the viewer.
+    expect(find(PLAIN, '.lightbox-pan > .buttons')).toEqual({
+      'flex-wrap': 'nowrap',
+      'margin-block-end': '0',
+      'pointer-events': 'auto',
+      'touch-action': 'manipulation',
+    });
   });
 
   it('keeps a trigger to what it holds at no specificity, unless it’s a Bulma button', () => {

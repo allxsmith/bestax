@@ -1517,6 +1517,124 @@ describe('Lightbox', () => {
     });
   });
 
+  describe('pan buttons', () => {
+    const zoomIn = () => fireEvent.click(button('Zoom in'));
+    const panBar = () => document.querySelector('.lightbox-pan');
+    const PAN = ['Pan left', 'Pan up', 'Pan down', 'Pan right'];
+
+    it('has none without panButtons, and none until the image is zoomed', () => {
+      layOut();
+      const { unmount } = renderLoaded(<Gallery defaultOpen />);
+      zoomIn();
+      expect(panBar()).toBeNull();
+      unmount();
+      renderLoaded(<Gallery defaultOpen panButtons />);
+      expect(panBar()).toBeNull();
+      zoomIn();
+      expect(panBar()).not.toBeNull();
+      fireEvent.click(button('Reset zoom'));
+      expect(panBar()).toBeNull();
+    });
+
+    it('goes with the zoom buttons when zoomable turns off', () => {
+      layOut();
+      const { rerender } = renderLoaded(<Gallery defaultOpen panButtons />);
+      zoomIn();
+      expect(panBar()).not.toBeNull();
+      rerender(<Gallery defaultOpen panButtons zoomable={false} />);
+      expect(screen.queryByRole('button', { name: 'Zoom out' })).toBeNull();
+      expect(panBar()).toBeNull();
+    });
+
+    it('puts left, up, down and right in a bar after the arrows, as buttons', () => {
+      layOut();
+      renderLoaded(<Gallery defaultOpen panButtons />);
+      zoomIn();
+      const bar = panBar() as HTMLElement;
+      const names = Array.from(bar.querySelectorAll('button')).map(b =>
+        b.getAttribute('aria-label')
+      );
+      expect(names).toEqual(PAN);
+      for (const name of PAN) {
+        expect(button(name)).toHaveAttribute('type', 'button');
+      }
+      expect(
+        bar.compareDocumentPosition(button('Next image')) &
+          Node.DOCUMENT_POSITION_PRECEDING
+      ).toBeTruthy();
+    });
+
+    it('pans as the arrow keys do, and stops at the image’s edges', () => {
+      layOut();
+      renderLoaded(<Gallery defaultOpen panButtons />);
+      zoomIn();
+      zoomIn();
+      zoomIn();
+      fireEvent.click(button('Pan left'));
+      expect(transformOf(shownImage())).toBe('translate(50px, 0px) scale(3)');
+      fireEvent.click(button('Pan up'));
+      expect(transformOf(shownImage())).toBe('translate(50px, 50px) scale(3)');
+      fireEvent.click(button('Pan right'));
+      fireEvent.click(button('Pan down'));
+      expect(transformOf(shownImage())).toBe('translate(0px, 0px) scale(3)');
+      // 1800 by 1350 in a 1000 by 800 viewer: 400px of room either side
+      // across, 275px up and down.
+      for (let i = 0; i < 10; i++) {
+        fireEvent.click(button('Pan right'));
+        fireEvent.click(button('Pan down'));
+      }
+      expect(transformOf(shownImage())).toBe(
+        'translate(-400px, -275px) scale(3)'
+      );
+    });
+
+    it('takes their names from labels', () => {
+      layOut();
+      renderLoaded(
+        <Gallery
+          defaultOpen
+          panButtons
+          labels={{
+            panLeft: 'Links',
+            panUp: 'Hoch',
+            panDown: 'Runter',
+            panRight: 'Rechts',
+          }}
+        />
+      );
+      zoomIn();
+      for (const name of ['Links', 'Hoch', 'Runter', 'Rechts']) {
+        expect(button(name)).toBeInTheDocument();
+      }
+    });
+
+    it('leaves focus on the dialog when they go while one has it', () => {
+      layOut();
+      renderLoaded(<Gallery defaultOpen panButtons />);
+      zoomIn();
+      button('Pan up').focus();
+      key('0');
+      expect(panBar()).toBeNull();
+      expect(dialog()).toHaveFocus();
+    });
+
+    it('prefixes the bar’s class', () => {
+      layOut();
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Gallery defaultOpen panButtons />
+        </ConfigProvider>
+      );
+      fireEvent.load(
+        document.querySelector('.bestax-lightbox-image') as HTMLImageElement
+      );
+      fireEvent.click(button('Zoom in'));
+      expect(document.querySelector('.bestax-lightbox-pan')).toContainElement(
+        button('Pan left')
+      );
+    });
+  });
+
   describe('triggers', () => {
     it('warns about a trigger outside a Lightbox, which opens nothing', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});

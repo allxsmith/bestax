@@ -935,8 +935,8 @@
       "slug": "components/lightbox",
       "import": "import { Lightbox } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
-      "exampleCount": 9
+      "propCount": 22,
+      "exampleCount": 10
     },
     {
       "name": "Link",

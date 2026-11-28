@@ -832,8 +832,9 @@ That's two classes, so a lone class through `className` loses to it: set them in
 library's. Its background is Bulma's modal background, `--bulma-modal-background-background-color`,
 near-black in both schemes, which is why the text and the icons default to white; keep them light
 if you change it. In forced colors the buttons' borders take the system's colors whatever these say.
-The zoom buttons start from the arrows' backgrounds and the error's text from the caption's color,
-so each follows the other until you set it apart. The fades and the zoom take Bulma's
+The zoom buttons, and the pan buttons `panButtons` shows along the bottom, take the `toolbar`
+variables, which start from the arrows' backgrounds, and the error's text starts from the
+caption's color, so each follows the other until you set it apart. The fades and the zoom take Bulma's
 `--bulma-duration` and `--bulma-easing`.
 
 `--bulma-lightbox-animation-duration`, `--bulma-lightbox-arrow-background`,
