@@ -330,8 +330,8 @@
       "slug": "components/carousel",
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 33,
-      "exampleCount": 17
+      "propCount": 34,
+      "exampleCount": 18
     },
     {
       "name": "Cascader",

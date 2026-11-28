@@ -793,7 +793,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   keep the steps bulma-carousel takes between those widths, compute `itemsToShow` from the
   window's width in your own code. `Carousel` loops unless `repeat={false}`, while
   bulma-carousel stops at the ends unless `loop` (back to the start) or `infinite` (round
-  without a break) is set, so a carousel with neither takes `repeat={false}`. Its styles ship in
+  without a break) is set, so a carousel with neither takes `repeat={false}`.
+  bulma-carousel's `effect: 'fade'` is `animation="fade"`, which shows one slide at a time as that
+  fade does, so leave `itemsToShow` out with it. `Carousel`'s styles ship in
   bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet. The element the script
   drives gets `html-extension:carousel`, below, when the codemod can read its selector.
 - **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it

@@ -224,6 +224,18 @@ export interface CarouselProps
    */
   hasDrag?: boolean;
   /**
+   * How the view changes from one position to the next: `slide` moves the
+   * track across, and `fade` holds it still and fades the next item in as
+   * the last fades out, over `--bulma-carousel-fade-duration`. A fade shows
+   * one item at a time, whatever `itemsToShow` and its viewport variants
+   * say. With `repeat`, it goes straight from either end to the other. When
+   * the system asks for reduced motion, the view changes at once, with no
+   * fade either. `fade` sets the stylesheet's `is-fade` class and holds the
+   * track. That class through `className` alone doesn't hold the track, so
+   * the slide shown moves out of view.
+   */
+  animation?: 'slide' | 'fade';
+  /**
    * How many items are in view at once, at every width no
    * `itemsToShow<Viewport>` prop covers. Those props read the way a
    * `Column`'s `size<Viewport>` props do: `itemsToShowMobile` applies below
@@ -428,6 +440,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       rotationControl = false,
       repeat = true,
       hasDrag = true,
+      animation = 'slide',
       itemsToShow,
       itemsToShowMobile,
       itemsToShowTablet,
@@ -494,6 +507,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [skipTransition, setSkipTransition] = useState(false);
     // Under reduced motion each step changes the view at once, with no slide
     const reducedMotion = usePrefersReducedMotion();
+    const fades = animation === 'fade';
+    // A fade holds the track still, so a step past either end has no slide
+    // across the copies to wait for, and goes straight to the other end, as
+    // under reduced motion
+    const wrapsAtOnce = reducedMotion || fades;
     // The words it writes, English unless the caller gives their own
     const words = {
       stopRotation: labels?.stopRotation || 'Stop slide rotation',
@@ -516,14 +534,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // of VIEWPORT_QUERIES, then mobile; each min-width viewport falls back to
     // the narrower ones, and every viewport to `itemsToShow`, the cascade the
     // stylesheet's `--bulma-carousel-items-to-show-*` defaults spell out.
+    // A fade shows one item at a time, so it reads no count.
+    const countOf = (count: number | undefined) =>
+      fades ? undefined : wholeCount(count);
     const counts = [
       itemsToShowFullhd,
       itemsToShowWidescreen,
       itemsToShowDesktop,
       itemsToShowTablet,
       itemsToShowMobile,
-    ].map(wholeCount);
-    const baseCount = wholeCount(itemsToShow);
+    ].map(countOf);
+    const baseCount = countOf(itemsToShow);
     const viewport = useBulmaViewport(counts.some(c => c !== undefined));
     const inView =
       (viewport === MOBILE
@@ -606,7 +627,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const goToPrev = useCallback(() => {
       if (prevIndex !== undefined) {
         setActiveIndex(prevIndex);
-      } else if (looping && reducedMotion) {
+      } else if (looping && wrapsAtOnce) {
         // No transition to end, so straight to the last position
         setActiveIndex(lastPosition);
       } else if (looping) {
@@ -618,7 +639,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     }, [
       prevIndex,
       looping,
-      reducedMotion,
+      wrapsAtOnce,
       lastPosition,
       itemCount,
       setActiveIndex,
@@ -627,7 +648,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const goToNext = useCallback(() => {
       if (nextIndex !== undefined) {
         setActiveIndex(nextIndex);
-      } else if (looping && reducedMotion) {
+      } else if (looping && wrapsAtOnce) {
         // No transition to end, so straight to the first position
         setActiveIndex(0);
       } else if (looping) {
@@ -636,7 +657,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         setDisplayIndex(itemCount);
         setIsWrapping(true);
       }
-    }, [nextIndex, looping, reducedMotion, itemCount, setActiveIndex]);
+    }, [nextIndex, looping, wrapsAtOnce, itemCount, setActiveIndex]);
 
     // Read when the timer fires or an arrow key arrives, so neither the
     // timer nor the key listener starts over while `onChange` changes
@@ -809,14 +830,14 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [isWrapping, displayIndex, itemCount, setActiveIndex]
     );
 
-    // A wrap under way when reduced motion turns on loses its transition, and
-    // with it the transitionend that would finish it, so finish it here,
-    // before it paints.
+    // A wrap under way when reduced motion or a fade turns on loses its
+    // transition, and with it the transitionend that would finish it, so
+    // finish it here, before it paints.
     useClientLayoutEffect(() => {
-      if (reducedMotion && isWrapping) {
+      if (wrapsAtOnce && isWrapping) {
         setActiveIndex(((displayIndex % itemCount) + itemCount) % itemCount);
       }
-    }, [reducedMotion, isWrapping, displayIndex, itemCount, setActiveIndex]);
+    }, [wrapsAtOnce, isWrapping, displayIndex, itemCount, setActiveIndex]);
 
     // Combined ref
     const combinedRef = useCallback(
@@ -855,6 +876,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // Generate classes
     const carouselClasses = usePrefixedClassNames('carousel', {
       'is-overlay': overlayControls,
+      'is-fade': fades,
       'has-arrow-hover': arrowHover,
       [`is-indicator-${indicatorStyle}`]: indicatorStyle !== 'dots',
       [`is-arrow-${arrowColor}`]: !!arrowColor,
@@ -1071,12 +1093,17 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
               // stylesheet has in view; account for the prepended clones.
               // The sign is -1 left to right. Right to left the flex row
               // reverses, and the stylesheet sets the sign to +1 so the
-              // same shift keeps a slide in view.
-              transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
+              // same shift keeps a slide in view. A fade holds the track
+              // still: the stylesheet takes the items out of view off it,
+              // so the ones in view sit at its start.
+              transform: fades
+                ? undefined
+                : `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
               // Disable transition during drag, for the instant snap after
-              // wrap-around, and when the system asks for reduced motion
+              // wrap-around, when the system asks for reduced motion, and
+              // while fading, so a change into a fade doesn't slide
               transition:
-                isDragging || skipTransition || reducedMotion
+                isDragging || skipTransition || wrapsAtOnce
                   ? 'none'
                   : 'transform 0.3s ease-in-out',
             }}
