@@ -1,0 +1,86 @@
+// Bestax Extras - a resize handle's step buttons
+// A mixin Splitter and AppFrame share, so the buttons `stepButtons` puts
+// beside a resize handle draw the same: the two halves of the box they sit
+// in, and each round button with its arrow, which turns right to left. Each
+// component registers the variables these rules read under its own name,
+// `--bulma-<name>-button-*`, and places the box itself, since a Splitter's
+// is a flex item between its panes and an AppFrame's a grid item.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'mixins' as *;
+
+// The rules for `.<name>-buttons-group` and `.<name>-button`.
+@mixin extras-resize-buttons($name) {
+  // Each half takes half the box's length, with its buttons toward the
+  // middle, so the two halves meet there. A half lies over the handle, so a
+  // press on it goes through to the handle, and only the buttons take one.
+  .#{iv.$class-prefix}#{$name}-buttons-group {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: cv.getVar('#{$name}-button-gap');
+    pointer-events: none;
+
+    &:first-child {
+      justify-content: flex-end;
+    }
+  }
+
+  .#{iv.$class-prefix}#{$name}-button {
+    @include extras-button-reset;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: cv.getVar('#{$name}-button-size');
+    block-size: cv.getVar('#{$name}-button-size');
+    border: cv.getVar('#{$name}-button-border-width') solid
+      cv.getVar('#{$name}-button-border-color');
+    border-radius: cv.getVar('#{$name}-button-radius');
+    background-color: cv.getVar('#{$name}-button-background');
+    color: cv.getVar('#{$name}-button-color');
+    pointer-events: auto;
+    // Taps in quick succession step twice rather than zoom the page.
+    touch-action: manipulation;
+
+    svg {
+      inline-size: cv.getVar('#{$name}-button-icon-size');
+      block-size: cv.getVar('#{$name}-button-icon-size');
+    }
+
+    // Its arrow points the way it moves the line, so right to left it turns.
+    &:dir(rtl) svg {
+      transform: scaleX(-1);
+    }
+
+    &:hover {
+      border-color: cv.getVar('#{$name}-button-hover-color');
+      color: cv.getVar('#{$name}-button-hover-color');
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible {
+      @include extras-focus-outline;
+    }
+  }
+
+  // A button keeps its border and its arrow in the system's button colors,
+  // and takes the highlight under the pointer, as the handle's line does.
+  @media (forced-colors: active) {
+    .#{iv.$class-prefix}#{$name}-button {
+      &:hover {
+        border-color: Highlight;
+        color: Highlight;
+      }
+
+      &:focus-visible {
+        outline-color: CanvasText;
+      }
+    }
+  }
+}

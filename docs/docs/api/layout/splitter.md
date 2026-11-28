@@ -176,6 +176,49 @@ function example() {
 }
 ```
 
+### Step Buttons
+
+Dragging a handle takes a steady hand, and some people can't drag at all. `stepButtons` puts
+buttons on each handle, so a click or a tap does what a drag does. The arrows each side of the
+grip move the handle by `step`, as the arrow keys do, and ten times as far with Shift. On the
+handle a `collapsible` pane collapses through, the double arrows collapse it and bring it back,
+as Enter does. A bigger `step` makes each click count for more.
+
+```tsx live
+<Splitter height={240} className="box p-0" step={5} stepButtons>
+  <Splitter.Pane label="Files" defaultSize={30} minSize={15} collapsible>
+    <Content p="4">
+      <p>Click the arrows on the handle to step it.</p>
+    </Content>
+  </Splitter.Pane>
+  <Splitter.Pane label="Editor">
+    <Content p="4">
+      <p>The double arrows collapse the files and bring them back.</p>
+    </Content>
+  </Splitter.Pane>
+</Splitter>
+```
+
+The buttons sit over the line and a little over the panes beside it, so keep a pane's content
+clear of its edge there, as padding does.
+
+The arrows are named after the pane, as "Shrink Files" and "Grow Files". For another language,
+`labels` takes a function for each, `shrink` and `grow`, given the pane's `label`. The double
+arrows are named by the pane's `label` alone, as "Files", with `aria-expanded` saying whether the
+pane is open.
+
+```tsx
+<Splitter
+  stepButtons
+  labels={{
+    shrink: pane => `${pane} verkleinern`,
+    grow: pane => `${pane} vergrößern`,
+  }}
+>
+  …
+</Splitter>
+```
+
 ### Scrolling Panes
 
 A pane scrolls content that doesn't fit, so nothing is cut off. For content that's meant to
@@ -296,7 +339,14 @@ them from the start.
   with Shift ten times as far. Home and End take its pane to its limits. Enter collapses a
   collapsible pane and brings it back. Right to left, the arrows follow the screen.
 - **Pointer:** dragging works with a mouse, a finger or a pen, and a double-click puts the two
-  panes beside a handle back to their default sizes.
+  panes beside a handle back to their default sizes. Setting a size or collapsing a pane takes a
+  drag unless `stepButtons` is on, so turn it on for a layout people resize (WCAG 2.5.7).
+- **Step buttons** are buttons beside each handle, not inside it, since a separator's children are
+  presentational. The arrows are named after the pane, as "Shrink Files" and "Grow Files", and the
+  collapse button by its `label`, as "Files", with `aria-expanded`. Each points `aria-controls` at
+  the pane. They come after their handle in the Tab
+  order, take an arrow key's step or Enter's collapse, and are 24px across, WCAG 2.5.8's target
+  size. Their arrows point the way they move the line, turned right to left.
 - **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.
 - **Focus ring:** Bulma's focus outline, inside the handle.
 - **Grip:** the short bar that shows a handle can be dragged is the scheme's weak text color at
@@ -305,9 +355,11 @@ them from the start.
 - **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which
   meets WCAG 2.5.8's 24px.
 - **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active
-  handle is drawn in the system's highlight color.
+  handle is drawn in the system's highlight color. A step button keeps its border and arrow, and
+  takes the highlight color under the pointer.
 - **Not live:** a resize announces nothing beyond the handle's value, which a screen reader reads
-  on the focused handle as it changes.
+  on the focused handle as it changes. A click on an arrow announces nothing, and the collapse
+  button announces its `aria-expanded`.
 
 ---
 
@@ -333,19 +385,21 @@ them from the start.
 
 <!-- bestax:generated props -->
 
-| Prop            | Type                                                                    | Default        | Description                                                                                                                                                                             |
-| --------------- | ----------------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`     | `string`                                                                | —              | Additional CSS classes to apply.                                                                                                                                                        |
-| `children`      | `React.ReactNode`                                                       | —              | `Splitter.Pane`s, two or more, each a direct child, with Fragments opened up. A handle goes between each pair. Changing which panes there are puts every pane back to its default size. |
-| `orientation`   | `'horizontal'` \| `'vertical'`                                          | `'horizontal'` | The way the panes run: side by side (`horizontal`) or one above the other (`vertical`).                                                                                                 |
-| `height`        | `number` \| `string`                                                    | —              | The splitter's height. A number is pixels, and a string any CSS length. A vertical splitter needs a height to split.                                                                    |
-| `sizes`         | `number[]`                                                              | —              | Each pane's size, in percent, in order, adding up to 100. With it, the sizes are yours: update them from `onSizesChange`. Without it, each pane starts at its `defaultSize`.            |
-| `onSizesChange` | `(sizes: number[]) => void`                                             | —              | Called with every pane's size, in percent, whenever they change: on each step of a drag or a key, on a collapse and on a reset.                                                         |
-| `step`          | `number`                                                                | `1`            | How far an arrow key moves a handle, in percent. Shift moves ten times as far.                                                                                                          |
-| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —              | Text color helper.                                                                                                                                                                      |
-| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —              | Background color helper.                                                                                                                                                                |
-| `ref`           | `React.Ref<HTMLDivElement>`                                             | —              | Ref forwarded to the root `<div>`.                                                                                                                                                      |
-| `...`           | All standard `<div>` attributes and Bulma helper props                  | —              | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                       |
+| Prop            | Type                                                                     | Default        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`     | `string`                                                                 | —              | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `children`      | `React.ReactNode`                                                        | —              | `Splitter.Pane`s, two or more, each a direct child, with Fragments opened up. A handle goes between each pair. Changing which panes there are puts every pane back to its default size.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `orientation`   | `'horizontal'` \| `'vertical'`                                           | `'horizontal'` | The way the panes run: side by side (`horizontal`) or one above the other (`vertical`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `height`        | `number` \| `string`                                                     | —              | The splitter's height. A number is pixels, and a string any CSS length. A vertical splitter needs a height to split.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `sizes`         | `number[]`                                                               | —              | Each pane's size, in percent, in order, adding up to 100. With it, the sizes are yours: update them from `onSizesChange`. Without it, each pane starts at its `defaultSize`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `onSizesChange` | `(sizes: number[]) => void`                                              | —              | Called with every pane's size, in percent, whenever they change: on each step of a drag or a key, on a collapse and on a reset.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `step`          | `number`                                                                 | `1`            | How far an arrow key moves a handle, in percent. Shift moves ten times as far.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `stepButtons`   | `boolean`                                                                | `false`        | Shows buttons on each handle, so a pointer that can't drag can resize the panes with a click or a tap: one each side of the grip that moves the handle as an arrow key does, by `step`, and ten times as far with Shift, and on the handle a `collapsible` pane collapses through, one that collapses it and brings it back, as Enter does. The step buttons are named after the pane, as "Shrink Files" and "Grow Files", which `labels` can change, and the collapse button is named for the pane, as "Files", with `aria-expanded` saying whether it's open. They come after the handle in the Tab order, and they sit over the line, a little over the panes beside it, so a pane's content needs room at its edge there. |
+| `labels`        | `{ shrink?: (pane: string) => string; grow?: (pane: string) => string }` | —              | The names of the buttons `stepButtons` shows. Each one left out keeps its English default.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`  | —              | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`  | —              | Background color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `ref`           | `React.Ref<HTMLDivElement>`                                              | —              | Ref forwarded to the root `<div>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `...`           | All standard `<div>` attributes and Bulma helper props                   | —              | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 **Subcomponents:**
 
@@ -381,17 +435,26 @@ them from the start.
 
 `Splitter` registers these variables on its own `.splitter` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                          | Sass Variable                  | Default                                                                                 |
-| ------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------- |
-| `--bulma-splitter-handle-size`        | `$splitter-handle-size`        | `0.75rem`                                                                               |
-| `--bulma-splitter-handle-size-coarse` | `$splitter-handle-size-coarse` | `1.5rem`                                                                                |
-| `--bulma-splitter-line-size`          | `$splitter-line-size`          | `1px`                                                                                   |
-| `--bulma-splitter-line-color`         | `$splitter-line-color`         | `var(--bulma-border)`                                                                   |
-| `--bulma-splitter-line-active-size`   | `$splitter-line-active-size`   | `2px`                                                                                   |
-| `--bulma-splitter-line-active-color`  | `$splitter-line-active-color`  | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
-| `--bulma-splitter-grip-length`        | `$splitter-grip-length`        | `1.5rem`                                                                                |
-| `--bulma-splitter-grip-size`          | `$splitter-grip-size`          | `0.25rem`                                                                               |
-| `--bulma-splitter-grip-color`         | `$splitter-grip-color`         | `var(--bulma-text-weak)`                                                                |
-| `--bulma-splitter-grip-radius`        | `$splitter-grip-radius`        | `var(--bulma-radius-rounded)`                                                           |
+| CSS Variable                           | Sass Variable                   | Default                                                                                 |
+| -------------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------- |
+| `--bulma-splitter-handle-size`         | `$splitter-handle-size`         | `0.75rem`                                                                               |
+| `--bulma-splitter-handle-size-coarse`  | `$splitter-handle-size-coarse`  | `1.5rem`                                                                                |
+| `--bulma-splitter-line-size`           | `$splitter-line-size`           | `1px`                                                                                   |
+| `--bulma-splitter-line-color`          | `$splitter-line-color`          | `var(--bulma-border)`                                                                   |
+| `--bulma-splitter-line-active-size`    | `$splitter-line-active-size`    | `2px`                                                                                   |
+| `--bulma-splitter-line-active-color`   | `$splitter-line-active-color`   | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
+| `--bulma-splitter-grip-length`         | `$splitter-grip-length`         | `1.5rem`                                                                                |
+| `--bulma-splitter-grip-size`           | `$splitter-grip-size`           | `0.25rem`                                                                               |
+| `--bulma-splitter-grip-color`          | `$splitter-grip-color`          | `var(--bulma-text-weak)`                                                                |
+| `--bulma-splitter-grip-radius`         | `$splitter-grip-radius`         | `var(--bulma-radius-rounded)`                                                           |
+| `--bulma-splitter-button-size`         | `$splitter-button-size`         | `1.5rem`                                                                                |
+| `--bulma-splitter-button-icon-size`    | `$splitter-button-icon-size`    | `1rem`                                                                                  |
+| `--bulma-splitter-button-color`        | `$splitter-button-color`        | `var(--bulma-text)`                                                                     |
+| `--bulma-splitter-button-background`   | `$splitter-button-background`   | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-splitter-button-border-width` | `$splitter-button-border-width` | `1px`                                                                                   |
+| `--bulma-splitter-button-border-color` | `$splitter-button-border-color` | `var(--bulma-border)`                                                                   |
+| `--bulma-splitter-button-radius`       | `$splitter-button-radius`       | `var(--bulma-radius-rounded)`                                                           |
+| `--bulma-splitter-button-hover-color`  | `$splitter-button-hover-color`  | `var(--bulma-splitter-line-active-color)`                                               |
+| `--bulma-splitter-button-gap`          | `$splitter-button-gap`          | `0.25rem`                                                                               |
 
 <!-- /bestax:generated cssvars -->

@@ -35,6 +35,8 @@ but some things only the app can do:
   on white ([#2188](https://github.com/allxsmith/bestax/issues/2188)), so check the pairs you use.
 - **Let people stop what moves.** A `Carousel` with `autoplay` shows its button that stops it only
   with `rotationControl`, so turn that on too, or give the page a way of its own.
+- **Let people resize without dragging.** `Splitter` and `AppFrame`'s resizable column take a
+  click only with `stepButtons`, so turn that on wherever people resize.
 - **Structure the page.** Headings in order, landmarks, a page title and the page's language.
 - **Write the content.** Link text that says where it goes, error messages that say how to fix
   the error, captions and transcripts for media.

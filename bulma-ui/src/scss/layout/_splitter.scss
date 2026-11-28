@@ -6,10 +6,13 @@
 // over a zero basis, which the component sets inline, so the server and the
 // client lay it out the same. A handle is a strip of fixed size with a line
 // down its middle and a short grip, both borders, so forced colors keeps them.
+// With `stepButtons`, round buttons sit over the line, one each side of the
+// grip.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "../mixins" as *;
+@use "../resize-buttons" as *;
 
 // The strip across the line: what a mouse grabs. It reaches 24px for a
 // coarse pointer, WCAG 2.5.8's minimum target.
@@ -32,6 +35,19 @@ $splitter-grip-size: 0.25rem !default;
 // the page on both schemes (#1716).
 $splitter-grip-color: cv.getVar("text-weak") !default;
 $splitter-grip-radius: cv.getVar("radius-rounded") !default;
+// The step buttons: 24px across, WCAG 2.5.8's minimum target, with an arrow
+// in the text color, and the line's active color under the pointer.
+$splitter-button-size: 1.5rem !default;
+$splitter-button-icon-size: 1rem !default;
+$splitter-button-color: cv.getVar("text") !default;
+$splitter-button-background: cv.getVar("scheme-main") !default;
+$splitter-button-border-width: 1px !default;
+$splitter-button-border-color: cv.getVar("border") !default;
+$splitter-button-radius: cv.getVar("radius-rounded") !default;
+$splitter-button-hover-color: cv.getVar("splitter-line-active-color") !default;
+// The room between two buttons on the same side of the grip, and between
+// each side and the grip.
+$splitter-button-gap: 0.25rem !default;
 
 .#{iv.$class-prefix}splitter {
   @include cv.register-vars(
@@ -46,6 +62,15 @@ $splitter-grip-radius: cv.getVar("radius-rounded") !default;
       "splitter-grip-size": #{$splitter-grip-size},
       "splitter-grip-color": #{$splitter-grip-color},
       "splitter-grip-radius": #{$splitter-grip-radius},
+      "splitter-button-size": #{$splitter-button-size},
+      "splitter-button-icon-size": #{$splitter-button-icon-size},
+      "splitter-button-color": #{$splitter-button-color},
+      "splitter-button-background": #{$splitter-button-background},
+      "splitter-button-border-width": #{$splitter-button-border-width},
+      "splitter-button-border-color": #{$splitter-button-border-color},
+      "splitter-button-radius": #{$splitter-button-radius},
+      "splitter-button-hover-color": #{$splitter-button-hover-color},
+      "splitter-button-gap": #{$splitter-button-gap},
     )
   );
 }
@@ -166,6 +191,45 @@ $splitter-grip-radius: cv.getVar("radius-rounded") !default;
   }
 }
 
+// ---- The step buttons ------------------------------------------------------------
+
+// A box with no width after the handle, moved back by half the handle onto
+// its line, so it takes no room from the panes and the buttons hang over the
+// line. Its two halves leave the grip's length between them, with a gap each
+// side of it, in the middle.
+.#{iv.$class-prefix}splitter-buttons {
+  position: relative;
+  z-index: 1;
+  inset-inline-start: calc(-0.5 * #{cv.getVar("splitter-handle-size")});
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(#{cv.getVar("splitter-grip-length")} + 2 * #{cv.getVar("splitter-button-gap")});
+  inline-size: 0;
+}
+
+// Its halves and the buttons, drawn as AppFrame's are.
+@include extras-resize-buttons("splitter");
+
+// Stacked panes: the box lies across, moved up onto the line, and the
+// arrows point up and down, whichever way the page reads.
+.#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-buttons {
+  inset-inline-start: auto;
+  inset-block-start: calc(-0.5 * #{cv.getVar("splitter-handle-size")});
+  flex-direction: row;
+  inline-size: auto;
+  block-size: 0;
+
+  > .#{iv.$class-prefix}splitter-buttons-group {
+    flex-direction: row;
+  }
+
+  .#{iv.$class-prefix}splitter-button svg {
+    transform: rotate(90deg);
+  }
+}
+
 // ---- Media ---------------------------------------------------------------------
 
 // A finger needs a wider strip than a mouse.
@@ -177,6 +241,16 @@ $splitter-grip-radius: cv.getVar("radius-rounded") !default;
   .#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-handle {
     inline-size: auto;
     block-size: cv.getVar("splitter-handle-size-coarse");
+  }
+
+  // The buttons follow the wider strip's line.
+  .#{iv.$class-prefix}splitter-buttons {
+    inset-inline-start: calc(-0.5 * #{cv.getVar("splitter-handle-size-coarse")});
+  }
+
+  .#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-buttons {
+    inset-inline-start: auto;
+    inset-block-start: calc(-0.5 * #{cv.getVar("splitter-handle-size-coarse")});
   }
 }
 

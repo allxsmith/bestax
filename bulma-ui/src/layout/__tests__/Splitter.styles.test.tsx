@@ -207,6 +207,131 @@ describe('Splitter styles', () => {
     });
   });
 
+  describe('step buttons', () => {
+    const box = '.splitter-buttons';
+    const button = '.splitter-button';
+    const stackedBox = '.splitter.is-vertical > .splitter-buttons';
+
+    it('registers their variables on the root, from Bulma tokens', () => {
+      const root = PLAIN.filter(r => r.selector === '.splitter').map(
+        r => r.declarations
+      );
+      expect(Object.assign({}, ...root)).toMatchObject({
+        '--bulma-splitter-button-size': '1.5rem',
+        '--bulma-splitter-button-icon-size': '1rem',
+        '--bulma-splitter-button-color': 'var(--bulma-text)',
+        '--bulma-splitter-button-background': 'var(--bulma-scheme-main)',
+        '--bulma-splitter-button-border-width': '1px',
+        '--bulma-splitter-button-border-color': 'var(--bulma-border)',
+        '--bulma-splitter-button-radius': 'var(--bulma-radius-rounded)',
+        '--bulma-splitter-button-hover-color':
+          'var(--bulma-splitter-line-active-color)',
+        '--bulma-splitter-button-gap': '0.25rem',
+      });
+    });
+
+    it('puts them in a box with no width, moved back onto the handle’s line, over the panes', () => {
+      expect(find(PLAIN, box)).toEqual({
+        position: 'relative',
+        'z-index': '1',
+        'inset-inline-start': 'calc(-0.5 * var(--bulma-splitter-handle-size))',
+        flex: 'none',
+        display: 'flex',
+        'flex-direction': 'column',
+        'align-items': 'center',
+        // The grip's length between the halves, and a gap each side, so a
+        // longer grip keeps its room.
+        gap: 'calc(var(--bulma-splitter-grip-length) + 2 * var(--bulma-splitter-button-gap))',
+        'inline-size': '0',
+      });
+    });
+
+    it('keeps the room for the grip in the middle, the two halves meeting it, and lets a press through them to the handle', () => {
+      expect(find(PLAIN, '.splitter-buttons-group')).toEqual({
+        flex: '1 1 0',
+        display: 'flex',
+        'flex-direction': 'column',
+        'align-items': 'center',
+        gap: 'var(--bulma-splitter-button-gap)',
+        // The halves lie over the handle; only the buttons take a press.
+        'pointer-events': 'none',
+      });
+      expect(find(PLAIN, button)['pointer-events']).toBe('auto');
+      expect(find(PLAIN, '.splitter-buttons-group:first-child')).toEqual({
+        'justify-content': 'flex-end',
+      });
+    });
+
+    it('draws a round 24px button, its arrow in the text color, the active color under the pointer', () => {
+      expect(find(PLAIN, button)).toMatchObject({
+        'inline-size': 'var(--bulma-splitter-button-size)',
+        'block-size': 'var(--bulma-splitter-button-size)',
+        border:
+          'var(--bulma-splitter-button-border-width) solid var(--bulma-splitter-button-border-color)',
+        'border-radius': 'var(--bulma-splitter-button-radius)',
+        'background-color': 'var(--bulma-splitter-button-background)',
+        color: 'var(--bulma-splitter-button-color)',
+        cursor: 'pointer',
+        'touch-action': 'manipulation',
+      });
+      expect(find(PLAIN, `${button} svg`)).toEqual({
+        'inline-size': 'var(--bulma-splitter-button-icon-size)',
+        'block-size': 'var(--bulma-splitter-button-icon-size)',
+      });
+      expect(find(PLAIN, `${button}:hover`)).toEqual({
+        'border-color': 'var(--bulma-splitter-button-hover-color)',
+        color: 'var(--bulma-splitter-button-hover-color)',
+      });
+      expect(find(PLAIN, `${button}:focus-visible`)).toMatchObject({
+        'outline-offset': '2px',
+      });
+    });
+
+    it('turns an arrow right to left, and a quarter between stacked panes, whichever way the page reads', () => {
+      expect(find(PLAIN, `${button}:dir(rtl) svg`)).toEqual({
+        transform: 'scaleX(-1)',
+      });
+      // Stacked, the turn outranks the mirroring, so up stays up.
+      expect(find(PLAIN, `${stackedBox} ${button} svg`)).toEqual({
+        transform: 'rotate(90deg)',
+      });
+      expect(find(PLAIN, stackedBox)).toEqual({
+        'inset-inline-start': 'auto',
+        'inset-block-start': 'calc(-0.5 * var(--bulma-splitter-handle-size))',
+        'flex-direction': 'row',
+        'inline-size': 'auto',
+        'block-size': '0',
+      });
+      expect(find(PLAIN, `${stackedBox} > .splitter-buttons-group`)).toEqual({
+        'flex-direction': 'row',
+      });
+    });
+
+    it('follows the wider strip’s line for a coarse pointer', () => {
+      const coarse = ['@media (pointer: coarse)'];
+      expect(find(PLAIN, box, coarse)).toEqual({
+        'inset-inline-start':
+          'calc(-0.5 * var(--bulma-splitter-handle-size-coarse))',
+      });
+      expect(find(PLAIN, stackedBox, coarse)).toEqual({
+        'inset-inline-start': 'auto',
+        'inset-block-start':
+          'calc(-0.5 * var(--bulma-splitter-handle-size-coarse))',
+      });
+    });
+
+    it('takes the highlight under the pointer and a ring in the text color in forced colors', () => {
+      const forced = ['@media (forced-colors: active)'];
+      expect(find(PLAIN, `${button}:hover`, forced)).toEqual({
+        'border-color': 'Highlight',
+        color: 'Highlight',
+      });
+      expect(find(PLAIN, `${button}:focus-visible`, forced)).toEqual({
+        'outline-color': 'CanvasText',
+      });
+    });
+  });
+
   it('prefixes every class under a class prefix', () => {
     expect(PREFIXED.map(r => r.selector)).toEqual(
       PLAIN.map(r => r.selector.replace(/\.(splitter|is-)/g, '.bestax-$1'))

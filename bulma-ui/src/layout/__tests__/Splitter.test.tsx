@@ -825,6 +825,193 @@ describe('Splitter', () => {
     });
   });
 
+  describe('Step buttons', () => {
+    const button = (name: string) => screen.getByRole('button', { name });
+    const halvesOf = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('.splitter-buttons-group'));
+
+    it('has none without stepButtons', () => {
+      render(<TwoPanes />);
+      expect(screen.queryByRole('button')).toBeNull();
+    });
+
+    it('puts two buttons after each handle, named after its pane, that step it as the arrow keys do', () => {
+      const { container } = render(<TwoPanes step={2} stepButtons />);
+      const [handle] = handles();
+      expect(handle.nextElementSibling).toHaveClass('splitter-buttons');
+      expect(screen.getAllByRole('button')).toHaveLength(2);
+      const [shrink, grow] = halvesOf(container).map(
+        half => half.firstElementChild
+      );
+      expect(shrink).toBe(button('Shrink Files'));
+      expect(grow).toBe(button('Grow Files'));
+      expect(grow).toHaveClass('splitter-button');
+      expect(grow).toHaveAttribute('aria-controls', panesOf(container)[0].id);
+      fireEvent.click(grow!);
+      expect(value(handle).now).toBe(27);
+      fireEvent.click(shrink!, { shiftKey: true });
+      expect(value(handle).now).toBe(7);
+    });
+
+    it('steps the same way right to left, where the arrows turn instead', () => {
+      rightToLeft();
+      render(<TwoPanes stepButtons />);
+      fireEvent.click(button('Grow Files'));
+      expect(value(handles()[0]).now).toBe(26);
+    });
+
+    it('names each handle’s buttons after the pane it speaks for', () => {
+      render(
+        <Splitter stepButtons>
+          <Splitter.Pane label="Folders">Folders</Splitter.Pane>
+          <Splitter.Pane label="Messages">Messages</Splitter.Pane>
+          <Splitter.Pane label="Message">Message</Splitter.Pane>
+        </Splitter>
+      );
+      expect(
+        screen.getAllByRole('button').map(b => b.getAttribute('aria-label'))
+      ).toEqual([
+        'Shrink Folders',
+        'Grow Folders',
+        'Shrink Messages',
+        'Grow Messages',
+      ]);
+      fireEvent.click(button('Grow Messages'));
+      expect(handles().map(handle => value(handle).now)).toEqual(
+        [100 / 3, 100 / 3 + 1].map(Math.round)
+      );
+    });
+
+    it('grows a pane after its handle with the button toward the start, and collapses it from the end', () => {
+      const onCollapsedChange = vi.fn();
+      const { container } = render(
+        <Splitter stepButtons>
+          <Splitter.Pane label="Canvas">Canvas</Splitter.Pane>
+          <Splitter.Pane
+            label="Inspector"
+            defaultSize={30}
+            minSize={20}
+            collapsible
+            onCollapsedChange={onCollapsedChange}
+          >
+            Inspector
+          </Splitter.Pane>
+        </Splitter>
+      );
+      const [start, end] = halvesOf(container);
+      expect(start.children).toHaveLength(1);
+      expect(start.firstElementChild).toBe(button('Grow Inspector'));
+      expect(end.firstElementChild).toBe(button('Shrink Inspector'));
+      const toggle = button('Inspector');
+      expect(end.lastElementChild).toBe(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      expect(toggle).toHaveAttribute('aria-controls', panesOf(container)[1].id);
+      fireEvent.click(button('Grow Inspector'));
+      expect(growOf(container)).toEqual([69, 31]);
+      toggle.focus();
+      fireEvent.click(toggle);
+      expect(growOf(container)).toEqual([100, 0]);
+      expect(panesOf(container)[1]).toHaveAttribute('hidden');
+      expect(onCollapsedChange).toHaveBeenLastCalledWith(true);
+      // The same button, its name kept, says it's collapsed, keeps focus and
+      // brings it back.
+      expect(toggle).toHaveAccessibleName('Inspector');
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(toggle).toHaveFocus();
+      fireEvent.click(toggle);
+      expect(growOf(container)).toEqual([69, 31]);
+      expect(onCollapsedChange).toHaveBeenLastCalledWith(false);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('puts a middle pane’s collapse button only on the handle it collapses through', () => {
+      const { container } = render(
+        <Splitter stepButtons>
+          <Splitter.Pane label="Folders">Folders</Splitter.Pane>
+          <Splitter.Pane label="Messages" collapsible>
+            Messages
+          </Splitter.Pane>
+          <Splitter.Pane label="Message">Message</Splitter.Pane>
+        </Splitter>
+      );
+      // Both handles speak for Messages, and its room goes to Message, past
+      // the second, which moves toward the start as it shuts.
+      expect(handles().map(h => h.getAttribute('aria-label'))).toEqual([
+        'Messages',
+        'Messages',
+      ]);
+      const toggles = screen.getAllByRole('button', { name: 'Messages' });
+      expect(toggles).toHaveLength(1);
+      const [, , start] = halvesOf(container);
+      expect(start.firstElementChild).toBe(toggles[0]);
+      fireEvent.click(toggles[0]);
+      expect(growOf(container)[1]).toBe(0);
+    });
+
+    it('puts a collapsible pane before the handle’s toggle at the start', () => {
+      const { container } = render(
+        <Splitter stepButtons>
+          <Splitter.Pane label="Files" defaultSize={25} collapsible>
+            Files
+          </Splitter.Pane>
+          <Splitter.Pane label="Editor">Editor</Splitter.Pane>
+        </Splitter>
+      );
+      const [start] = halvesOf(container);
+      expect(start.firstElementChild).toBe(button('Files'));
+      expect(start.lastElementChild).toBe(button('Shrink Files'));
+      fireEvent.click(button('Files'));
+      expect(growOf(container)).toEqual([0, 100]);
+    });
+
+    it('takes its names from labels, keeping the English for an empty one', () => {
+      const { rerender } = render(
+        <Splitter
+          stepButtons
+          labels={{
+            shrink: pane => `Smaller ${pane}`,
+            grow: () => '',
+          }}
+        >
+          <Splitter.Pane label="Files" collapsible>
+            Files
+          </Splitter.Pane>
+          <Splitter.Pane label="Editor">Editor</Splitter.Pane>
+        </Splitter>
+      );
+      expect(button('Smaller Files')).toBeInTheDocument();
+      expect(button('Grow Files')).toBeInTheDocument();
+      // The collapse button is the pane's own label.
+      expect(button('Files')).toBeInTheDocument();
+      rerender(
+        <Splitter stepButtons>
+          <Splitter.Pane collapsible>Files</Splitter.Pane>
+          <Splitter.Pane>Editor</Splitter.Pane>
+        </Splitter>
+      );
+      // A pane with no label leaves the verb alone, as its handle has no name.
+      expect(screen.getAllByRole('button').map(b => b.textContent)).toEqual([
+        '',
+        '',
+        '',
+      ]);
+      expect(button('Shrink')).toBeInTheDocument();
+    });
+
+    it('prefixes its classes', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <TwoPanes stepButtons />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelector(
+          '.bestax-splitter-buttons > .bestax-splitter-buttons-group > .bestax-splitter-button'
+        )
+      ).toBe(button('Shrink Files'));
+    });
+  });
+
   describe('Measured limits', () => {
     it('turns px and rem limits into percentages once it has measured, and fits the layout to them', () => {
       lengths = { root: 812, handle: 12 };

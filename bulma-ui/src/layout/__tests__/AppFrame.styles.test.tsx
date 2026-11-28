@@ -367,6 +367,28 @@ describe('AppFrame styles', () => {
           find(PLAIN, `${root} > .app-frame-nav.is-resizing`, [media])
         ).toEqual({ transition: 'none' });
       });
+
+      it('puts the step buttons in a box with no width on the column’s edge, sticking as the handle does', () => {
+        const rule = ruleFor(PLAIN, `${root} > .app-frame-buttons`, [media]);
+        expect(rule.declarations).toEqual({
+          'grid-area': 'nav',
+          'justify-self': 'end',
+          'align-self': 'start',
+          position: 'sticky',
+          'inset-block-start': 'var(--bulma-app-frame-header-height)',
+          'z-index': '29',
+          display: 'flex',
+          'flex-direction': 'column',
+          'align-items': 'center',
+          gap: 'var(--bulma-app-frame-button-gap)',
+          'inline-size': '0',
+          'block-size': 'calc(100dvh - var(--bulma-app-frame-header-height))',
+        });
+        expect(rule.all.filter(([p]) => p === 'block-size')).toEqual([
+          ['block-size', 'calc(100vh - var(--bulma-app-frame-header-height))'],
+          ['block-size', 'calc(100dvh - var(--bulma-app-frame-header-height))'],
+        ]);
+      });
     });
 
     describe('collapsed to the rail', () => {
@@ -486,6 +508,83 @@ describe('AppFrame styles', () => {
 
   it('hides the resize handle below the breakpoint, where the nav is a drawer', () => {
     expect(find(PLAIN, '.app-frame-handle')).toEqual({ display: 'none' });
+  });
+
+  describe('the step buttons', () => {
+    const button = '.app-frame-button';
+
+    it('register their variables on the root, from Bulma tokens', () => {
+      expect(find(PLAIN, '.app-frame')).toMatchObject({
+        '--bulma-app-frame-button-size': '1.5rem',
+        '--bulma-app-frame-button-icon-size': '1rem',
+        '--bulma-app-frame-button-color': 'var(--bulma-text)',
+        '--bulma-app-frame-button-background': 'var(--bulma-scheme-main)',
+        '--bulma-app-frame-button-border-width': '1px',
+        '--bulma-app-frame-button-border-color': 'var(--bulma-border)',
+        '--bulma-app-frame-button-radius': 'var(--bulma-radius-rounded)',
+        '--bulma-app-frame-button-gap': '0.25rem',
+        '--bulma-app-frame-button-hover-color':
+          'hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))',
+      });
+    });
+
+    it('hide below the breakpoint, with the handle', () => {
+      expect(find(PLAIN, '.app-frame-buttons')).toEqual({ display: 'none' });
+    });
+
+    it('meet halfway down the handle, one in each half of their box, which lets a press through to the handle', () => {
+      expect(find(PLAIN, '.app-frame-buttons-group')).toEqual({
+        flex: '1 1 0',
+        display: 'flex',
+        'flex-direction': 'column',
+        'align-items': 'center',
+        gap: 'var(--bulma-app-frame-button-gap)',
+        'pointer-events': 'none',
+      });
+      expect(find(PLAIN, '.app-frame-button')['pointer-events']).toBe('auto');
+      expect(find(PLAIN, '.app-frame-buttons-group:first-child')).toEqual({
+        'justify-content': 'flex-end',
+      });
+    });
+
+    it('are round and 24px across, their arrows in the text color, the on-scheme primary under the pointer', () => {
+      expect(find(PLAIN, button)).toMatchObject({
+        'inline-size': 'var(--bulma-app-frame-button-size)',
+        'block-size': 'var(--bulma-app-frame-button-size)',
+        border:
+          'var(--bulma-app-frame-button-border-width) solid var(--bulma-app-frame-button-border-color)',
+        'border-radius': 'var(--bulma-app-frame-button-radius)',
+        'background-color': 'var(--bulma-app-frame-button-background)',
+        color: 'var(--bulma-app-frame-button-color)',
+        cursor: 'pointer',
+        'touch-action': 'manipulation',
+      });
+      expect(find(PLAIN, `${button} svg`)).toEqual({
+        'inline-size': 'var(--bulma-app-frame-button-icon-size)',
+        'block-size': 'var(--bulma-app-frame-button-icon-size)',
+      });
+      expect(find(PLAIN, `${button}:dir(rtl) svg`)).toEqual({
+        transform: 'scaleX(-1)',
+      });
+      expect(find(PLAIN, `${button}:hover`)).toEqual({
+        'border-color': 'var(--bulma-app-frame-button-hover-color)',
+        color: 'var(--bulma-app-frame-button-hover-color)',
+      });
+      expect(find(PLAIN, `${button}:focus-visible`)).toMatchObject({
+        'outline-offset': '2px',
+      });
+    });
+
+    it('take the highlight under the pointer and a ring in the text color in forced colors', () => {
+      const forced = ['@media (forced-colors: active)'];
+      expect(find(PLAIN, `${button}:hover`, forced)).toEqual({
+        'border-color': 'Highlight',
+        color: 'Highlight',
+      });
+      expect(find(PLAIN, `${button}:focus-visible`, forced)).toEqual({
+        'outline-color': 'CanvasText',
+      });
+    });
   });
 
   it('draws the handle’s line in the highlight color and its ring in the text color in forced colors', () => {

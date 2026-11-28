@@ -334,6 +334,50 @@ export const ResizableColumn: Story = {
   },
 };
 
+/**
+ * Buttons halfway down the column's edge, for a pointer that can't drag:
+ * each moves the edge as an arrow key does. The burger collapses the column
+ * and brings it back.
+ */
+export const ResizableStepButtons: Story = {
+  render: function ResizableStepButtonsExample() {
+    const [width, setWidth] = useState(256);
+    return (
+      <AppFrame>
+        {header()}
+        <AppFrame.Nav
+          resizable
+          stepButtons
+          step={32}
+          width={width}
+          onWidthChange={setWidth}
+        >
+          {menu}
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <Section>
+            <Title as="h1">Orders</Title>
+            <Paragraph>The column is {width} pixels wide.</Paragraph>
+          </Section>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole('separator', { name: 'Sections' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '256');
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Grow navigation' })
+    );
+    await expect(handle).toHaveAttribute('aria-valuenow', '288');
+    await userEvent.click(
+      canvas.getByRole('button', { name: 'Shrink navigation' })
+    );
+    await expect(handle).toHaveAttribute('aria-valuenow', '256');
+  },
+};
+
 /** A drawer of filters, which stays open as you pick, from the tablet up. */
 export const FiltersAtTablet: Story = {
   render: function FiltersAtTabletExample() {
