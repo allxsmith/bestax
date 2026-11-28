@@ -1,11 +1,16 @@
 import type { MockInstance } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { createPortal } from 'react-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Carousel, CarouselItem } from '../Carousel';
 import { ConfigProvider } from '../../helpers/Config';
 import { compileSheet } from '../../__tests__/compile-scss';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  mouseOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 // Mock timers for auto-play testing
 vi.useFakeTimers();
@@ -484,44 +489,9 @@ describe('Carousel', () => {
     // and skipped the mouseover, whose related target, the page, React
     // rendered.
     describe('in a shadow root the page portals into', () => {
-      const Page = ({ children }: { children: React.ReactNode }) => {
-        const [root, setRoot] = React.useState<ShadowRoot | null>(null);
-        return (
-          <>
-            <p>Page text</p>
-            <div
-              ref={el => {
-                if (el && !el.shadowRoot) {
-                  setRoot(el.attachShadow({ mode: 'open' }));
-                }
-              }}
-            >
-              {root && createPortal(children, root)}
-            </div>
-          </>
-        );
-      };
-      const page = () => screen.getByText('Page text');
-      const host = () => page().nextElementSibling!;
-      const slide = () => host().shadowRoot!.querySelector('.carousel-item')!;
-      /**
-       * The mouse events a browser sends as the pointer moves from `from`
-       * onto `to`: a mouseout on `from` naming `outRelated`, and a mouseover
-       * on `to` naming `overRelated`. Each names the other end as the browser
-       * shows it from that event's side of the shadow boundary, where the
-       * host stands for anything inside the shadow root.
-       */
-      const move = (
-        from: Element,
-        to: Element,
-        { outRelated = to, overRelated = from } = {}
-      ) => {
-        fireEvent.mouseOut(from, { relatedTarget: outRelated });
-        fireEvent.mouseOver(to, { relatedTarget: overRelated });
-      };
-      /** From the page onto `slide()`, and back. */
-      const enter = () => move(page(), slide(), { outRelated: host() });
-      const leave = () => move(slide(), page(), { overRelated: host() });
+      const slide = () => previewRoot().querySelector('.carousel-item')!;
+      const enter = () => mouseInFromPage(slide());
+      const leave = () => mouseOutToPage(slide());
       const tick = (ms: number) =>
         act(() => {
           vi.advanceTimersByTime(ms);
@@ -530,9 +500,9 @@ describe('Carousel', () => {
       it('pauses while the pointer that came from the page is over it, and goes on once it leaves', () => {
         const onChange = vi.fn();
         render(
-          <Page>
+          <ShadowPreview>
             <TestCarousel autoplay interval={1000} onChange={onChange} />
-          </Page>
+          </ShadowPreview>
         );
         enter();
         tick(3000);
@@ -546,9 +516,9 @@ describe('Carousel', () => {
       it('runs a mouseover handler the caller gives it too', () => {
         const onMouseOver = vi.fn();
         render(
-          <Page>
+          <ShadowPreview>
             <TestCarousel autoplay onMouseOver={onMouseOver} />
-          </Page>
+          </ShadowPreview>
         );
         enter();
         expect(onMouseOver).toHaveBeenCalledTimes(1);
