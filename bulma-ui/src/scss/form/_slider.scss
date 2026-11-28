@@ -609,8 +609,15 @@ $slider-vertical-height: 200px !default;
     height: calc(cv.getVar("slider-thumb-size") * 1.2);
   }
 
+  // One rule per engine, as the sizes' own are: Chromium and Safari drop a
+  // whole selector list that holds Firefox's thumb, so they drew every sized
+  // circle at the default size (#2324).
   &.#{iv.$class-prefix}is-small .#{iv.$class-prefix}slider-input {
-    &::-webkit-slider-thumb,
+    &::-webkit-slider-thumb {
+      width: calc(cv.getVar("slider-thumb-size-small") * 1.2);
+      height: calc(cv.getVar("slider-thumb-size-small") * 1.2);
+    }
+
     &::-moz-range-thumb {
       width: calc(cv.getVar("slider-thumb-size-small") * 1.2);
       height: calc(cv.getVar("slider-thumb-size-small") * 1.2);
@@ -618,7 +625,11 @@ $slider-vertical-height: 200px !default;
   }
 
   &.#{iv.$class-prefix}is-medium .#{iv.$class-prefix}slider-input {
-    &::-webkit-slider-thumb,
+    &::-webkit-slider-thumb {
+      width: calc(cv.getVar("slider-thumb-size-medium") * 1.2);
+      height: calc(cv.getVar("slider-thumb-size-medium") * 1.2);
+    }
+
     &::-moz-range-thumb {
       width: calc(cv.getVar("slider-thumb-size-medium") * 1.2);
       height: calc(cv.getVar("slider-thumb-size-medium") * 1.2);
@@ -626,11 +637,25 @@ $slider-vertical-height: 200px !default;
   }
 
   &.#{iv.$class-prefix}is-large .#{iv.$class-prefix}slider-input {
-    &::-webkit-slider-thumb,
+    &::-webkit-slider-thumb {
+      width: calc(cv.getVar("slider-thumb-size-large") * 1.2);
+      height: calc(cv.getVar("slider-thumb-size-large") * 1.2);
+    }
+
     &::-moz-range-thumb {
       width: calc(cv.getVar("slider-thumb-size-large") * 1.2);
       height: calc(cv.getVar("slider-thumb-size-large") * 1.2);
     }
+  }
+}
+
+// Firefox draws a thumb's 2px border outside its size, where Chromium and
+// Safari draw it inside, so its thumb is 4px wider and the browser insets it
+// 2px further from each end. The value bubble is placed by the thumb's box,
+// so `Slider.tsx` adds this to it (#2346).
+@supports selector(::-moz-range-thumb) {
+  .#{iv.$class-prefix}slider {
+    --slider-thumb-outset: 4px;
   }
 }
 
@@ -647,17 +672,21 @@ $slider-vertical-height: 200px !default;
 // end. The inputs keep their length, since a longer one would reach past the
 // slider's box, and the value bubble follows the box (`Slider.tsx`).
 // Chromium and Safari draw a thumb at its size, so the default and small
-// sizes' thumbs are banded. Firefox draws a thumb's border outside its width,
-// so only its small thumb, drawn 20px, is. A medium or large thumb is 24px or
-// more, and so is a circle thumb at the default size, so those are left as
-// they were. A sized circle thumb waits on #2324.
-$-banded: ".#{iv.$class-prefix}is-range:not(.#{iv.$class-prefix}is-circle):not(.#{iv.$class-prefix}is-medium):not(.#{iv.$class-prefix}is-large)";
-$-banded-moz: ".#{iv.$class-prefix}is-range.#{iv.$class-prefix}is-small:not(.#{iv.$class-prefix}is-circle)";
+// sizes' thumbs are banded. A circle thumb is drawn at 1.2 times its size,
+// which leaves one at the default size no band. Firefox draws a thumb's border
+// outside its width, so only its small thumbs are banded. A medium or large
+// thumb is 24px or more, circle or not, so those are left as they were.
+$-banded: ".#{iv.$class-prefix}is-range:not(.#{iv.$class-prefix}is-medium):not(.#{iv.$class-prefix}is-large)";
+$-banded-moz: ".#{iv.$class-prefix}is-range.#{iv.$class-prefix}is-small";
 $-input: ".#{iv.$class-prefix}slider-input.#{iv.$class-prefix}slider-input";
 
 .#{iv.$class-prefix}slider#{$-banded} {
   --slider-thumb-drawn: var(--slider-size-thumb-size, #{cv.getVar("slider-thumb-size")});
   --slider-thumb-band: max(0px, (24px - var(--slider-thumb-drawn)) / 2);
+
+  &.#{iv.$class-prefix}is-circle {
+    --slider-thumb-drawn: calc(var(--slider-size-thumb-size, #{cv.getVar("slider-thumb-size")}) * 1.2);
+  }
 
   #{$-input} {
     &::-webkit-slider-thumb {
@@ -686,13 +715,17 @@ $-input: ".#{iv.$class-prefix}slider-input.#{iv.$class-prefix}slider-input";
   }
 }
 
-// Firefox's thumb is its width, a pixel of padding and the 2px ring each side.
+// Firefox draws a thumb's 2px ring outside its width, so its band is half of
+// what the circle and the ring fall short of 24px. The box is sized whole, as
+// Chromium's is: Firefox rounds a band under a pixel, a small circle's, up to
+// one, which would grow a box sized by its content, and the ring with it.
 .#{iv.$class-prefix}slider#{$-banded-moz} #{$-input} {
   --slider-moz-thumb-band: max(0px, (20px - var(--slider-thumb-drawn)) / 2);
 
   &::-moz-range-thumb {
-    width: calc(var(--slider-thumb-drawn) + 2px);
-    height: calc(var(--slider-thumb-drawn) + 2px);
+    box-sizing: border-box;
+    width: calc(var(--slider-thumb-drawn) + 4px + 2 * var(--slider-moz-thumb-band));
+    height: calc(var(--slider-thumb-drawn) + 4px + 2 * var(--slider-moz-thumb-band));
     padding: 1px;
     border: var(--slider-moz-thumb-band) solid transparent;
     background-clip: content-box;

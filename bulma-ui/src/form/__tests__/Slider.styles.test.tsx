@@ -359,6 +359,55 @@ describe.each([
   );
 });
 
+// Firefox draws a thumb's border outside its size, where Chromium and Safari
+// draw it inside, so a value bubble placed by the thumb's size sat off a
+// Firefox thumb, toward the middle of the track (#2346). The stylesheet tells
+// the slider how much wider Firefox draws it, and only there. jsdom applies no
+// `@supports` rule, so this reads the rule off the compiled sheet, with no
+// prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider thumb outset, with %s', (_label, prefix) => {
+  const compiled = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+  it('is the 4px of the border Firefox draws outside its thumb, set where the thumb is Firefox’s', () => {
+    const sheet = document.createElement('style');
+    sheet.textContent = compiled;
+    document.head.appendChild(sheet);
+    const found: string[][] = [];
+    const walk = (list: CSSRuleList, within: string) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) {
+          const outset = rule.style.getPropertyValue('--slider-thumb-outset');
+          if (outset) found.push([within, rule.selectorText, outset.trim()]);
+        } else if ('cssRules' in rule) {
+          walk(
+            (rule as CSSGroupingRule).cssRules,
+            rule.cssText.split('{')[0].trim()
+          );
+        }
+      }
+    };
+    try {
+      walk((sheet.sheet as CSSStyleSheet).cssRules, '');
+    } finally {
+      sheet.remove();
+    }
+    expect(found).toEqual([
+      ['@supports selector(::-moz-range-thumb)', `.${prefix}slider`, '4px'],
+    ]);
+  });
+});
+
 // A size gives the input its track's height, a horizontal track's thickness,
 // in rules that tied with the vertical slider's `height: 100%` and came
 // later, so a vertical slider with a size shrank to a few pixels (#2293).
@@ -784,6 +833,59 @@ describe.each([
   });
 });
 
+// A circle thumb is drawn at 1.2 times its size. Each size's circle was one
+// rule whose selector list held both engines' thumbs, which Chromium and
+// Safari drop whole, so they drew every sized circle at the default size
+// (#2324). jsdom keeps no pseudo-elements, so the rules are read off the
+// compiled sheet, with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('A circle Slider thumb’s size, with %s', (_label, prefix) => {
+  const p = (name: string) => `.${prefix}${name}`;
+  const compiled = sass
+    .compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    )
+    .css.replace(/\/\*[\s\S]*?\*\//g, '');
+  /** Each innermost rule's selector list and its declarations, as written. */
+  const rules = Array.from(compiled.matchAll(/([^{}]+)\{([^{}]*)\}/g), m => ({
+    selectors: m[1].split(',').map(s => s.trim()),
+    body: m[2].replace(/\s+/g, ' ').trim(),
+  }));
+
+  it('never lists one engine’s thumb with another’s in a selector', () => {
+    const engines = (selectors: string[]) =>
+      new Set(
+        selectors.flatMap(s => s.match(/::-(?:webkit|moz)-/g) ?? ['plain'])
+      );
+    expect(
+      rules.filter(r => engines(r.selectors).size > 1).map(r => r.selectors)
+    ).toEqual([]);
+  });
+
+  it.each(['small', 'medium', 'large'])(
+    'draws a %s circle thumb at 1.2 times the size’s thumb in each engine',
+    size => {
+      for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+        const selector = `${p('slider')}${p('is-circle')}${p(`is-${size}`)} ${p('slider-input')}${pseudo}`;
+        const found = rules.filter(
+          r => r.selectors.length === 1 && r.selectors[0] === selector
+        );
+        expect(found).toHaveLength(1);
+        const size12 = `calc(var(--bulma-slider-thumb-size-${size}) * 1.2)`;
+        expect(found[0].body).toBe(`width: ${size12}; height: ${size12};`);
+      }
+    }
+  );
+});
+
 // A range slider's inputs take no presses, so its thumbs are its only targets,
 // and two can sit side by side, so each needs a 24px target of its own
 // (#2195). A thumb drawn smaller grows by a transparent band and draws its
@@ -862,11 +964,11 @@ describe.each([
     return found[0].decls;
   };
 
-  const banded = `${p('slider')}${p('is-range')}:not(${p('is-circle')}):not(${p('is-medium')}):not(${p('is-large')})`;
+  const banded = `${p('slider')}${p('is-range')}:not(${p('is-medium')}):not(${p('is-large')})`;
   const thumbOf = `${banded} ${p('slider-input')}${p('slider-input')}`;
   // Firefox draws its thumb's border outside its width, so only its small
-  // thumb, drawn 20px, needs the band there.
-  const bandedMoz = `${p('slider')}${p('is-range')}${p('is-small')}:not(${p('is-circle')})`;
+  // thumbs need the band there.
+  const bandedMoz = `${p('slider')}${p('is-range')}${p('is-small')}`;
   const mozThumbOf = `${bandedMoz} ${p('slider-input')}${p('slider-input')}`;
   const inputs = `${p('slider')}${p('is-range')}:not(${p('is-vertical')}) ${p('slider-input')}${p('slider-input')}`;
 
@@ -890,6 +992,13 @@ describe.each([
     });
   });
 
+  it('bands a circle thumb by the 1.2 times its size it’s drawn at', () => {
+    expect(decls(`${banded}${p('is-circle')}`)).toEqual({
+      '--slider-thumb-drawn':
+        'calc(var(--slider-size-thumb-size, var(--bulma-slider-thumb-size)) * 1.2)',
+    });
+  });
+
   it('grows a WebKit thumb by the band and draws its circle inside it', () => {
     expect(decls(`${thumbOf}::-webkit-slider-thumb`)).toEqual({
       width: 'calc(var(--slider-thumb-drawn) + 2 * var(--slider-thumb-band))',
@@ -907,15 +1016,19 @@ describe.each([
   });
 
   it('grows a small Firefox thumb by its own band, to the same 24px', () => {
-    // Its width, a pixel of padding and the 2px ring each side make the 20px
-    // it's drawn, so its band is half of what that falls short of 24px.
+    // Its 2px ring sits outside its width, so its band is half of what its
+    // drawn size and the ring fall short of 24px. The box is sized whole,
+    // since Firefox rounds a band under a pixel, a small circle's, up to one.
     expect(decls(mozThumbOf)).toEqual({
       '--slider-moz-thumb-band':
         'max(0px, (20px - var(--slider-thumb-drawn)) / 2)',
     });
     expect(decls(`${mozThumbOf}::-moz-range-thumb`)).toEqual({
-      width: 'calc(var(--slider-thumb-drawn) + 2px)',
-      height: 'calc(var(--slider-thumb-drawn) + 2px)',
+      'box-sizing': 'border-box',
+      width:
+        'calc(var(--slider-thumb-drawn) + 4px + 2 * var(--slider-moz-thumb-band))',
+      height:
+        'calc(var(--slider-thumb-drawn) + 4px + 2 * var(--slider-moz-thumb-band))',
       padding: '1px',
       border: 'var(--slider-moz-thumb-band) solid transparent',
       'background-clip': 'content-box',
@@ -1034,6 +1147,16 @@ describe.each([
       [
         'a circle one',
         <Slider key="c" range isCircle tooltip="always" />,
+        true,
+      ],
+      [
+        'a small circle one',
+        <Slider key="sc" range isCircle size="small" tooltip="always" />,
+        true,
+      ],
+      [
+        'a medium circle one',
+        <Slider key="mc" range isCircle size="medium" tooltip="always" />,
         false,
       ],
       ['a single slider', <Slider key="1" tooltip="always" />, false],

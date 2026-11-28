@@ -933,7 +933,7 @@ describe('Slider', () => {
       const output = container.querySelector('.slider-output') as HTMLElement;
       // Bottom uses corrected thumb-inset formula (same as horizontal left)
       expect(output.style.bottom).toBe(
-        'calc(var(--bulma-slider-thumb-size) / 2 + 0.5 * (100% - var(--bulma-slider-thumb-size)))'
+        'calc((var(--bulma-slider-thumb-size) + var(--slider-thumb-outset, 0px)) / 2 + 0.5 * (100% - (var(--bulma-slider-thumb-size) + var(--slider-thumb-outset, 0px))))'
       );
     });
 
@@ -1650,12 +1650,13 @@ describe('Slider', () => {
     });
 
     // A range thumb at the default or small size takes presses on a box at
-    // least 24px square, which the browser insets the thumb by (#2195).
+    // least 24px square, which the browser insets the thumb by (#2195), a
+    // circle thumb's included (#2324).
     it.each([
       [
         'a default range slider by its thumb’s box',
         <Slider key="d" range defaultValue={[25, 75]} tooltip="always" />,
-        'max(24px, var(--bulma-slider-thumb-size))',
+        'max(24px, (var(--bulma-slider-thumb-size) + var(--slider-thumb-outset, 0px)))',
       ],
       [
         'a small range slider by its thumb’s box',
@@ -1666,7 +1667,7 @@ describe('Slider', () => {
           defaultValue={[25, 75]}
           tooltip="always"
         />,
-        'max(24px, var(--bulma-slider-thumb-size-small))',
+        'max(24px, (var(--bulma-slider-thumb-size-small) + var(--slider-thumb-outset, 0px)))',
       ],
       [
         'a medium range slider by its thumb',
@@ -1677,10 +1678,10 @@ describe('Slider', () => {
           defaultValue={[25, 75]}
           tooltip="always"
         />,
-        'var(--bulma-slider-thumb-size-medium)',
+        '(var(--bulma-slider-thumb-size-medium) + var(--slider-thumb-outset, 0px))',
       ],
       [
-        'a circle range slider by its thumb',
+        'a circle range slider by its thumb’s box',
         <Slider
           key="c"
           range
@@ -1688,12 +1689,36 @@ describe('Slider', () => {
           defaultValue={[25, 75]}
           tooltip="always"
         />,
-        '(var(--bulma-slider-thumb-size) * 1.2)',
+        'max(24px, ((var(--bulma-slider-thumb-size) * 1.2) + var(--slider-thumb-outset, 0px)))',
+      ],
+      [
+        'a small circle range slider by its thumb’s box',
+        <Slider
+          key="sc"
+          range
+          isCircle
+          size="small"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        'max(24px, ((var(--bulma-slider-thumb-size-small) * 1.2) + var(--slider-thumb-outset, 0px)))',
+      ],
+      [
+        'a medium circle range slider by its thumb',
+        <Slider
+          key="mc"
+          range
+          isCircle
+          size="medium"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        '((var(--bulma-slider-thumb-size-medium) * 1.2) + var(--slider-thumb-outset, 0px))',
       ],
       [
         'a single slider by its thumb',
         <Slider key="1" defaultValue={25} tooltip="always" />,
-        'var(--bulma-slider-thumb-size)',
+        '(var(--bulma-slider-thumb-size) + var(--slider-thumb-outset, 0px))',
       ],
     ])('places the bubble of %s', (_name, ui, thumb) => {
       const { container } = render(ui);
@@ -1711,6 +1736,48 @@ describe('Slider', () => {
       expect(output.style.insetInlineStart).toMatch(/^calc\(/);
       expect(output.style.left).toBe('');
     });
+
+    // Firefox draws a thumb's border outside its size, and the stylesheet
+    // tells the slider by how much there (#2346), so each bubble is placed
+    // for a thumb that much wider: a single thumb's 22px and 4px, 26px, and
+    // a range thumb's box, the larger of 24px and that. No bestax stylesheet
+    // is loaded here, so the one appended stands in for it.
+    it.each([
+      [
+        'a single slider',
+        <Slider key="1" value={0} min={0} max={100} showOutput />,
+        ['27px'],
+      ],
+      [
+        'a range slider',
+        <Slider key="r" range value={[0, 100]} showOutput />,
+        ['27px', '-27px'],
+      ],
+    ])(
+      'measures the thumbs of %s with the outset Firefox draws them by',
+      (_name, ui, nudges) => {
+        const firefox = document.createElement('style');
+        firefox.textContent =
+          '.slider, .slider-input { --bulma-slider-thumb-size: 22px; --slider-thumb-outset: 4px; }';
+        document.head.appendChild(firefox);
+        try {
+          withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+            const { container } = render(ui);
+            const outputs = Array.from(
+              container.querySelectorAll<HTMLElement>('.slider-output')
+            );
+            expect(outputs.map(output => output.style.transform)).toEqual(
+              nudges.map(
+                nudge =>
+                  `translateX(calc(var(--slider-output-shift, -50%) + ${nudge}))`
+              )
+            );
+          });
+        } finally {
+          firefox.remove();
+        }
+      }
+    );
 
     // A range thumb at the default size takes presses on a 24px box, which
     // the browser insets it by, so the bubble is centred 12px in (#2195).
