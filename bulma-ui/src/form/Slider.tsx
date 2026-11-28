@@ -17,6 +17,7 @@ import { useClassPrefix } from '../helpers/Config';
 import { warnIfUnnamed, warnOnce } from '../helpers/devWarnings';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { chain } from '../helpers/useHoverOpen';
 import {
   useInsideField,
   useInsideControl,
@@ -557,8 +558,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const [internalSingle, setInternalSingle] = useState<number>(() =>
       !range ? ((defaultValue as number) ?? startInRange(min, max, step)) : 0
     );
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [showTooltipHigh, setShowTooltipHigh] = useState(false);
+    // Hover and focus each keep their own flag. One ending must not hide
+    // the tooltip while the other still holds (#2362).
+    const [pointerOnLow, setPointerOnLow] = useState(false);
+    const [focusedLow, setFocusedLow] = useState(false);
+    const [pointerOnHigh, setPointerOnHigh] = useState(false);
+    const [focusedHigh, setFocusedHigh] = useState(false);
+    const showTooltip = pointerOnLow || focusedLow;
+    const showTooltipHigh = pointerOnHigh || focusedHigh;
     const inputRef = useRef<HTMLInputElement>(null);
     const inputHighRef = useRef<HTMLInputElement>(null);
     const outputRef = useRef<HTMLOutputElement>(null);
@@ -973,10 +980,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           disabled={disabled}
           onChange={handleSingleChange}
           onKeyDown={handleKeyDown}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onFocus={() => setShowTooltip(true)}
-          onBlur={() => setShowTooltip(false)}
+          onMouseEnter={() => setPointerOnLow(true)}
+          onMouseLeave={() => setPointerOnLow(false)}
           className={prefixedClassNames(classPrefix, 'slider-input')}
           style={
             {
@@ -990,6 +995,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-label={ariaLabel as string | undefined}
           {...getAriaProps(currentSingle)}
           {...rest}
+          // After the spread, so a caller's onFocus or onBlur runs as well
+          // as the tooltip's, rather than replacing it (#2362).
+          onFocus={chain(rest.onFocus, () => setFocusedLow(true))}
+          onBlur={chain(rest.onBlur, () => setFocusedLow(false))}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
           aria-describedby={describedBy}
@@ -1058,10 +1067,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[0]}
           disabled={disabled}
           onChange={handleRangeLowChange}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onFocus={() => setShowTooltip(true)}
-          onBlur={() => setShowTooltip(false)}
+          onMouseEnter={() => setPointerOnLow(true)}
+          onMouseLeave={() => setPointerOnLow(false)}
           className={prefixedClassNames(
             classPrefix,
             'slider-input',
@@ -1074,6 +1081,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...lowThumb.aria}
           {...getAriaProps(currentRange[0])}
           {...thumbRest}
+          onFocus={chain(thumbRest.onFocus, () => setFocusedLow(true))}
+          onBlur={chain(thumbRest.onBlur, () => setFocusedLow(false))}
           id={controlId}
           aria-describedby={describedBy}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
@@ -1088,10 +1097,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[1]}
           disabled={disabled}
           onChange={handleRangeHighChange}
-          onMouseEnter={() => setShowTooltipHigh(true)}
-          onMouseLeave={() => setShowTooltipHigh(false)}
-          onFocus={() => setShowTooltipHigh(true)}
-          onBlur={() => setShowTooltipHigh(false)}
+          onMouseEnter={() => setPointerOnHigh(true)}
+          onMouseLeave={() => setPointerOnHigh(false)}
+          onFocus={() => setFocusedHigh(true)}
+          onBlur={() => setFocusedHigh(false)}
           className={prefixedClassNames(
             classPrefix,
             'slider-input',
