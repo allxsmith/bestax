@@ -923,6 +923,7 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       onKeyDown,
       onPointerLeave,
       onPointerEnter,
+      onPointerOver,
       onFocus,
       onBlur,
       onFocusCapture,
@@ -1053,6 +1054,7 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
           onKeyDown={handleKeyDown}
           onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
           onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+          onPointerOver={chain(onPointerOver, hover.onPointerOver)}
           onFocus={chain(onFocus, hover.onFocus)}
           onBlur={chain(onBlur, hover.onBlur)}
           onFocusCapture={handleFocusCapture}
