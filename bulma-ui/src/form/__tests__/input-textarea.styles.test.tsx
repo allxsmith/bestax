@@ -1,10 +1,11 @@
 // Bulma shows a focused input or textarea with a border in the focus color and
-// a ring drawn as a box-shadow, and turns the outline off. Forced colors drops
-// the shadow, and a read-only field has no text caret, so `_input-textarea.scss`
-// draws Bulma's focus outline on a focused read-only one there (#2087). These
-// resolve its rules beside Bulma's own input and textarea rules, in either
-// order, the way a browser would. jsdom puts no element in a focus state, so
-// each sheet is read with `:focus-visible` and `:focus` as attributes of the
+// a ring drawn as a box-shadow, and turns the outline off. Its `[readonly]`
+// rule drops that ring too, so `_input-textarea.scss` draws it again on a
+// focused read-only field (#2128). Forced colors drops the shadow, and a
+// read-only field can't count on a text caret, so there the partial draws
+// Bulma's focus outline on it (#2087). These resolve its rules beside Bulma's
+// own input and textarea rules, in either order, the way a browser would.
+// Each sheet is read with `:focus-visible` and `:focus` as attributes of the
 // same rank, which a focused field carries, or with `is-focused`.
 import type { ReactElement } from 'react';
 import { render } from '@testing-library/react';
@@ -24,6 +25,7 @@ import {
   cascade,
   compilePartial,
   compileSource,
+  customProperty,
 } from '../../__tests__/css-cascade';
 
 const DATA = [
@@ -82,6 +84,17 @@ describe.each([
           { forcedColors }
         ),
       ])
+    );
+
+  /** The box-shadow that wins on `el`, on a page that doesn't force colors. */
+  const shadowOf = (el: Element, css: string) =>
+    cascade(
+      el,
+      css,
+      ['box-shadow'],
+      (style, p) =>
+        style.getPropertyValue(p).replace(/\s+/g, ' ').trim() || undefined,
+      { forcedColors: false }
     );
 
   const READ_ONLY: [string, () => HTMLElement][] = [
@@ -167,6 +180,101 @@ describe.each([
       const el = focus(fieldOf(<InputBase aria-label="Name" />));
       expect(outlineOf(el, sheet(), true)['outline-style']).toBe('none');
     });
+
+    // Bulma's `[readonly]` rule, which drops the inset shadow, drops its focus
+    // ring too, so the partial draws it again (#2128).
+    it.each(READ_ONLY)(
+      "gives %s Bulma's focus ring, the one a field you can type in gets",
+      (_field, field) => {
+        const ring = shadowOf(
+          focus(fieldOf(<InputBase aria-label="Typed" />)),
+          sheet()
+        );
+        expect(ring).toMatch(/^var\(--bulma-input-focus-shadow-size\) hsla\(/);
+        expect(shadowOf(field(), sheet())).toBe(ring);
+      }
+    );
+
+    it('gives a colored read-only field the ring in its own focus color', () => {
+      const el = focus(
+        fieldOf(<InputBase readOnly color="primary" aria-label="Name" />)
+      );
+      // Bulma points a colored field's focus color at its color, and the
+      // ring reads it.
+      expect(customProperty(el, sheet(), '--bulma-input-focus-h')).toBe(
+        'var(--bulma-primary-h)'
+      );
+      expect(shadowOf(el, sheet())).toMatch(
+        /hsla\(var\(--bulma-input-focus-h\), var\(--bulma-input-focus-s\), var\(--bulma-input-focus-l\)/
+      );
+    });
+
+    it('leaves a read-only field without a ring at rest, and a static input', () => {
+      expect(
+        shadowOf(fieldOf(<InputBase readOnly aria-label="Name" />), sheet())
+      ).toBe('none');
+      expect(
+        shadowOf(
+          focus(fieldOf(<InputBase readOnly isStatic aria-label="Name" />)),
+          sheet()
+        )
+      ).toBe('none');
+    });
+
+    it('gives a static textarea the ring, since Bulma draws it as a field', () => {
+      const ring = shadowOf(
+        focus(fieldOf(<TextAreaBase aria-label="Typed" />)),
+        sheet()
+      );
+      expect(
+        shadowOf(
+          focus(fieldOf(<TextAreaBase readOnly isStatic aria-label="Notes" />)),
+          sheet()
+        )
+      ).toBe(ring);
+    });
+
+    it('leaves a disabled read-only field without a ring, as Bulma leaves a disabled one', () => {
+      expect(
+        shadowOf(
+          fieldOf(<InputBase readOnly disabled isFocused aria-label="Name" />),
+          sheet()
+        )
+      ).toBe('none');
+      expect(
+        shadowOf(
+          fieldOf(
+            <TextAreaBase readOnly disabled isFocused aria-label="Notes" />
+          ),
+          sheet()
+        )
+      ).toBe('none');
+      // A field in a disabled fieldset is disabled too.
+      const inFieldset = fieldOf(
+        <fieldset disabled>
+          <InputBase readOnly isFocused aria-label="Name" />
+        </fieldset>
+      );
+      expect(inFieldset).toBeDisabled();
+      expect(shadowOf(inFieldset, sheet())).toBe('none');
+    });
+
+    it.each([
+      [':focus', (el: HTMLElement) => el.setAttribute('data-focus', '')],
+      ['is-focused', () => {}],
+    ])('draws the ring for %s on its own', (state, enter) => {
+      const el = fieldOf(
+        <InputBase
+          readOnly
+          isFocused={state === 'is-focused'}
+          aria-label="Name"
+        />
+      );
+      enter(el);
+      expect(shadowOf(el, sheet())).toMatch(
+        /^var\(--bulma-input-focus-shadow-size\) hsla\(/
+      );
+    });
   });
 
   it("leaves Taginput's text box to the box around it at its limit, whichever partial loads first", () => {
@@ -183,6 +291,7 @@ describe.each([
       bulma + partial + taginput,
     ]) {
       expect(outlineOf(box, focused(css), true)['outline-style']).toBe('none');
+      expect(shadowOf(box, focused(css))).toBe('none');
     }
   });
 
