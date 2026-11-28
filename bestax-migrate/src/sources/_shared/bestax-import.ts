@@ -159,16 +159,105 @@ export function placeBestaxImport(
 }
 
 /**
+ * How the note `noteRetainedImport` writes ends: first in this wording, then
+ * in an earlier release's, which a re-run replaces rather than adds to.
+ */
+const NOTE_ENDINGS = [
+  'still imported for what the other TODOs in this file flag; resolve those, then remove this import',
+  'no bestax-bulma equivalent yet — migrate and remove this import',
+];
+
+function isRetainedNote(comment: any): boolean {
+  const text = String(comment?.value ?? '');
+  return (
+    text.startsWith(' TODO(bestax-migrate): ') &&
+    NOTE_ENDINGS.some(ending => text.endsWith(ending))
+  );
+}
+
+/**
+ * Say on a library import the transform keeps (at `importPath`) why it
+ * stays. Each component the file retains (`retained`, by imported name) is
+ * still used where the transform left a TODO of its own, for whatever reason
+ * that TODO gives (no bestax equivalent, a member the table doesn't know, a
+ * value it couldn't rewrite, a release the project may not get), so the note
+ * points at those rather than naming one reason. It names the ones this
+ * import brings in: a named import its own, a namespace import those no
+ * other import of the library names. An import that brings in none, such as
+ * a broken default binding or a namespace used as a value, gets no note: the
+ * TODO that keeps it is where it is used, or on the import itself. Call it
+ * once the import's specifiers are the ones it keeps.
+ */
+export function noteRetainedImport(
+  ctx: TransformContext,
+  importPath: any,
+  retained: ReadonlySet<string>
+): void {
+  const node = importPath.node;
+  const named = (declaration: any): string[] =>
+    (declaration.specifiers ?? [])
+      .filter((s: any) => s.type === 'ImportSpecifier')
+      .map((s: any) => nameOf(s.imported));
+  let names: string[];
+  if (
+    (node.specifiers ?? []).some(
+      (s: any) => s.type === 'ImportNamespaceSpecifier'
+    )
+  ) {
+    const elsewhere = new Set(
+      (importPath.parent?.node?.body ?? [])
+        .filter(
+          (other: any) =>
+            other !== node &&
+            other.type === 'ImportDeclaration' &&
+            other.source?.value === node.source?.value
+        )
+        .flatMap(named)
+    );
+    names = [...retained].filter(name => !elsewhere.has(name));
+  } else {
+    names = named(node).filter(name => retained.has(name));
+  }
+  const listed = [...new Set(names)].sort((a, b) => a.localeCompare(b));
+  const text = ` TODO(bestax-migrate): ${listed.join(', ')} ${
+    listed.length === 1 ? 'is' : 'are'
+  } ${NOTE_ENDINGS[0]}`;
+  // An earlier note is replaced where it was, so a re-run leaves the
+  // comments around it in their places.
+  const comments: any[] = [];
+  let placed = listed.length === 0;
+  for (const comment of node.comments ?? []) {
+    if (!isRetainedNote(comment)) {
+      comments.push(comment);
+    } else if (!placed) {
+      comments.push(
+        comment.value === text
+          ? comment
+          : ctx.j.commentLine(
+              text,
+              comment.leading ?? true,
+              comment.trailing ?? false
+            )
+      );
+      placed = true;
+    }
+  }
+  if (!placed) comments.push(ctx.j.commentLine(text, true, false));
+  node.comments = comments;
+}
+
+/**
  * A pruned declaration takes its comments with it — a licence header, an
  * eslint directive. Hand them to `carrier` (the bestax import that survives),
- * or to the next statement, or keep them where they were.
+ * or to the next statement, or keep them where they were. A note
+ * `noteRetainedImport` wrote on it was about the import, so it goes with it.
  */
 export function carryPrunedComments(
   node: any,
   importPath: any,
   carrier: any | null
 ): void {
-  const comments = node.comments ?? [];
+  const comments = (node.comments ?? []).filter((c: any) => !isRetainedNote(c));
   if (comments.length === 0) return;
   const body: any[] = importPath.parent?.node?.body ?? [];
   const index = body.indexOf(node);

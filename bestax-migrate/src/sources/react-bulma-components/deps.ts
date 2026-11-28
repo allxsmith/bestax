@@ -34,16 +34,17 @@ export const updateDependencies: DependenciesUpdate = (
     }
   }
 
-  // The transform deliberately RETAINS imports for components with no bestax
-  // equivalent (Element, Tile) so a partially migrated app still runs.
-  // Removing the package from the manifest strands exactly those imports once
-  // the user runs the install the report asks for, so say so rather than
-  // letting them find out at build time. rbx has carried this warning since
-  // it shipped; this source retains imports the same way and did not.
+  // Files can still import the library after the run: a trimmed import the
+  // transform kept, so a partially migrated app still runs, one it couldn't
+  // rewrite, a file it couldn't parse or doesn't read (`.vue`, `.astro`).
+  // Removing the package from the manifest strands those imports once the
+  // user runs the install the report asks for, so say so rather than letting
+  // them find out at build time. rbx has carried this warning since it
+  // shipped; this source retains imports the same way and did not.
   if (removedSource && options.sourceStillImported) {
     manifest.report(
       'deps',
-      'react-bulma-components was removed from package.json, but some files still import it for components with no bestax equivalent — resolve those `TODO(bestax-migrate)` imports before installing, or re-add react-bulma-components until you have'
+      'react-bulma-components was removed from package.json, but some files still import it, and installing would leave those imports unresolved: migrate every remaining import of react-bulma-components (the ones the codemod kept are marked `TODO(bestax-migrate)`) before installing, or re-add react-bulma-components until you have'
     );
   }
 

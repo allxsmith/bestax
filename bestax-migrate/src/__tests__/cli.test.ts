@@ -239,7 +239,7 @@ describe('the source-still-imported warning', () => {
     const dir = projectWith(file, content);
     const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
     expect(logs.join('\n')).toMatch(
-      /still import it for components with no bestax/
+      /still import it, and installing would leave those imports unresolved/
     );
   });
 
@@ -250,7 +250,7 @@ describe('the source-still-imported warning', () => {
     const dir = projectWith('App.tsx', "import 'rbx';\nexport const A = 1;\n");
     const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
     expect(logs.join('\n')).toMatch(
-      /still import it for components with no bestax/
+      /still import it, and installing would leave those imports unresolved/
     );
   });
 
@@ -270,7 +270,7 @@ describe('the source-still-imported warning', () => {
     );
     const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
     expect(logs.join('\n')).toMatch(
-      /still import it for components with no bestax/
+      /still import it, and installing would leave those imports unresolved/
     );
   });
 
@@ -280,7 +280,7 @@ describe('the source-still-imported warning', () => {
       "import { X } from 'rbx-other';\nexport const A = 1;\n"
     );
     const { logs } = await runCli(['rbx', path.join(dir, 'src'), '--dry']);
-    expect(logs.join('\n')).not.toMatch(/still import it for components/);
+    expect(logs.join('\n')).not.toMatch(/still import it/);
   });
 });
 

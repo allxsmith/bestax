@@ -221,8 +221,8 @@ describe('a broken default import is kept, not stranded', () => {
     expect(output).toContain('import RBX from "rbx"');
     expect(output).toContain('from "@allxsmith/bestax-bulma"');
     expect(todos.some(t => t.rule === 'imports')).toBe(true);
-    // …and no empty "  have no bestax-bulma equivalent" comment.
-    expect(output).not.toMatch(/\):\s+have no bestax-bulma/);
+    // …and no note listing no names.
+    expect(output).not.toMatch(/\):\s+(is|are) still imported/);
   });
 });
 
@@ -500,7 +500,9 @@ describe('removing the source package while imports remain', () => {
     );
     expect(
       todos.some(t =>
-        /still import it for components with no bestax/.test(t.message)
+        /still import it, and installing would leave those imports unresolved/.test(
+          t.message
+        )
       )
     ).toBe(true);
   });

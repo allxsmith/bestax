@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Buttons, Footer, Tag, Tags } from "@allxsmith/bestax-bulma";
-// TODO(bestax-migrate): Generic, Highlight, List, Numeric, Tile have no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Generic, Highlight, List, Numeric, Tile are still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Tile, List, Generic, Numeric, Highlight } from "rbx";
 
 // TODO(bestax-migrate): `Tile` — Bulma v1 replaced tiles with the Grid/Cell components — see https://bestax.io/docs/api/grid and the migration guide https://bestax.io/docs/guides/getting-started/migration/bulma-0-9-to-1
