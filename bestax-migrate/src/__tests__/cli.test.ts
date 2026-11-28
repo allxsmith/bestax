@@ -284,6 +284,52 @@ describe('the source-still-imported warning', () => {
   });
 });
 
+describe("rbx's Pagination.Ellipsis with a className (#2302)", () => {
+  const pages =
+    "import { Pagination } from 'rbx';\n" +
+    'export const A = () => (\n' +
+    '  <Pagination><Pagination.List><Pagination.Ellipsis className="is-hidden-mobile" /></Pagination.List></Pagination>\n' +
+    ');\n';
+  function app(dependencies: Record<string, string>): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-rbx-'));
+    tempDirs.push(dir);
+    fs.mkdirSync(path.join(dir, 'src'));
+    fs.writeFileSync(path.join(dir, 'src/Pages.tsx'), pages);
+    fs.writeFileSync(
+      path.join(dir, 'package.json'),
+      `${JSON.stringify({ name: 'a', dependencies }, null, 2)}\n`
+    );
+    return dir;
+  }
+  const read = (dir: string, file: string) =>
+    fs.readFileSync(path.join(dir, file), 'utf8');
+
+  it('carries it over where the run adds bestax-bulma, whose range starts at 5.78.4', async () => {
+    const dir = app({ rbx: '^2.2.0' });
+    await runCli(['rbx', dir]);
+    expect(read(dir, 'src/Pages.tsx')).toContain(
+      '<Pagination.Ellipsis className="is-hidden-mobile" />'
+    );
+    expect(read(dir, 'src/Pages.tsx')).not.toContain("from 'rbx'");
+  });
+
+  it("keeps it rbx's, naming the release, where the project may get an older one", async () => {
+    for (const [dependencies, args] of [
+      [{ rbx: '^2.2.0', '@allxsmith/bestax-bulma': '^5.0.0' }, []],
+      [{ rbx: '^2.2.0' }, ['--no-deps']],
+    ] as const) {
+      const dir = app(dependencies);
+      await runCli(['rbx', dir, ...args]);
+      const output = read(dir, 'src/Pages.tsx');
+      expect(output).toContain("import { Pagination } from 'rbx';");
+      expect(output).toContain(
+        '<Pagination.Ellipsis className="is-hidden-mobile" />'
+      );
+      expect(output).toContain('^5.78.4');
+    }
+  });
+});
+
 describe('the bulma-classes source', () => {
   const box =
     'export default function A() {\n  return <div className="box">x</div>;\n}\n';

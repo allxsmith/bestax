@@ -7,9 +7,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { BESTAX_FLOOR } from '../deps-common.js';
-import { bestaxFloorFor, readBestaxPackages } from '../bestax-floor.js';
+import {
+  CLASSNAME_SINCE,
+  bestaxFloorFor,
+  classNameWaitsFor,
+  readBestaxPackages,
+} from '../bestax-floor.js';
 import { compareVersions } from '../semver-range.js';
-import { CLASSNAME_SINCE } from '../../bloomer/mapping.js';
 import { ROOTS } from '../../bulma-classes/class-map.js';
 
 const dirs: string[] = [];
@@ -192,6 +196,17 @@ describe('readBestaxPackages and bestaxFloorFor', () => {
         true
       )
     ).toBe('5.80.0');
+  });
+
+  it('names the release a target takes a className from until the floor reaches it', () => {
+    const since = CLASSNAME_SINCE['Pagination.Ellipsis'];
+    for (const floor of [undefined, '5.0.0', `${since}-rc.1`]) {
+      expect(classNameWaitsFor('Pagination.Ellipsis', floor)).toBe(since);
+    }
+    for (const floor of [since, '5.99.0', '6.0.0']) {
+      expect(classNameWaitsFor('Pagination.Ellipsis', floor)).toBeUndefined();
+    }
+    expect(classNameWaitsFor('Pagination.Link', undefined)).toBeUndefined();
   });
 
   it('adds a range that reaches every release a conversion waits for', () => {
