@@ -760,9 +760,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                         data-index={index}
                         className={itemClasses}
                         onClick={() => !isDisabled && handleSelect(item)}
-                        onMouseEnter={() =>
-                          !isDisabled && setHighlightedIndex(index)
-                        }
+                        // On a mouseover from outside the option rather than
+                        // the enter. React makes the enter out of the mouseout
+                        // on the element the pointer left, and coming from a
+                        // React page around a shadow root, that mouseout
+                        // names only the host. One from inside is the pointer
+                        // moving between an itemTemplate's own elements,
+                        // which isn't coming onto the option.
+                        onMouseOver={e => {
+                          const from = e.relatedTarget as Node | null;
+                          if (!isDisabled && !e.currentTarget.contains(from)) {
+                            setHighlightedIndex(index);
+                          }
+                        }}
                         role="option"
                         aria-selected={isHighlighted && !isDisabled}
                         aria-disabled={isDisabled}

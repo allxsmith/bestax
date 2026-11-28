@@ -10,6 +10,11 @@ import {
 import { Field } from '../Field';
 import { Control } from '../Control';
 import {
+  ShadowPreview,
+  mouseInFromPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
+import {
   announceDelay,
   announcementLifetime,
 } from '../../helpers/statusRegion';
@@ -1533,6 +1538,96 @@ describe('Autocomplete', () => {
       fireEvent.mouseEnter(banana);
 
       expect(banana).toHaveClass('is-active');
+    });
+  });
+
+  // The pointer moving between an option's own elements isn't coming onto
+  // it, so it leaves the highlight where the keys put it.
+  it('keeps the keys’ highlight while the pointer moves within another option', () => {
+    render(
+      <Autocomplete
+        data={fruits}
+        itemTemplate={item => (
+          <span>
+            <b>{String(item)}</b> <i>fruit</i>
+          </span>
+        )}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'a' } });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const options = screen.getAllByRole('option');
+    expect(options[1]).toHaveClass('is-active');
+
+    const [bold, italic] = Array.from(options[0].querySelectorAll('b, i'));
+    fireEvent.mouseOver(italic, { relatedTarget: bold });
+    expect(options[1]).toHaveClass('is-active');
+    expect(options[0]).not.toHaveClass('is-active');
+  });
+
+  // A pointer that came onto an option in a shadow root from the page around
+  // it didn't highlight it (#2341), as with Carousel (#2309) and Toast
+  // (#2316). The browser's mouseout on the page names only the shadow host,
+  // so React made no enter for the option.
+  describe('in a shadow root the page portals into', () => {
+    const combobox = () =>
+      previewRoot().querySelector<HTMLInputElement>('[role="combobox"]')!;
+    const options = () => previewRoot().querySelectorAll('[role="option"]');
+
+    it('highlights an option the pointer came onto from the page', () => {
+      render(
+        <ShadowPreview>
+          <Autocomplete data={['apple', 'avocado']} />
+        </ShadowPreview>
+      );
+      fireEvent.change(combobox(), { target: { value: 'a' } });
+      expect(options()).toHaveLength(2);
+      fireEvent.keyDown(combobox(), { key: 'ArrowDown' });
+      expect(options()[0]).toHaveClass('is-active');
+
+      mouseInFromPage(options()[1]);
+      expect(options()[1]).toHaveClass('is-active');
+      expect(options()[0]).not.toHaveClass('is-active');
+
+      fireEvent.keyDown(combobox(), { key: 'Enter' });
+      expect(combobox()).toHaveValue('avocado');
+    });
+
+    it('highlights an option whose itemTemplate content the pointer came onto from the page', () => {
+      render(
+        <ShadowPreview>
+          <Autocomplete
+            data={['apple', 'avocado']}
+            itemTemplate={item => (
+              <span>
+                <b>{String(item)}</b> <i>fruit</i>
+              </span>
+            )}
+          />
+        </ShadowPreview>
+      );
+      fireEvent.change(combobox(), { target: { value: 'a' } });
+      mouseInFromPage(options()[1].querySelector('b')!);
+      expect(options()[1]).toHaveClass('is-active');
+    });
+
+    it('still skips a disabled option the pointer came onto from the page', () => {
+      render(
+        <ShadowPreview>
+          <Autocomplete
+            data={[
+              { value: 'a', label: 'Apple', disabled: true },
+              { value: 'b', label: 'Avocado' },
+            ]}
+            field="label"
+          />
+        </ShadowPreview>
+      );
+      fireEvent.change(combobox(), { target: { value: 'a' } });
+      mouseInFromPage(options()[0]);
+      expect(options()[0]).not.toHaveClass('is-active');
     });
   });
 
