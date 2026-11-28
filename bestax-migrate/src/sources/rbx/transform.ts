@@ -48,6 +48,7 @@ import {
   NO_CLASSNAME_TARGETS,
   applyPropAction,
   applyUniversalProps,
+  dropPropsTargetIgnores,
   mergeClass,
 } from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
@@ -801,6 +802,11 @@ export default function transform(
       'tooltip'
     );
     if (tooltip) wrapped = tooltip;
+    // Last, so every pass above takes what it can first: a target that takes
+    // no props keeps none of what they left.
+    if (NO_CLASSNAME_TARGETS.has(target)) {
+      dropPropsTargetIgnores(ctx, path, element, target, `component:${dotted}`);
+    }
     if (wrapped !== element) path.replace(wrapped);
   });
 

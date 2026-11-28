@@ -113,6 +113,40 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
     expect(output).toContain('<Dropdown.Divider />');
   });
 
+  it("names Dropdown.Divider's other attributes and a spread, keeping its key (#2371)", () => {
+    const divider = (attrs: string) =>
+      `import { Dropdown } from 'rbx';\nexport const A = (p: any) => <Dropdown><Dropdown.Menu><Dropdown.Content><Dropdown.Divider ${attrs} /></Dropdown.Content></Dropdown.Menu></Dropdown>;\n`;
+    const named = migrate(divider('className="thin" id="d" key="k"'));
+    const left = named.todos.filter(
+      t => t.rule === 'component:Dropdown.Divider'
+    );
+    expect(left).toHaveLength(1);
+    expect(left[0].message).toContain('`className`, `id` were removed');
+    expect(named.output).toContain('<Dropdown.Divider key="k" />');
+    const spread = migrate(divider('{...p}'));
+    const dropped = spread.todos.filter(
+      t => t.rule === 'component:Dropdown.Divider'
+    );
+    expect(dropped).toHaveLength(1);
+    expect(dropped[0].message).toContain('drops whatever this spread carries');
+    expect(spread.output).toContain('<Dropdown.Divider {...p} />');
+    // The passes before it take what they can first: the tooltip becomes
+    // its wrapper, and `as` and `innerRef` keep their own TODOs.
+    const passes = migrate(
+      divider('tooltip="hi" as="div" innerRef={p.r} key="k"')
+    );
+    expect(passes.output).toContain(
+      '<Tooltip key="k" label="hi"><Dropdown.Divider /></Tooltip>'
+    );
+    expect(passes.todos.map(t => t.rule)).toEqual(
+      expect.arrayContaining([
+        'prop:as',
+        'prop:innerRef',
+        'component:Dropdown.Divider',
+      ])
+    );
+  });
+
   it('flags a breakpoint object, which has no one class to write', () => {
     const { output, rules } = migrate(
       "import { Message } from 'rbx';\nexport const A = () => <Message><Message.Body responsive={{ mobile: { hide: { value: true } } }}>x</Message.Body></Message>;\n"

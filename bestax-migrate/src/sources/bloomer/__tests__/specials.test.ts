@@ -892,6 +892,18 @@ describe('bloomer navigation handlers', () => {
     expect(output).toContain("from 'bloomer'");
   });
 
+  it("keeps a DropdownDivider's key, which belongs to the list around it", () => {
+    const { output, todos } = migrate(
+      dyn(
+        'DropdownDivider',
+        '<>{[1].map(i => <DropdownDivider key={i} id="d" xlink:href="#a" />)}</>'
+      )
+    );
+    expect(todos.map(t => t.rule)).toEqual(['component:DropdownDivider']);
+    expect(todos[0].message).toContain('`id`, `xlink:href` were removed');
+    expect(output).toContain('<Dropdown.Divider key={i} />');
+  });
+
   it('converts a NavbarDivider with helpers or a spread', () => {
     // bestax `Navbar.Divider` merges a `className` with its own class.
     const { output, rules } = migrate(

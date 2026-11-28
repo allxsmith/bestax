@@ -370,6 +370,52 @@ export const NO_CLASSNAME_TARGETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * On a `NO_CLASSNAME_TARGETS` element, once every other pass has taken what
+ * it can, remove what is left and name it in one TODO under `rule`, since
+ * the target would fail the typecheck on it and drop it at runtime. `key`
+ * stays: it belongs to the list around the element. A spread can't be taken
+ * apart, so it stays, with a TODO saying the target drops what it carries
+ * (bloomer keeps its own element beside a spread, so only rbx reaches that).
+ */
+export function dropPropsTargetIgnores(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string,
+  rule: string
+): void {
+  const nameOf = (attr: any): string =>
+    attr.name.type === 'JSXNamespacedName'
+      ? `${attr.name.namespace.name}:${attr.name.name.name}`
+      : attr.name.name;
+  const left = attributesOf(element).filter((a: any) => nameOf(a) !== 'key');
+  const why = `bestax \`${target}\` declares no props and renders its own element`;
+  if (left.length > 0) {
+    for (const attr of left) removeAttr(element, attr);
+    ctx.dirty = true;
+    const [them, were] = left.length === 1 ? ['it', 'was'] : ['them', 'were'];
+    addTodo(
+      ctx,
+      path,
+      rule,
+      `${why}, so ${left.map(a => `\`${nameOf(a)}\``).join(', ')} ${were} removed; put ${them} on a wrapping element if you need ${them}`
+    );
+  }
+  if (
+    (element.openingElement.attributes ?? []).some(
+      (a: any) => a.type === 'JSXSpreadAttribute'
+    )
+  ) {
+    addTodo(
+      ctx,
+      path,
+      rule,
+      `${why}, so it drops whatever this spread carries; put that on a wrapping element if you need it`
+    );
+  }
+}
+
+/**
  * Apply the source library's universal modifier-prop conversions to every
  * attribute that was not already handled by the component's own prop map.
  * `universalProps` is the calling source's `UNIVERSAL_PROPS` table.

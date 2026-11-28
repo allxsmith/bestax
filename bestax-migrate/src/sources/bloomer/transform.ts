@@ -46,6 +46,7 @@ import {
   NO_CLASSNAME_TARGETS,
   applyPropAction,
   applyUniversalProps,
+  dropPropsTargetIgnores,
   mergeClass,
 } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
@@ -437,24 +438,14 @@ export default function transform(
           `${raise}, so the \`${cls}\` class \`${name}\` stood for isn't set on it: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run, or restyle by hand`
         );
       }
-      if (target === 'Dropdown.Divider') {
-        const left = attributesOf(element).filter(
-          (a: any) => !handled.has(a.name.name)
+      if (NO_CLASSNAME_TARGETS.has(target)) {
+        dropPropsTargetIgnores(
+          ctx,
+          path,
+          element,
+          target,
+          `component:${dotted}`
         );
-        if (left.length > 0) {
-          for (const attr of left) removeAttr(element, attr);
-          ctx.dirty = true;
-          addTodo(
-            ctx,
-            path,
-            'component:DropdownDivider',
-            `bestax \`Dropdown.Divider\` is a bare component that declares no props and renders its own <hr>, so ${left
-              .map((a: any) => `\`${a.name.name}\``)
-              .join(
-                ', '
-              )} could not be carried over — put them on a wrapping element if you need them`
-          );
-        }
       }
     } else if (HELPERLESS_TARGETS.has(target) || since !== undefined) {
       for (const attr of [...attributesOf(element)]) {
