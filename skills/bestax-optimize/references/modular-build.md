@@ -227,9 +227,9 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/form/select' as bestax-select;
   ```
 
-- The `input-textarea` partial **extends** stock Bulma input and textarea (an outline on a focused
-  read-only field in forced colors, where a read-only field shows no caret and only the border's
-  color would change), so an app using `Input` or `TextArea` needs both, in either order.
+- The `input-textarea` partial **extends** stock Bulma input and textarea (Bulma's focus ring on a
+  focused read-only field, which Bulma's module leaves off, and an outline there in forced colors,
+  where the ring doesn't show), so an app using `Input` or `TextArea` needs both, in either order.
   `TreeSelect`'s and `Cascader`'s field is a read-only input, and so is a read-only `ColorInput`'s
   or `PasswordInput`'s, and a `DateInput`'s, `TimeInput`'s, `DateTimeInput`'s or `Numberinput`'s
   that can't be typed in, so those want it too:
