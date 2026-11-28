@@ -7,7 +7,8 @@
  */
 
 import type { ASTPath, Collection, JSCodeshift } from 'jscodeshift';
-import type { TransformContext } from './jsx-utils.js';
+import type { ComponentMapping } from '../../types.js';
+import { addTodo, type TransformContext } from './jsx-utils.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -261,4 +262,105 @@ export function makeAliasRegistry(): AliasRegistry {
   };
   const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
   return { register, aliasAt, anyAlias };
+}
+
+/**
+ * The flat bestax name a re-export of `mapping`'s component is written as
+ * (`export { Columns as Group }`), or undefined when it has none to write.
+ */
+export function flatReExportTarget(
+  mapping: ComponentMapping | undefined
+): string | undefined {
+  return mapping &&
+    mapping.status !== 'todo' &&
+    mapping.target &&
+    !mapping.target.includes('.')
+    ? mapping.target
+    : undefined;
+}
+
+/** What the destructuring pass decided about its declarations. */
+export interface DestructuringPlan {
+  /**
+   * The nodes of each kept declaration, which the value-reference pass
+   * leaves as written: the pattern's names are bindings, not references, and
+   * the initialiser names the library's root, which stays imported for it.
+   * Rewriting them as references wrote `{ Header: Card.Header }` into the
+   * pattern and pointed the initialiser at bestax's root.
+   */
+  kept: WeakSet<object>;
+  /** Keep the declaration at `path`, destructured from `root`, with a TODO. */
+  keep(path: ASTPath<any>, root: string, message: string): void;
+  /** Prune the declaration at `path` in `settle`, unless a kept one reads it. */
+  prune(path: ASTPath<any>, root: string): void;
+  /**
+   * Keep each declaration a kept one reads (`const { Item, Bogus } = Footer`
+   * reads the one that destructures `Footer`), then prune the rest. It runs
+   * once every declaration is decided, before the scope tables change.
+   */
+  settle(): void;
+}
+
+/** A `DestructuringPlan` for the transform whose context is `ctx`. */
+export function makeDestructuringPlan(
+  ctx: TransformContext
+): DestructuringPlan {
+  const kept = new WeakSet<object>();
+  const keptPaths: ASTPath<any>[] = [];
+  const prunable: { path: ASTPath<any>; root: string }[] = [];
+  const keep = (path: ASTPath<any>, root: string, message: string) => {
+    const declarator = path.node;
+    for (const prop of declarator.id.properties) {
+      if (prop.value?.type !== 'Identifier') continue;
+      kept.add(prop.value);
+      if (prop.shorthand) kept.add(prop.key);
+    }
+    kept.add(declarator.init);
+    ctx.retained.add(root);
+    keptPaths.push(path);
+    addTodo(ctx, path, 'imports', message);
+  };
+  const settle = () => {
+    for (let i = 0; i < keptPaths.length; i++) {
+      const base: string = keptPaths[i].node.init.name;
+      // Every binding of the name in that scope, since its table has no
+      // blocks. One kept too many costs a TODO; pruning the one it reads
+      // would leave it reading nothing.
+      const bindings = new Set(
+        (
+          (keptPaths[i] as any).scope?.lookup(base)?.getBindings()[base] ?? []
+        ).map((binding: any) => binding.node)
+      );
+      for (let k = prunable.length - 1; k >= 0; k--) {
+        const { path, root } = prunable[k];
+        if (!path.node.id.properties.some((p: any) => bindings.has(p.value))) {
+          continue;
+        }
+        prunable.splice(k, 1);
+        keep(
+          path,
+          root,
+          `kept for a destructuring of \`${base}\` that stays; migrate that one first`
+        );
+      }
+    }
+    for (const { path } of prunable) {
+      const declaration = path.parent;
+      if (
+        declaration?.node?.type === 'VariableDeclaration' &&
+        declaration.node.declarations.length === 1
+      ) {
+        declaration.prune();
+      } else {
+        path.prune();
+      }
+      ctx.dirty = true;
+    }
+  };
+  return {
+    kept,
+    keep,
+    prune: (path, root) => prunable.push({ path, root }),
+    settle,
+  };
 }
