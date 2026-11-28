@@ -30,6 +30,19 @@ rbx mixes these into every component via `HelpersProps`.
 
 Every name in rbx's `colors` and `shades` unions exists in bestax verbatim.
 
+A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
+`Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
+`Panel.Heading`/`Tabs`/`Block`, `Tabs.Item`, `Message.Header`/`Body` and the `Modal` parts. An rbx
+helper on one of those becomes the Bulma class it stood for in `className` (`pull="right"` →
+`is-pulled-right`, `marginless` → `m-0`, `textSize={4}` → `is-size-4`), since Bulma v1 still ships
+every one of them. A dynamic value, a dynamic `className` or a spread the class cannot be merged
+into is flagged with the class to add, and a `responsive` breakpoint object is flagged too.
+`textColor` and `backgroundColor` are flagged there as on any component that takes neither. On
+`Pagination.Ellipsis` the classes wait for bestax-bulma 5.78.4 like its `className`
+(`component:Pagination.Ellipsis` in the unmappables), and are named in TODOs where the run can't
+show the project gets it. `Dropdown.Divider` takes no props at all, so a helper on it is named in
+a TODO, never written.
+
 ## Bare boolean modifiers → `is*`
 
 `outlined` → `isOutlined`, `rounded` → `isRounded`, `inverted` → `isInverted`,
