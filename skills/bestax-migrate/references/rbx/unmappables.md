@@ -337,6 +337,16 @@ it for you, and the codemod never writes that. Give the `Modal` an `aria-label`,
 `const X = Card.Header;` and similar. The codemod rewrites what it can prove safe and flags the
 rest; convert the usage by hand.
 
+`Pagination.Ellipsis` used as a value (`const Gap = Pagination.Ellipsis`,
+`styled(Pagination.Ellipsis)`, `createElement(Pagination.Ellipsis, props)`) converts only where
+the run shows the project gets bestax-bulma 5.78.4 or later, the same test as an ellipsis carrying
+a `className` or a spread (`component:Pagination.Ellipsis`, above). Whatever renders the reference can hand it
+a `className`, which an older release writes in place of `.pagination-ellipsis`, and the codemod
+can't see that. Elsewhere it stays rbx's with this flag naming the release, and so does the rbx
+import it needs. A run without `--no-deps` still removes rbx from `package.json`, so declare
+`@allxsmith/bestax-bulma` at `^5.78.4` or later and re-run before you install. One reached
+through a name destructured from `Pagination` converts with the flag all the same.
+
 ## Dynamic values
 
 Anything the codemod cannot read statically (`state={x}`, `align={side}`,

@@ -348,6 +348,15 @@ usage by hand. `withHelpersModifiers` in particular has nothing to become — ev
 component already takes the helper props, and a custom component gets them from
 `useBulmaClasses`.
 
+`PageEllipsis` used as a value (`const Gap = PageEllipsis`, `styled(PageEllipsis)`,
+`createElement(PageEllipsis, props)`) converts only where the run shows the project gets
+bestax-bulma 5.78.4 or later, the same test as a `PageEllipsis` element carrying a `className` or a
+spread. Whatever renders the reference can hand it a `className`, which an older release writes in
+place of `.pagination-ellipsis`, and the codemod can't see that. Elsewhere it stays bloomer's with
+this flag naming the release, and so does the bloomer import it needs. A run without `--no-deps`
+still removes bloomer from `package.json`, so declare `@allxsmith/bestax-bulma` at `^5.78.4` or
+later and re-run before you install.
+
 ## `imports` — a bloomer import the codemod left alone
 
 A default import (`import Bloomer from 'bloomer'`) never worked — bloomer has no default
