@@ -4,6 +4,12 @@ import { Slider } from '../Slider';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import {
+  ShadowPreview,
+  mouseInFromPage,
+  mouseOutToPage,
+  previewRoot,
+} from '../../__tests__/shadowPreview';
 
 describe('Slider', () => {
   describe('rendering', () => {
@@ -1421,6 +1427,29 @@ describe('Slider', () => {
       expect(highOutput).not.toHaveClass('is-visible');
     });
 
+    // A caller's own handler used to replace the low thumb's.
+    it('shows and hides low tooltip with mouse handlers of the caller’s own, which run too', () => {
+      const onMouseEnter = vi.fn();
+      const onMouseLeave = vi.fn();
+      const { container } = render(
+        <Slider
+          range
+          value={[20, 80]}
+          showOutput
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        />
+      );
+      const low = screen.getAllByRole('slider')[0];
+      const tip = container.querySelector('.slider-output-low');
+      fireEvent.mouseEnter(low);
+      expect(tip).toHaveClass('is-visible');
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      fireEvent.mouseLeave(low);
+      expect(tip).not.toHaveClass('is-visible');
+      expect(onMouseLeave).toHaveBeenCalledTimes(1);
+    });
+
     it('does not change high tooltip when low thumb is hovered', () => {
       const { container } = render(
         <Slider range value={[20, 80]} showOutput />
@@ -1446,6 +1475,75 @@ describe('Slider', () => {
         }
       }
       expect(handleChange).not.toHaveBeenCalled();
+    });
+  });
+
+  // A pointer that came onto a thumb in a shadow root from the page around it
+  // showed no tooltip (#2338), as with Carousel (#2309) and Toast (#2316). The
+  // browser's mouseout on the page names only the shadow host, so React made
+  // no enter for the thumb.
+  describe('tooltip in a shadow root the page portals into', () => {
+    const thumbs = () => previewRoot().querySelectorAll('input');
+    const tip = (part = '') =>
+      previewRoot().querySelector(`.slider-output${part}`)!;
+
+    it('shows while the pointer that came from the page is over it, and hides once it leaves', () => {
+      render(
+        <ShadowPreview>
+          <Slider tooltip="auto" showOutput ariaLabel="Volume" />
+        </ShadowPreview>
+      );
+      mouseInFromPage(thumbs()[0]);
+      expect(tip()).toHaveClass('is-visible');
+
+      mouseOutToPage(thumbs()[0]);
+      expect(tip()).not.toHaveClass('is-visible');
+    });
+
+    it('shows and hides with mouse handlers of the caller’s own, which run too', () => {
+      const onMouseOver = vi.fn();
+      const onMouseLeave = vi.fn();
+      render(
+        <ShadowPreview>
+          <Slider
+            tooltip="auto"
+            ariaLabel="Volume"
+            onMouseOver={onMouseOver}
+            onMouseLeave={onMouseLeave}
+          />
+        </ShadowPreview>
+      );
+      mouseInFromPage(thumbs()[0]);
+      expect(tip()).toHaveClass('is-visible');
+      expect(onMouseOver).toHaveBeenCalledTimes(1);
+
+      mouseOutToPage(thumbs()[0]);
+      expect(tip()).not.toHaveClass('is-visible');
+      expect(onMouseLeave).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows each thumb’s own tooltip on a range', () => {
+      render(
+        <ShadowPreview>
+          <Slider
+            range
+            defaultValue={[20, 80]}
+            tooltip="auto"
+            ariaLabel={['Lowest price', 'Highest price']}
+          />
+        </ShadowPreview>
+      );
+      mouseInFromPage(thumbs()[0]);
+      expect(tip('-low')).toHaveClass('is-visible');
+      expect(tip('-high')).not.toHaveClass('is-visible');
+      mouseOutToPage(thumbs()[0]);
+      expect(tip('-low')).not.toHaveClass('is-visible');
+
+      mouseInFromPage(thumbs()[1]);
+      expect(tip('-high')).toHaveClass('is-visible');
+      expect(tip('-low')).not.toHaveClass('is-visible');
+      mouseOutToPage(thumbs()[1]);
+      expect(tip('-high')).not.toHaveClass('is-visible');
     });
   });
 
