@@ -332,6 +332,90 @@ export function applyPropAction(
 }
 
 /**
+ * bestax targets that extend only React's HTML attributes, with no
+ * `BulmaClassesProps`, so a source's universal helpers have no prop to land
+ * on there. A source writes each as the Bulma class it stood for instead,
+ * from its own `helperClassHint`.
+ */
+export const HELPERLESS_TARGETS: ReadonlySet<string> = new Set([
+  'Pagination.Previous',
+  'Pagination.Next',
+  'Pagination.Ellipsis',
+  'Navbar.Dropdown',
+  'Navbar.DropdownMenu',
+  'Navbar.Divider',
+  'Panel.Heading',
+  'Panel.Tabs',
+  'Panel.Block',
+  'Tabs.Item',
+  'Message.Header',
+  'Message.Body',
+  'Modal.Background',
+  'Modal.Content',
+  'Modal.Card',
+  'Modal.Card.Head',
+  'Modal.Card.Title',
+  'Modal.Card.Body',
+  'Modal.Card.Foot',
+  'Modal.Close',
+]);
+
+/**
+ * Targets whose `className` cannot be used either: `Dropdown.Divider` is a
+ * bare `React.FC` that declares no props at all and renders its own `<hr>`
+ * regardless. A helper on one of these is named, never converted.
+ */
+export const NO_CLASSNAME_TARGETS: ReadonlySet<string> = new Set([
+  'Dropdown.Divider',
+]);
+
+/**
+ * On a `NO_CLASSNAME_TARGETS` element, once every other pass has taken what
+ * it can, remove what is left and name it in one TODO under `rule`, since
+ * the target would fail the typecheck on it and drop it at runtime. `key`
+ * stays: it belongs to the list around the element. A spread can't be taken
+ * apart, so it stays, with a TODO saying the target drops what it carries
+ * (bloomer keeps its own element beside a spread, so only rbx reaches that).
+ */
+export function dropPropsTargetIgnores(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string,
+  rule: string
+): void {
+  const nameOf = (attr: any): string =>
+    attr.name.type === 'JSXNamespacedName'
+      ? `${attr.name.namespace.name}:${attr.name.name.name}`
+      : attr.name.name;
+  const left = attributesOf(element).filter((a: any) => nameOf(a) !== 'key');
+  const why = `bestax \`${target}\` declares no props and renders its own element`;
+  if (left.length > 0) {
+    for (const attr of left) removeAttr(element, attr);
+    ctx.dirty = true;
+    const [them, were] = left.length === 1 ? ['it', 'was'] : ['them', 'were'];
+    addTodo(
+      ctx,
+      path,
+      rule,
+      `${why}, so ${left.map(a => `\`${nameOf(a)}\``).join(', ')} ${were} removed; put ${them} on a wrapping element if you need ${them}`
+    );
+  }
+  if (
+    (element.openingElement.attributes ?? []).some(
+      (a: any) => a.type === 'JSXSpreadAttribute'
+    )
+  ) {
+    addTodo(
+      ctx,
+      path,
+      rule,
+      `${why}, so it drops whatever this spread carries; put that on a wrapping element if you need it`
+    );
+  }
+}
+
+/**
  * Apply the source library's universal modifier-prop conversions to every
  * attribute that was not already handled by the component's own prop map.
  * `universalProps` is the calling source's `UNIVERSAL_PROPS` table.

@@ -16,6 +16,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import type { JSXElement } from 'jscodeshift';
 import { BESTAX_FLOOR } from './deps-common.js';
 import {
   innermostAround,
@@ -97,6 +98,80 @@ export function bestaxPackagesOf({
     });
   }
   return packages;
+}
+
+/**
+ * Targets that keep their own class beside a `className` only from a
+ * bestax-bulma release, by target. An older release writes the `className`
+ * in place of the class that makes the element work. bulma-classes' class
+ * map holds the same release as `classNameSince`.
+ */
+export const CLASSNAME_SINCE: Readonly<Record<string, string>> = {
+  'Pagination.Ellipsis': '5.78.4',
+};
+
+/**
+ * The release `target` keeps its class beside a `className` from, when
+ * `floor` (`bestaxFloorFor`'s) doesn't reach it, or undefined when a
+ * `className` is safe on it.
+ */
+export function classNameWaitsFor(
+  target: string,
+  floor: string | undefined
+): string | undefined {
+  const since = CLASSNAME_SINCE[target];
+  if (since === undefined) return undefined;
+  return floor && compareVersions(floor, since) >= 0 ? undefined : since;
+}
+
+/** What keeps an element off its bestax target (`heldForRelease`). */
+export interface ReleaseHold {
+  /** The release the target takes a `className` from. */
+  since: string;
+  /** A spread, rather than a `className` of its own, could replace its class. */
+  spread: boolean;
+}
+
+/**
+ * Why an element mapped onto `target` can't convert yet: the target keeps
+ * its own class beside a `className` only from a release `floor` doesn't
+ * reach, and the element carries a `className`, or a spread that may hold
+ * one, which an older release writes in place of that class.
+ */
+export function heldForRelease(
+  element: JSXElement,
+  target: string | undefined,
+  floor: string | undefined
+): ReleaseHold | undefined {
+  const since = target && classNameWaitsFor(target, floor);
+  if (!since) return undefined;
+  const attributes = element.openingElement.attributes ?? [];
+  const spread = attributes.some(a => a.type === 'JSXSpreadAttribute');
+  const own = attributes.some(
+    a => a.type === 'JSXAttribute' && a.name.name === 'className'
+  );
+  return spread || own ? { since, spread } : undefined;
+}
+
+/** How a TODO opens about the release `target` takes a `className` from. */
+export function releaseRaise(target: string, since: string): string {
+  return `bestax \`${target}\` keeps its own class beside a \`className\` from @allxsmith/bestax-bulma ${since} on, and this project isn't sure to get ${since}`;
+}
+
+/**
+ * The TODO on an element `heldForRelease` names: one that stays `source`'s,
+ * or one that converted anyway when `source` is left out.
+ */
+export function releaseHoldMessage(
+  target: string,
+  { since, spread }: ReleaseHold,
+  source?: string
+): string {
+  const carries = spread
+    ? 'a spread whose contents the codemod cannot read, where a `className` would replace that class'
+    : 'a `className`, which would replace that class';
+  const declare = `declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later`;
+  return `${releaseRaise(target, since)}, and this element carries ${carries}${source ? `, so it stays ${source}'s: ${declare} and re-run` : `: ${declare}`}`;
 }
 
 /**
