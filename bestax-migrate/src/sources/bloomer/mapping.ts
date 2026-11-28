@@ -152,19 +152,6 @@ export const RESPONSIVE_PROPS: Record<string, string | null> = {
  */
 export const NO_CLASSNAME_TARGETS = new Set(['Dropdown.Divider']);
 
-/**
- * Targets that keep their own class beside a `className` only from a
- * bestax-bulma release, by target. An older release writes the `className`
- * in place of the class that makes the element work, so the transform takes
- * one as a `NO_CLASSNAME_TARGETS` entry unless the run shows the project gets
- * that release (`_shared/bestax-floor.ts`), and as a `HELPERLESS_TARGETS` one
- * when it does. bulma-classes' class map holds the same release as
- * `classNameSince`.
- */
-export const CLASSNAME_SINCE: Readonly<Record<string, string>> = {
-  'Pagination.Ellipsis': '5.78.4',
-};
-
 export const HELPERLESS_TARGETS = new Set([
   'Pagination.Previous',
   'Pagination.Next',
@@ -744,7 +731,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
   PageEllipsis: {
     status: 'mapped',
     target: 'Pagination.Ellipsis',
-    // Classes, where the project gets the release in CLASSNAME_SINCE.
+    // Classes, where the project gets the release `CLASSNAME_SINCE` in
+    // `_shared/bestax-floor.ts` names.
     props: {
       isActive: { toClass: 'is-active' },
       isFocused: { toClass: 'is-focused' },

@@ -40,7 +40,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   which of them the manifest step writes), `bestax-floor.ts` (the oldest bestax-bulma release a
   file can count on, from the range its package declares or the one the run adds, for a
   conversion that waits for a release: `Pagination.Ellipsis` keeps its class beside a
-  `className` only from 5.78.4, #2178), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
+  `className` only from 5.78.4, #2178; the library sources read those targets from its
+  `CLASSNAME_SINCE`), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
   stylesheet transform, parameterised by the source package's own specifiers). What stays
   per-source is the data — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a
   `transform.ts` that orchestrates them. bloomer's is the plain one: its exports are flat, so it has no

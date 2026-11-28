@@ -319,3 +319,207 @@ describe('rbx stylesheet imports', () => {
     expect(todos.some(t => t.rule === 'css')).toBe(true);
   });
 });
+
+describe('rbx Pagination.Ellipsis and the bestax-bulma release it needs (#2302)', () => {
+  // A package the run writes, which declares no bestax-bulma, gets the range
+  // the run adds; one declaring an older release doesn't.
+  const added = {
+    bestaxPackages: [{ dir: '/app', written: true }],
+    deps: true,
+  };
+  const older = {
+    bestaxPackages: [{ dir: '/app', floor: '5.70.0', written: true }],
+  };
+  function migrateIn(source: string, options: Record<string, unknown>) {
+    const todos: TodoEntry[] = [];
+    const { output } = runTransform(
+      transform,
+      '/app/src/case.tsx',
+      source,
+      { add: entry => todos.push(entry) },
+      options
+    );
+    return { output: output ?? '', todos, rules: todos.map(t => t.rule) };
+  }
+  const list = (ellipsis: string) =>
+    "import { Pagination } from 'rbx';\n" +
+    'export const A = (p: Record<string, any>) => (\n' +
+    `  <Pagination><Pagination.List>${ellipsis}</Pagination.List></Pagination>\n` +
+    ');\n';
+  const cases = [
+    [
+      list('<Pagination.Ellipsis className="is-hidden-mobile" />'),
+      '<Pagination.Ellipsis className="is-hidden-mobile" />',
+    ],
+    [
+      list('<Pagination.Ellipsis {...p.rest} />'),
+      '<Pagination.Ellipsis {...p.rest} />',
+    ],
+  ];
+
+  it('carries a className or a spread over where the project gets 5.78.4', () => {
+    for (const [source, element] of cases) {
+      const { output, rules } = migrateIn(source, added);
+      expect(rules).toEqual([]);
+      expect(output).toContain(
+        'import { Pagination } from "@allxsmith/bestax-bulma";'
+      );
+      expect(output).not.toContain("'rbx'");
+      expect(output).toContain(`<Pagination.List>${element}`);
+    }
+  });
+
+  it("keeps rbx's, naming the release, where the project may get an older one", () => {
+    for (const options of [older, {}, { ...added, deps: false }]) {
+      for (const [source, element] of cases) {
+        const { output, todos } = migrateIn(source, options);
+        expect(todos.map(t => t.rule)).toEqual([
+          'component:Pagination.Ellipsis',
+        ]);
+        expect(todos[0].message).toContain('^5.78.4');
+        // rbx's import stays for it, and bestax's Pagination takes another
+        // name rather than the one the kept element resolves through.
+        expect(output).toContain("import { Pagination } from 'rbx';");
+        expect(output).toContain(
+          'import { Pagination as BulmaPagination } from "@allxsmith/bestax-bulma";'
+        );
+        expect(output).toContain(`<BulmaPagination.List>${element}`);
+      }
+    }
+  });
+
+  it('converts one with neither, whatever the release', () => {
+    const { output, rules } = migrateIn(list('<Pagination.Ellipsis />'), older);
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Pagination.List><Pagination.Ellipsis />');
+    expect(output).not.toContain("'rbx'");
+  });
+
+  it('converts one reached through an alias, naming the release', () => {
+    // The alias goes with the names destructured beside it, so the element
+    // can't stay rbx's; the TODO says what the release costs it.
+    const source =
+      "import { Pagination } from 'rbx';\n" +
+      'const { Ellipsis, Link } = Pagination;\n' +
+      'export const A = () => (\n' +
+      '  <Pagination><Pagination.List><Link>1</Link><Ellipsis className="x" /></Pagination.List></Pagination>\n' +
+      ');\n';
+    const { output, todos } = migrateIn(source, older);
+    expect(todos.map(t => t.rule)).toEqual(['component:Pagination.Ellipsis']);
+    expect(todos[0].message).toContain('`^5.78.4` or later');
+    expect(todos[0].message).not.toContain("stays rbx's");
+    expect(output).not.toContain("'rbx'");
+    expect(output).toContain(
+      '<Pagination.Link>1</Pagination.Link><Pagination.Ellipsis className="x" />'
+    );
+    expect(migrateIn(source, added).rules).toEqual([]);
+  });
+
+  it('keeps a namespace import for one', () => {
+    const source =
+      "import * as rbx from 'rbx';\n" +
+      'export const A = () => (\n' +
+      '  <rbx.Pagination><rbx.Pagination.List><rbx.Pagination.Ellipsis className="x" /></rbx.Pagination.List></rbx.Pagination>\n' +
+      ');\n';
+    const { output, rules } = migrateIn(source, older);
+    expect(rules).toEqual(['component:Pagination.Ellipsis']);
+    expect(output).toContain("import * as rbx from 'rbx';");
+    expect(output).toContain(
+      '<Pagination.List><rbx.Pagination.Ellipsis className="x" />'
+    );
+  });
+});
+
+describe('rbx value references to Pagination.Ellipsis and the release it needs (#2351)', () => {
+  const added = {
+    bestaxPackages: [{ dir: '/app', written: true }],
+    deps: true,
+  };
+  const older = {
+    bestaxPackages: [{ dir: '/app', floor: '5.70.0', written: true }],
+  };
+  function migrateIn(source: string, options: Record<string, unknown>) {
+    const todos: TodoEntry[] = [];
+    const { output } = runTransform(
+      transform,
+      '/app/src/case.tsx',
+      source,
+      { add: entry => todos.push(entry) },
+      options
+    );
+    return { output: output ?? '', todos };
+  }
+  const refs = [
+    'export const Gap = Pagination.Ellipsis;',
+    'export const Styled = styled(Pagination.Ellipsis)``;',
+    "export const made = createElement(Pagination.Ellipsis, { className: 'x' });",
+  ];
+  const source = [
+    "import { createElement } from 'react';",
+    "import styled from 'styled-components';",
+    "import { Pagination } from 'rbx';",
+    ...refs,
+    'export const A = () => <Pagination><Pagination.List><Gap className="x" /></Pagination.List></Pagination>;',
+  ].join('\n');
+
+  it('converts each where the project gets 5.78.4', () => {
+    const { output, todos } = migrateIn(source, added);
+    expect(todos).toEqual([]);
+    expect(output).toContain(
+      'import { Pagination } from "@allxsmith/bestax-bulma";'
+    );
+    expect(output).not.toContain("'rbx'");
+    for (const ref of refs) expect(output).toContain(ref);
+  });
+
+  it("keeps each rbx's, naming the release, where the project may get an older one", () => {
+    for (const options of [older, {}, { ...added, deps: false }]) {
+      const { output, todos } = migrateIn(source, options);
+      expect(todos.map(t => t.rule)).toEqual(refs.map(() => 'value-reference'));
+      for (const todo of todos) {
+        expect(todo.message).toContain('`^5.78.4` or later and re-run');
+        expect(todo.message).toContain("stays rbx's");
+      }
+      // rbx's import stays for them, and bestax's Pagination takes another
+      // name rather than the one they resolve through.
+      expect(output).toContain("import { Pagination } from 'rbx';");
+      expect(output).toContain(
+        'import { Pagination as BulmaPagination } from "@allxsmith/bestax-bulma";'
+      );
+      for (const ref of refs) expect(output).toContain(ref);
+    }
+  });
+
+  it('converts one reached through an alias, naming the release', () => {
+    const { output, todos } = migrateIn(
+      [
+        "import { Pagination } from 'rbx';",
+        'const { Ellipsis, Link } = Pagination;',
+        'export const parts = { Ellipsis, Link };',
+        'export const Gap = Ellipsis;',
+      ].join('\n'),
+      older
+    );
+    expect(todos.map(t => t.rule)).toEqual([
+      'value-reference',
+      'value-reference',
+    ]);
+    for (const todo of todos) {
+      expect(todo.message).toContain('`^5.78.4` or later');
+      expect(todo.message).not.toContain("stays rbx's");
+    }
+    expect(output).not.toContain("'rbx'");
+    expect(output).toContain('Ellipsis: Pagination.Ellipsis');
+    expect(output).toContain('export const Gap = Pagination.Ellipsis;');
+  });
+
+  it('keeps a namespace import for one', () => {
+    const { output, todos } = migrateIn(
+      "import * as rbx from 'rbx';\nexport const Gap = rbx.Pagination.Ellipsis;\n",
+      older
+    );
+    expect(todos.map(t => t.rule)).toEqual(['value-reference']);
+    expect(output).toContain("import * as rbx from 'rbx';");
+    expect(output).toContain('export const Gap = rbx.Pagination.Ellipsis;');
+  });
+});

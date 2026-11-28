@@ -56,6 +56,13 @@ import {
 } from '../_shared/bestax-import.js';
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
+  bestaxFloorFor,
+  classNameWaitsFor,
+  heldForRelease,
+  releaseHoldMessage,
+  makeReferenceHold,
+} from '../_shared/bestax-floor.js';
+import {
   collectBoundNames,
   makeAliasRegistry,
   makeReserve,
@@ -94,6 +101,14 @@ export default function transform(
     overrides: new WeakMap<object, string>(),
     dirty: false,
   };
+
+  // The oldest bestax-bulma release this file can count on, for the targets
+  // in CLASSNAME_SINCE (`_shared/bestax-floor.ts`).
+  const bestaxFloor = bestaxFloorFor(
+    fileInfo.path,
+    options.bestaxPackages,
+    options.deps
+  );
 
   // ---- 1. Collect rbx imports -------------------------------------------
   /** local identifier → imported rbx name ('*' for namespace imports). */
@@ -303,6 +318,16 @@ export default function transform(
     }
   });
 
+  /**
+   * Whether an element `heldForRelease` names stays rbx's. One reached
+   * through an alias destructured from its root converts all the same, with
+   * the TODO, since that declaration goes with the other names destructured
+   * beside it.
+   */
+  function heldStays(path: any, head: string): boolean {
+    return aliasAt(head, path) === undefined;
+  }
+
   /** Resolve a JSX name into a canonical rbx component path, or null. */
   function resolveJsxPath(name: any, at?: unknown): string[] | null {
     const parts = jsxNameParts(name);
@@ -398,12 +423,21 @@ export default function transform(
   // Scanned rather than reserved wholesale: adding every partial root to
   // `bound` would alias them in every file that uses one, whether or not
   // anything is actually retained.
+  // An element the release keeps rbx's (`heldForRelease`, `heldStays`)
+  // retains its root too.
   root.find(j.JSXElement).forEach(path => {
     const head = jsxNameParts(path.node.openingElement.name)?.[0];
     if (!head || !imports.has(head)) return;
     const parts = resolveJsxPath(path.node.openingElement.name, path);
     const mapping = parts ? resolveMapping(parts) : undefined;
-    if (!mapping || mapping.status === 'todo') bound.add(head);
+    if (
+      !mapping ||
+      mapping.status === 'todo' ||
+      (heldStays(path, head) &&
+        heldForRelease(path.node, mapping.target, bestaxFloor))
+    ) {
+      bound.add(head);
+    }
   });
   // The same root can be retained by a VALUE chain -- `const X = Icon.Unknown`
   // -- which only the value-reference pass discovers, after `reserve` has
@@ -440,7 +474,14 @@ export default function transform(
       }
     }
     const mapping = resolveMapping(chain);
-    if (!mapping || mapping.status === 'todo') bound.add(head);
+    // A chain the release keeps rbx's (`holdReference`) retains it too.
+    if (
+      !mapping ||
+      mapping.status === 'todo' ||
+      (mapping.target && classNameWaitsFor(mapping.target, bestaxFloor))
+    ) {
+      bound.add(head);
+    }
   });
 
   ctx.reserve = makeReserve(ctx, bound);
@@ -598,6 +639,21 @@ export default function transform(
 
     if (!target) return;
 
+    const held = heldForRelease(element, target, bestaxFloor);
+    if (held) {
+      const stays = jsxHead !== undefined && heldStays(path, jsxHead);
+      addTodo(
+        ctx,
+        path,
+        `component:${dotted}`,
+        releaseHoldMessage(target, held, stays ? 'rbx' : undefined)
+      );
+      if (stays) {
+        ctx.retained.add(rbxPath[0]);
+        return;
+      }
+    }
+
     // Rename to the bestax name, aliasing the import root on collision.
     const [targetRoot, ...targetRest] = target.split('.');
     const localTarget = [ctx.reserve(targetRoot), ...targetRest].join('.');
@@ -677,6 +733,14 @@ export default function transform(
   // generic "referenced as a value" branch, emitting a spurious TODO and
   // marking the root retained when it was not.
   const handledValueRefs = new WeakSet<object>();
+
+  // A reference to a target that waits for a release stays rbx's, retaining
+  // its root, unless it is reached through an alias, whose declaration goes
+  // with the names destructured beside it (`heldStays`).
+  const holdReference = makeReferenceHold(ctx, bestaxFloor, 'rbx', imported => {
+    if (imported === '*') namespaceStillReferenced = true;
+    else ctx.retained.add(imported);
+  });
 
   root.find(j.Identifier).forEach(path => {
     // find(Identifier) also matches JSXIdentifier (a subtype) — JSX names
@@ -833,6 +897,9 @@ export default function transform(
         memberMapping.target &&
         !memberMapping.special
       ) {
+        if (holdReference(outer, memberMapping.target, imported, !!aliasPath)) {
+          return;
+        }
         if (memberMapping.target === dotted) {
           if (isNamespace) {
             // `rbx.Button` → `Button`: the namespace prefix has to go, so
@@ -929,6 +996,13 @@ export default function transform(
         shorthandMapping.target &&
         !shorthandMapping.special
       ) {
+        if (
+          holdReference(path, shorthandMapping.target, imported, !!aliasPath)
+        ) {
+          handledValueRefs.add(parentNode.key);
+          handledValueRefs.add(parentNode.value);
+          return;
+        }
         const [root, ...rest] = shorthandMapping.target.split('.');
         const local = ctx.reserve(root);
         let value: any = j.identifier(local);
@@ -971,6 +1045,7 @@ export default function transform(
       mapping.target &&
       !mapping.special
     ) {
+      if (holdReference(path, mapping.target, imported, !!aliasPath)) return;
       const [root, ...rest] = mapping.target.split('.');
       const local = ctx.reserve(root);
       if (rest.length > 0) {
