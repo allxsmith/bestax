@@ -166,7 +166,7 @@ structure collapses to one.
 
 bestax's `Dropdown.Divider` declares no props and renders its own `<hr>`. A `tooltip` or `badge` on
 rbx's divider still becomes its wrapper, and a helper gets its own `prop:` TODO. Whatever else it
-carried (a `className`, an `id`, `as`, `innerRef`, a color) is removed and named once in a
+carried (a `className`, an `id`, `as`, `innerRef`) is removed and named once in a
 `component:Dropdown.Divider` TODO, apart from its `key`. A spread stays in the code with a
 `component:Dropdown.Divider` TODO, since the divider drops whatever it carries. Put what you need
 on a wrapping element.
