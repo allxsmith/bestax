@@ -180,6 +180,19 @@ function asButton(
   };
 }
 
+function dropClick(e: React.MouseEvent<HTMLAnchorElement>) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+/**
+ * The handlers a disabled part renders with, after the caller's props, in
+ * place of their `onClick` and `onAuxClick`. A middle click follows a link
+ * from `auxclick`, which no click handler sees, so it's dropped with the
+ * click.
+ */
+const DROP_CLICKS = { onClick: dropClick, onAuxClick: dropClick };
+
 /**
  * Props for PaginationPrevious and PaginationNext components.
  * @extraProp {string} [href] - Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
@@ -187,7 +200,13 @@ function asButton(
 export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** Additional CSS classes. */
   className?: string | undefined;
-  /** Whether previous/next is disabled. */
+  /**
+   * Whether previous/next is disabled. A disabled one drops a click and a
+   * middle click, so its `onClick` and `onAuxClick` don't run and neither
+   * follows an `href`. The `href` stays, though, so a browser can still open
+   * it without a click, such as from the context menu's "Open link in new
+   * tab".
+   */
   disabled?: boolean | undefined;
   /** Button content. */
   children?: React.ReactNode;
@@ -218,14 +237,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
     tabIndex={disabled ? -1 : 0}
     {...props}
     {...asButton(props.href, props.role, onKeyDown)}
-    onClick={
-      disabled
-        ? e => {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        : props.onClick
-    }
+    {...(disabled ? DROP_CLICKS : undefined)}
   >
     {children}
   </a>
@@ -254,14 +266,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
     tabIndex={disabled ? -1 : 0}
     {...props}
     {...asButton(props.href, props.role, onKeyDown)}
-    onClick={
-      disabled
-        ? e => {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        : props.onClick
-    }
+    {...(disabled ? DROP_CLICKS : undefined)}
   >
     {children}
   </a>
@@ -493,7 +498,12 @@ export interface PaginationLinkProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the link is for the current page. */
   active?: boolean;
-  /** Whether the link is disabled. */
+  /**
+   * Whether the link is disabled. A disabled one drops a click and a middle
+   * click, so its `onClick` and `onAuxClick` don't run and neither follows an
+   * `href`. The `href` stays, though, so a browser can still open it without
+   * a click, such as from the context menu's "Open link in new tab".
+   */
   disabled?: boolean | undefined;
   /** Link content. */
   children?: React.ReactNode;
@@ -512,7 +522,6 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
   bgColor,
   active,
   disabled,
-  onClick,
   onKeyDown,
   children,
   ...props
@@ -523,17 +532,6 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    if (disabled) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    if (onClick) {
-      onClick(e);
-    }
-  };
 
   return (
     <li>
@@ -549,9 +547,9 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
         aria-current={active ? 'page' : undefined}
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
-        onClick={handleClick}
         {...rest}
         {...asButton(rest.href, rest.role, onKeyDown)}
+        {...(disabled ? DROP_CLICKS : undefined)}
       >
         {children}
       </a>
