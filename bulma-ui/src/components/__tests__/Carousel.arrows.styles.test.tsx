@@ -10,7 +10,12 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { Carousel, CarouselItem } from '../Carousel';
 import { ConfigProvider } from '../../helpers/Config';
-import { bulmaCss, cascade, compilePartial } from '../../__tests__/css-cascade';
+import {
+  atMedia,
+  bulmaCss,
+  cascade,
+  compilePartial,
+} from '../../__tests__/css-cascade';
 
 /** `css` as it applies to a focused element, which jsdom can't put one in. */
 const focused = (css: string) =>
@@ -21,30 +26,6 @@ const hovered = (css: string) => css.split(':hover').join('');
 
 /** The media query Bulma's `mobile` mixin writes, below its tablet width. */
 const PHONE = '@media screen and (max-width: 768px)';
-
-/**
- * `css` with every `query` block's rules in its place when the query
- * `holds`, and without them when it doesn't, as a browser applies the
- * blocks, since the shared cascade walks no `@media`.
- */
-const atMedia = (css: string, query: string, holds: boolean) => {
-  let out = css;
-  for (let start = out.lastIndexOf(query); start >= 0;) {
-    const open = out.indexOf('{', start);
-    let depth = 1;
-    let end = open + 1;
-    for (; depth > 0 && end < out.length; end++) {
-      if (out[end] === '{') depth++;
-      else if (out[end] === '}') depth--;
-    }
-    out =
-      out.slice(0, start) +
-      (holds ? out.slice(open + 1, end - 1) : '') +
-      out.slice(end);
-    start = start > 0 ? out.lastIndexOf(query, start - 1) : -1;
-  }
-  return out;
-};
 
 const declared = (style: CSSStyleDeclaration, property: string) =>
   style.getPropertyValue(property).replace(/\s+/g, ' ').trim() || undefined;

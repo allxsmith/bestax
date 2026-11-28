@@ -128,12 +128,25 @@ $-gap-is-default: $carousel-indicator-gap ==
 $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   -target-gap(0.375rem, "carousel-indicator-size-mobile");
 
-// The carousel's own arrows, in its container, and not those of a carousel
-// in one of its items, so each carousel's arrows follow its own props.
-// `:where()` keeps the path at the specificity of the descendant selector
-// it replaces, so each rule keeps its rank against the others.
+// The carousel's own arrows, indicators and items, and not those of a
+// carousel in one of its items, so each carousel's parts follow its own props
+// and classes. `:where()` keeps each path at the specificity of the
+// descendant selector it replaces, so each rule keeps its rank against the
+// others.
 @mixin -own-arrows {
   > :where(.#{iv.$class-prefix}carousel-container) > .#{iv.$class-prefix}carousel-arrow {
+    @content;
+  }
+}
+
+@mixin -own-indicators {
+  > :where(.#{iv.$class-prefix}carousel-indicator) > .#{iv.$class-prefix}indicator-item {
+    @content;
+  }
+}
+
+@mixin -own-items {
+  > :where(.#{iv.$class-prefix}carousel-container) > :where(.#{iv.$class-prefix}carousel-slides) > .#{iv.$class-prefix}carousel-item {
     @content;
   }
 }
@@ -556,11 +569,11 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   // the plain look leaves off. `:where()` keeps both rules at the
   // specificity the band had before `overlayControls` could turn it off, so
   // a page's own rule that takes the band off still wins as it did.
-  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+  &:where(.#{iv.$class-prefix}is-overlay) > .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
     background: linear-gradient(transparent, #{$carousel-gradient-overlay});
   }
 
-  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
+  &:where(.#{iv.$class-prefix}is-overlay) > .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
     background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
   }
 
@@ -635,16 +648,16 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   // A row of lines or bars that wraps sits 24px below the one above, center
   // to center, as a row of dots or circles does through its gap, and never
   // closer than that gap, so marks drawn 24px tall or taller don't touch.
-  &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
+  &:where(.#{iv.$class-prefix}is-indicator-lines) > .#{iv.$class-prefix}carousel-indicator {
     row-gap: max(#{cv.getVar("carousel-indicator-gap")}, calc(24px - #{cv.getVar("carousel-indicator-line-height")}));
   }
 
-  &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
+  &:where(.#{iv.$class-prefix}is-indicator-bars) > .#{iv.$class-prefix}carousel-indicator {
     row-gap: max(#{cv.getVar("carousel-indicator-gap")}, calc(24px - #{cv.getVar("carousel-indicator-bar-height")}));
   }
 
   &.#{iv.$class-prefix}is-indicator-circles {
-    .#{iv.$class-prefix}indicator-item {
+    @include -own-indicators {
       width: cv.getVar("carousel-indicator-circle-size");
       height: cv.getVar("carousel-indicator-circle-size");
       background-color: transparent;
@@ -657,7 +670,7 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   }
 
   &.#{iv.$class-prefix}is-indicator-lines {
-    .#{iv.$class-prefix}indicator-item {
+    @include -own-indicators {
       width: cv.getVar("carousel-indicator-line-width");
       height: cv.getVar("carousel-indicator-line-height");
       border-width: cv.getVar("carousel-indicator-line-border-width");
@@ -666,7 +679,7 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
   }
 
   &.#{iv.$class-prefix}is-indicator-bars {
-    .#{iv.$class-prefix}indicator-item {
+    @include -own-indicators {
       width: cv.getVar("carousel-indicator-bar-width");
       height: cv.getVar("carousel-indicator-bar-height");
       border-width: cv.getVar("carousel-indicator-line-border-width");
@@ -679,13 +692,13 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
     // In the overlay look a dot, a line or a bar over the slides takes no ring,
     // a theme's either; a circle keeps its own.
     &:not(.#{iv.$class-prefix}is-indicator-circles)
-      .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside
-      .#{iv.$class-prefix}indicator-item {
+      > .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside
+      > .#{iv.$class-prefix}indicator-item {
       border-color: transparent;
     }
 
-    .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
-      .#{iv.$class-prefix}indicator-item {
+    > .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+      > .#{iv.$class-prefix}indicator-item {
         background-color: cv.getVar("carousel-overlay-indicator-background");
 
         &:hover {
@@ -763,11 +776,11 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
 
   // Fade transition (alternative to slide)
   &.#{iv.$class-prefix}is-fade {
-    .#{iv.$class-prefix}carousel-slides {
+    > :where(.#{iv.$class-prefix}carousel-container) > .#{iv.$class-prefix}carousel-slides {
       position: relative;
     }
 
-    .#{iv.$class-prefix}carousel-item {
+    @include -own-items {
       position: absolute;
       top: 0;
       left: 0;
@@ -834,21 +847,25 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
       height: cv.getVar("carousel-indicator-size-mobile");
     }
 
-    &.#{iv.$class-prefix}is-indicator-lines .#{iv.$class-prefix}indicator-item {
-      width: cv.getVar("carousel-indicator-line-width-mobile");
-      height: cv.getVar("carousel-indicator-line-height-mobile");
+    &.#{iv.$class-prefix}is-indicator-lines {
+      @include -own-indicators {
+        width: cv.getVar("carousel-indicator-line-width-mobile");
+        height: cv.getVar("carousel-indicator-line-height-mobile");
+      }
     }
 
-    &.#{iv.$class-prefix}is-indicator-bars .#{iv.$class-prefix}indicator-item {
-      width: cv.getVar("carousel-indicator-bar-width-mobile");
-      height: cv.getVar("carousel-indicator-bar-height-mobile");
+    &.#{iv.$class-prefix}is-indicator-bars {
+      @include -own-indicators {
+        width: cv.getVar("carousel-indicator-bar-width-mobile");
+        height: cv.getVar("carousel-indicator-bar-height-mobile");
+      }
     }
 
-    &:where(.#{iv.$class-prefix}is-indicator-lines) .#{iv.$class-prefix}carousel-indicator {
+    &:where(.#{iv.$class-prefix}is-indicator-lines) > .#{iv.$class-prefix}carousel-indicator {
       row-gap: max(#{cv.getVar("carousel-indicator-gap-mobile")}, calc(24px - #{cv.getVar("carousel-indicator-line-height-mobile")}));
     }
 
-    &:where(.#{iv.$class-prefix}is-indicator-bars) .#{iv.$class-prefix}carousel-indicator {
+    &:where(.#{iv.$class-prefix}is-indicator-bars) > .#{iv.$class-prefix}carousel-indicator {
       row-gap: max(#{cv.getVar("carousel-indicator-gap-mobile")}, calc(24px - #{cv.getVar("carousel-indicator-bar-height-mobile")}));
     }
   }
@@ -858,9 +875,14 @@ $-gap-mobile-is-default: $carousel-indicator-gap-mobile ==
 // once, as the track does (Carousel reads the same preference).
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}carousel .#{iv.$class-prefix}carousel-arrow,
-  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item,
-  .#{iv.$class-prefix}carousel.#{iv.$class-prefix}is-fade .#{iv.$class-prefix}carousel-item {
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item {
     transition: none;
+  }
+
+  .#{iv.$class-prefix}carousel.#{iv.$class-prefix}is-fade {
+    @include -own-items {
+      transition: none;
+    }
   }
 }
 
