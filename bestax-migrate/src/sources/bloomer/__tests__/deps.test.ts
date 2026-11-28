@@ -1,5 +1,6 @@
 import { updateDependencies } from '../deps.js';
 import type { TodoEntry } from '../../../types.js';
+import { BESTAX_FLOOR } from '../../_shared/deps-common.js';
 
 function run(
   pkg: Record<string, unknown>,
@@ -30,12 +31,12 @@ describe('bloomer updateDependencies', () => {
       dependencies: { bloomer: '^0.6.5', bulma: '^0.6.2', react: '^18.0.0' },
     });
     expect(deps(r).bloomer).toBeUndefined();
-    expect(deps(r)['@allxsmith/bestax-bulma']).toBe('^5.78.4');
+    expect(deps(r)['@allxsmith/bestax-bulma']).toBe(`^${BESTAX_FLOOR}`);
     expect(deps(r).bulma).toBe('^1.0.4');
     expect(r.todos.map(t => t.rule)).toEqual(['deps', 'deps', 'deps']);
     expect(r.todos.map(t => t.message)).toEqual([
       'removed bloomer from dependencies',
-      'added @allxsmith/bestax-bulma ^5.78.4 to dependencies',
+      `added @allxsmith/bestax-bulma ^${BESTAX_FLOOR} to dependencies`,
       'bumped bulma to ^1.0.4 in dependencies (was pre-1.0)',
     ]);
   });
@@ -57,7 +58,7 @@ describe('bloomer updateDependencies', () => {
   it('removes bloomer from devDependencies too', () => {
     const r = run({ devDependencies: { bloomer: '^0.6.5' } });
     expect(deps(r, 'devDependencies').bloomer).toBeUndefined();
-    expect(deps(r)['@allxsmith/bestax-bulma']).toBe('^5.78.4');
+    expect(deps(r)['@allxsmith/bestax-bulma']).toBe(`^${BESTAX_FLOOR}`);
   });
 
   it('warns when files still import bloomer for unmappable components', () => {
@@ -119,7 +120,10 @@ describe('bloomer updateDependencies', () => {
 
   it('returns null when there is nothing to change', () => {
     const r = run({
-      dependencies: { react: '^18.0.0', '@allxsmith/bestax-bulma': '^5' },
+      dependencies: {
+        react: '^18.0.0',
+        '@allxsmith/bestax-bulma': `^${BESTAX_FLOOR}`,
+      },
     });
     expect(r.next).toBeNull();
     expect(r.todos).toEqual([]);

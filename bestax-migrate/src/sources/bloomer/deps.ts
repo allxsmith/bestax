@@ -1,8 +1,7 @@
 /**
  * package.json migration: swap bloomer for @allxsmith/bestax-bulma, move the
- * app's own Bulma to v1, and replace the dead node-sass with dart-sass. Pure
- * data-in/data-out — the CLI owns file IO, and no package manager is ever
- * invoked (the report tells the user to install).
+ * app's own Bulma to v1, and replace the dead node-sass with dart-sass. No
+ * package manager is ever invoked (the report tells the user to install).
  *
  * bloomer is the react-bulma-components case, not the rbx one: it never
  * depended on Bulma itself (its README says "npm install bulma"), so there is

@@ -1,7 +1,7 @@
 /**
  * package.json migration for an app that styled plain markup with Bulma:
- * bestax-bulma comes in, and nothing goes out. Pure data-in/data-out: no
- * package manager is ever invoked.
+ * bestax-bulma comes in, and nothing goes out. No package manager is ever
+ * invoked.
  *
  * Under the default `--css keep` the app's styling stack is left as it is:
  * converted elements render the same classes, which the app's own Bulma

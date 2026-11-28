@@ -2,20 +2,20 @@
  * The package.json steps every source's manifest pass takes once the source
  * library itself is dealt with: bring in bestax-bulma, move the app's Bulma to
  * v1, report peer ranges bestax-bulma cannot install beside, and swap the
- * dead node-sass for dart-sass. Pure data-in/data-out, like the passes that
- * call it: no package manager is ever invoked.
+ * dead node-sass for dart-sass. No package manager is ever invoked.
  */
 
+import path from 'node:path';
 import type { TodoCollector } from '../../types.js';
-import { isPreV1 } from './semver-range.js';
+import { builtFor, installedVersion } from './bestax-release.js';
+import { compareVersions, isPreV1, rangeFloor } from './semver-range.js';
 
 /**
- * The oldest bestax-bulma release every conversion renders right on: from
- * 5.78.4 `Pagination.Ellipsis` keeps its class beside a `className` (#2178).
+ * The bestax-bulma release the migrated code is written for (`builtFor`).
  * The range the manifest step adds starts there, and `bestax-floor.ts` counts
  * on it for a package that step writes.
  */
-export const BESTAX_FLOOR = '5.78.4';
+export const BESTAX_FLOOR = builtFor();
 const BESTAX_RANGE = `^${BESTAX_FLOOR}`;
 export const BULMA_RANGE = '^1.0.4';
 /** bestax-bulma's optional peer range for Font Awesome. */
@@ -27,6 +27,8 @@ export const DEP_SECTIONS = ['dependencies', 'devDependencies'] as const;
 type Section = (typeof DEP_SECTIONS)[number];
 
 export interface Manifest {
+  /** The package.json being edited. */
+  file: string;
   /** The manifest being edited in place. */
   next: Record<string, Record<string, string> | unknown>;
   section(name: Section): Record<string, string> | undefined;
@@ -48,6 +50,7 @@ export function openManifest(
   const report = (rule: string, message: string) =>
     collector?.add({ file: filePath, line: null, rule, message });
   return {
+    file: filePath,
     next,
     section: name =>
       (next[name] ?? undefined) as Record<string, string> | undefined,
@@ -73,10 +76,12 @@ function majorBelow(range: string, major: number): boolean {
 }
 
 /**
- * @allxsmith/bestax-bulma comes in as a runtime dependency. An older major
- * already declared is reported, not raised: the migrated code is written for
- * the current one, and moving the app's existing bestax code across majors is
- * the app's own step.
+ * @allxsmith/bestax-bulma comes in as a runtime dependency. One the package
+ * already has, older than the release the migrated code is written for, is
+ * reported, not raised: an older major (`peer-deps`, since moving the app's
+ * existing bestax code across majors is the app's own step), and otherwise a
+ * declared range that starts below that release or an older copy the package
+ * loads (`deps`, left for the app to decide like the other reports there).
  */
 export function addBestax(manifest: Manifest): void {
   const dependencies = (manifest.next.dependencies ??= {}) as Record<
@@ -91,10 +96,28 @@ export function addBestax(manifest: Manifest): void {
     manifest.note(
       `added @allxsmith/bestax-bulma ${BESTAX_RANGE} to dependencies`
     );
-  } else if (majorBelow(declared, 5)) {
+    return;
+  }
+  if (majorBelow(declared, Number(BESTAX_FLOOR.split('.')[0]))) {
     manifest.report(
       'peer-deps',
       `@allxsmith/bestax-bulma ${declared} is older than the ${BESTAX_RANGE} the migrated code is written for; upgrade it before installing (the bestax-bulma upgrade guides cover each major)`
+    );
+    return;
+  }
+  const floor = rangeFloor(declared);
+  if (floor !== null && compareVersions(floor, BESTAX_FLOOR) < 0) {
+    manifest.report(
+      'deps',
+      `@allxsmith/bestax-bulma ${declared} admits releases older than the ${BESTAX_FLOOR} the migrated code is written for; raise it to start at ${BESTAX_FLOOR} or later before installing`
+    );
+    return;
+  }
+  const installed = installedVersion(path.dirname(manifest.file));
+  if (installed && compareVersions(installed, BESTAX_FLOOR) < 0) {
+    manifest.report(
+      'deps',
+      `this package loads @allxsmith/bestax-bulma ${installed}, older than the ${BESTAX_FLOOR} the migrated code is written for; install ${BESTAX_FLOOR} or later for it before running the migrated code`
     );
   }
 }

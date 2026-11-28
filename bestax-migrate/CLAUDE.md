@@ -36,7 +36,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
   prop suffixes), `css-imports.ts` (the stylesheet-import pass), `bestax-import.ts` (seeding,
   building and merging the bestax-bulma import), `deps-common.ts` (the manifest steps after
-  the source package is handled), `manifests.ts` (the package.json files a run touches, and
+  the source package is handled), `bestax-release.ts` (the bestax-bulma release the migrated
+  code is written for, read from this CLI's own manifest the way create-bestax's
+  `libraryRange` reads it, and the copy installed for an app's package, which the manifest
+  step reports when older, #2314), `manifests.ts` (the package.json files a run touches, and
   which of them the manifest step writes), `bestax-floor.ts` (the oldest bestax-bulma release a
   file can count on, from the range its package declares or the one the run adds, for a
   conversion that waits for a release: `Pagination.Ellipsis` keeps its class beside a

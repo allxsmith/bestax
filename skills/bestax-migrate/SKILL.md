@@ -82,7 +82,9 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    ```
 
    The report groups its entries by rule. `deps` covers every package.json edit —
-   what was removed, added, or left for you to decide; `imports` covers a source
+   what was removed, added, or left for you to decide, such as an `@allxsmith/bestax-bulma`
+   older than the release the migrated code is written for, whether the package declares a
+   range that starts below it or loads an older installed copy; `imports` covers a source
    import the codemod could not rewrite and left in place; `unsupported-file` names
    a file type it cannot parse (`.vue`, `.astro`) that still imports the source;
    `value-reference` marks a component used as a value rather than as JSX. Rules
