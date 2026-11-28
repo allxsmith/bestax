@@ -332,6 +332,44 @@ export function applyPropAction(
 }
 
 /**
+ * bestax targets that extend only React's HTML attributes, with no
+ * `BulmaClassesProps`, so a source's universal helpers have no prop to land
+ * on there. A source writes each as the Bulma class it stood for instead,
+ * from its own `helperClassHint`.
+ */
+export const HELPERLESS_TARGETS: ReadonlySet<string> = new Set([
+  'Pagination.Previous',
+  'Pagination.Next',
+  'Pagination.Ellipsis',
+  'Navbar.Dropdown',
+  'Navbar.DropdownMenu',
+  'Navbar.Divider',
+  'Panel.Heading',
+  'Panel.Tabs',
+  'Panel.Block',
+  'Tabs.Item',
+  'Message.Header',
+  'Message.Body',
+  'Modal.Background',
+  'Modal.Content',
+  'Modal.Card',
+  'Modal.Card.Head',
+  'Modal.Card.Title',
+  'Modal.Card.Body',
+  'Modal.Card.Foot',
+  'Modal.Close',
+]);
+
+/**
+ * Targets whose `className` cannot be used either: `Dropdown.Divider` is a
+ * bare `React.FC` that declares no props at all and renders its own `<hr>`
+ * regardless. A helper on one of these is named, never converted.
+ */
+export const NO_CLASSNAME_TARGETS: ReadonlySet<string> = new Set([
+  'Dropdown.Divider',
+]);
+
+/**
  * Apply the source library's universal modifier-prop conversions to every
  * attribute that was not already handled by the component's own prop map.
  * `universalProps` is the calling source's `UNIVERSAL_PROPS` table.

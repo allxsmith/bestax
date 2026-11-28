@@ -30,7 +30,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
 - **A new source is a directory plus one registry line.** `src/sources/_shared/` holds
   everything library-agnostic: `jsx-utils.ts` (AST helpers + `TransformContext`),
   `props.ts` (the `PropAction` interpreter — its universal table is a parameter, not an
-  import), `imports.ts` (binding collection and import aliasing), `specials-utils.ts`
+  import — plus `HELPERLESS_TARGETS`, the bestax parts no helper prop lands on, where a source
+  writes its helpers as classes from its own `helperClassHint`, and `NO_CLASSNAME_TARGETS`, the
+  ones that take no props at all), `imports.ts` (binding collection and import aliasing),
+  `specials-utils.ts`
   (`alignTarget`, `mergeClassName`, `parseIconClasses`, `modifierClass`, `restrictAsToTargets`,
   the `stripModifierProps` factory and the `makeStructuralHelpers` factory behind
   `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's

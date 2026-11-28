@@ -25,9 +25,7 @@
 import type { API, FileInfo } from 'jscodeshift';
 import type { TransformOptions } from '../../types.js';
 import {
-  HELPERLESS_TARGETS,
   MAPPING,
-  NO_CLASSNAME_TARGETS,
   UNIVERSAL_PROPS,
   helperClassHint,
   resolveMapping,
@@ -44,6 +42,8 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import {
+  HELPERLESS_TARGETS,
+  NO_CLASSNAME_TARGETS,
   applyPropAction,
   applyUniversalProps,
   mergeClass,

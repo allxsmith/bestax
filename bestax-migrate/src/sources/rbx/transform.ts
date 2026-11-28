@@ -27,6 +27,7 @@ import {
   MAPPING,
   TOOLTIP_PROPS,
   UNIVERSAL_PROPS,
+  helperClassHint,
   resolveMapping,
 } from './mapping.js';
 import {
@@ -42,7 +43,13 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyBackgroundColor } from '../_shared/background-props.js';
-import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import {
+  HELPERLESS_TARGETS,
+  NO_CLASSNAME_TARGETS,
+  applyPropAction,
+  applyUniversalProps,
+  mergeClass,
+} from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import { askForModalName } from '../_shared/modal-name.js';
@@ -57,8 +64,10 @@ import {
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   bestaxFloorFor,
+  classNameWaitsFor,
   heldForRelease,
   releaseHoldMessage,
+  releaseRaise,
 } from '../_shared/bestax-floor.js';
 import {
   collectBoundNames,
@@ -642,6 +651,87 @@ export default function transform(
       if (stays) {
         ctx.retained.add(rbxPath[0]);
         return;
+      }
+    }
+
+    // Targets that extend only React's HTML attributes take none of rbx's
+    // universal helpers, so each becomes the Bulma class it stood for, as
+    // bloomer's do. Where no `className` can carry it, each is named in a
+    // TODO instead: on a target that takes no props at all, and below the
+    // release a CLASSNAME_SINCE target keeps its own class beside a
+    // `className` from, where the `className` would replace that class.
+    const noProps = NO_CLASSNAME_TARGETS.has(target);
+    if (HELPERLESS_TARGETS.has(target) || noProps) {
+      const since = classNameWaitsFor(target, bestaxFloor);
+      // Why a class can't be written, and what to do about it.
+      const refusal = (what: string): string | undefined =>
+        noProps
+          ? `bestax \`${target}\` takes no props at all, so ${what} cannot be set on it: wrap it, or restyle by hand`
+          : since
+            ? `${releaseRaise(target, since)}, so ${what} isn't set on it: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run, or restyle by hand`
+            : undefined;
+      const takesNone = `bestax \`${target}\` takes no Bulma helper props (it extends only React's HTML attributes)`;
+      // A spread after the `className`, or anywhere when there is none, can
+      // carry a `className` of its own that replaces the class written here.
+      const attributes: any[] = element.openingElement.attributes ?? [];
+      const classAt = attributes.indexOf(findAttr(element, 'className'));
+      const spread = attributes.some(
+        (a: any, i: number) => a.type === 'JSXSpreadAttribute' && i > classAt
+      );
+      for (const attr of [...attributesOf(element)]) {
+        const name: string = attr.name.name;
+        if (handled.has(name)) continue;
+        if (name === 'responsive') {
+          removeAttr(element, attr);
+          handled.add(name);
+          addTodo(
+            ctx,
+            path,
+            'prop:responsive',
+            refusal('the classes `responsive` stood for') ??
+              `${takesNone}; add the classes \`responsive\` stood for to \`className\` by hand`
+          );
+          continue;
+        }
+        const literal = literalValueOf(attr);
+        const cls = helperClassHint(
+          name,
+          literal.kind === 'expression' ? undefined : literal.value
+        );
+        if (!cls) continue;
+        removeAttr(element, attr);
+        handled.add(name);
+        // A falsy literal wrote no class in rbx; nothing to carry.
+        if (literal.kind !== 'expression' && !literal.value) continue;
+        const refused = refusal(`the \`${cls}\` class this became`);
+        if (refused) {
+          addTodo(ctx, path, `prop:${name}`, refused);
+        } else if (literal.kind === 'expression') {
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            `${takesNone}; add the \`${cls}\` class to \`className\` by hand, wherever its value set it`
+          );
+        } else if (cls.includes('<')) {
+          // A placeholder (`is-pulled-<side>`): the helper took a value and
+          // was given none, so there is no class to write.
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            `${takesNone}, and \`${name}\` carries no value here; add the \`${cls}\` class it takes to \`className\` by hand, with the value you meant`
+          );
+        } else if (spread) {
+          addTodo(
+            ctx,
+            path,
+            `prop:${name}`,
+            `${takesNone}; add the \`${cls}\` class to the \`className\` its spread may carry, by hand`
+          );
+        } else {
+          mergeClass(ctx, path, element, cls, name);
+        }
       }
     }
 

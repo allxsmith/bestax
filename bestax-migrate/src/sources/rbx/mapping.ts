@@ -100,6 +100,64 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   },
 };
 
+/**
+ * The Bulma class one of the universal helpers above stood for, written on
+ * a target that takes no helper props (`HELPERLESS_TARGETS` in
+ * `_shared/props.ts`) or named in its TODO. `value` is the helper's literal
+ * value, undefined when it is dynamic; `textColor` and `backgroundColor` are
+ * left to their own passes, which flag them on these targets.
+ */
+export function helperClassHint(
+  name: string,
+  value: string | number | boolean | undefined
+): string | null {
+  const v =
+    typeof value === 'string' || typeof value === 'number'
+      ? String(value)
+      : undefined;
+  switch (name) {
+    case 'textAlign':
+      return `has-text-${v ?? '<alignment>'}`;
+    case 'textTransform':
+      return `is-${v ?? '<transform>'}`;
+    case 'textWeight':
+      return `has-text-weight-${v ?? '<weight>'}`;
+    case 'textSize':
+      return `is-size-${v ?? '<size>'}`;
+    case 'pull':
+      return `is-pulled-${v ?? '<side>'}`;
+    case 'italic':
+      return 'is-italic';
+    case 'clearfix':
+      return 'is-clearfix';
+    case 'clipped':
+      return 'is-clipped';
+    case 'overlay':
+      return 'is-overlay';
+    case 'hidden':
+      return 'is-hidden';
+    case 'invisible':
+      return 'is-invisible';
+    case 'srOnly':
+      return 'is-sr-only';
+    // Bulma v1 removed `is-marginless` and `is-paddingless`; these do their job.
+    case 'marginless':
+      return 'm-0';
+    case 'paddingless':
+      return 'p-0';
+    case 'radiusless':
+      return 'is-radiusless';
+    case 'shadowless':
+      return 'is-shadowless';
+    case 'unselectable':
+      return 'is-unselectable';
+    case 'relative':
+      return 'is-relative';
+    default:
+      return null;
+  }
+}
+
 /** rbx badge helper props → bestax `<Badge>` props. */
 export const BADGE_PROPS: Record<string, string | null> = {
   badge: 'content',
