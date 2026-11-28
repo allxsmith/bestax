@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event';
 import { Button } from '../Button';
 import { ConfigProvider } from '../../helpers/Config';
 
+// A middle click on a link opens it in a new tab from `auxclick`, which no
+// `click` handler sees. Returns whether the default was prevented.
+const middleClick = (el: HTMLElement) => {
+  const event = new MouseEvent('auxclick', {
+    bubbles: true,
+    cancelable: true,
+    button: 1,
+  });
+  el.dispatchEvent(event);
+  return event.defaultPrevented;
+};
+
 describe('Button Component', () => {
   it('renders children correctly', () => {
     render(<Button>Click Me</Button>);
@@ -156,6 +168,54 @@ describe('Button Component', () => {
       expect(link).toHaveAttribute('tabindex', '-1');
     });
 
+    it("drops a disabled link's middle click, and keeps its href", () => {
+      const onAuxClick = vi.fn();
+      render(
+        <Button as="a" href="#next" isDisabled onAuxClick={onAuxClick}>
+          Next
+        </Button>
+      );
+      const link = screen.getByRole('link', { name: 'Next' });
+      expect(middleClick(link)).toBe(true);
+      expect(onAuxClick).not.toHaveBeenCalled();
+      expect(link).toHaveAttribute('href', '#next');
+    });
+
+    it("leaves an enabled link's middle click to it and its onAuxClick", () => {
+      const onAuxClick = vi.fn();
+      render(
+        <Button as="a" href="#next" onAuxClick={onAuxClick}>
+          Next
+        </Button>
+      );
+      expect(middleClick(screen.getByRole('link', { name: 'Next' }))).toBe(
+        false
+      );
+      expect(onAuxClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("leaves a custom target's own middle click alone until it's disabled", () => {
+      const own = vi.fn();
+      const Custom = (p: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+        <a onAuxClick={own} {...p} />
+      );
+      const { rerender } = render(
+        <Button as={Custom} href="#next">
+          Next
+        </Button>
+      );
+      const link = screen.getByRole('link', { name: 'Next' });
+      expect(middleClick(link)).toBe(false);
+      expect(own).toHaveBeenCalledTimes(1);
+      rerender(
+        <Button as={Custom} href="#next" isDisabled>
+          Next
+        </Button>
+      );
+      expect(middleClick(link)).toBe(true);
+      expect(own).toHaveBeenCalledTimes(1);
+    });
+
     it('withholds the submit overrides from an anchor', () => {
       // `formAction` and friends belong to a submit control. Everything else a
       // caller passes reaches the element: the types already limit that to what
@@ -242,9 +302,14 @@ describe('Button Component', () => {
       // string, and an unguarded `e.preventDefault()` threw.
       const Custom = (p: {
         onClick?: (v: string) => void;
+        onAuxClick?: (v: string) => void;
         children?: React.ReactNode;
       }) => (
-        <a data-testid="c" onClick={() => p.onClick?.('a string')}>
+        <a
+          data-testid="c"
+          onClick={() => p.onClick?.('a string')}
+          onAuxClick={() => p.onAuxClick?.('a string')}
+        >
           {p.children}
         </a>
       );
@@ -253,9 +318,9 @@ describe('Button Component', () => {
           x
         </Button>
       );
-      expect(() =>
-        (container.querySelector('a') as HTMLElement).click()
-      ).not.toThrow();
+      const el = container.querySelector('a') as HTMLElement;
+      expect(() => el.click()).not.toThrow();
+      expect(() => middleClick(el)).not.toThrow();
     });
 
     it('leaves a custom element alone, props and all', () => {
@@ -451,8 +516,15 @@ describe('Button Component', () => {
 
     it("doesn't follow a link, and keeps it in the tab order", async () => {
       const onClick = vi.fn();
+      const onAuxClick = vi.fn();
       render(
-        <Button as="a" href="#next" isLoading onClick={onClick}>
+        <Button
+          as="a"
+          href="#next"
+          isLoading
+          onClick={onClick}
+          onAuxClick={onAuxClick}
+        >
           Next
         </Button>
       );
@@ -467,6 +539,8 @@ describe('Button Component', () => {
       link.dispatchEvent(event);
       expect(event.defaultPrevented).toBe(true);
       expect(onClick).not.toHaveBeenCalled();
+      expect(middleClick(link)).toBe(true);
+      expect(onAuxClick).not.toHaveBeenCalled();
     });
 
     it('does not throw when a loading custom target has a non-DOM onClick', () => {

@@ -56,16 +56,18 @@ export interface ButtonOwnProps extends Omit<
    * behind it, in forced colors (Windows' contrast themes) too, and holds the
    * button still: a click, Enter or Space does nothing, so `onClick` doesn't
    * run, a submit button doesn't submit its form and a click on a link
-   * doesn't follow its `href`, until it's cleared. A custom `as` component
-   * gets that dropped click as its `onClick`, so it holds still as far as it
-   * acts through it. Set it while an action is in progress, so
-   * nobody sends it twice. The button carries `aria-busy` and `aria-disabled`
-   * meanwhile, so a screen reader can tell it won't respond, and stays
-   * focusable, so focus isn't lost, with Bulma's focus outline showing it
-   * from the keyboard. Under `prefers-reduced-motion: reduce` the spinner
-   * stops and stays drawn. Bulma alone stops only the pointer, hides only the
-   * label and takes away the shadow that shows a focused button, so the rest
-   * of the look needs bestax's CSS loaded.
+   * doesn't follow its `href`, until it's cleared. A link drops a middle
+   * click too, so that doesn't open it and its `onAuxClick` doesn't run. A
+   * custom `as` component gets those dropped clicks as its `onClick` and
+   * `onAuxClick`, so it holds still as far as it acts through them. Set it
+   * while an action is in progress, so nobody sends it twice. The button
+   * carries `aria-busy` and `aria-disabled` meanwhile, so a screen reader can
+   * tell it won't respond, and stays focusable, so focus isn't lost, with
+   * Bulma's focus outline showing it from the keyboard. Under
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma
+   * alone stops only the pointer, hides only the label and takes away the
+   * shadow that shows a focused button, so the rest of the look needs
+   * bestax's CSS loaded.
    */
   isLoading?: boolean;
   /**
@@ -101,9 +103,12 @@ export interface ButtonOwnProps extends Omit<
   /**
    * Disables the button. With the default `as`, the `<button>` gets the
    * `disabled` attribute. With any other `as`, such as a link or a component
-   * of your own, it gets `aria-disabled` and `tabIndex={-1}` in its place, its
-   * `onClick` doesn't run, and bestax's CSS draws it the way Bulma draws a
-   * disabled `<button>`, which Bulma alone doesn't.
+   * of your own, it gets `aria-disabled` and `tabIndex={-1}` in its place,
+   * its `onClick` and `onAuxClick` don't run, and bestax's CSS draws it the
+   * way Bulma draws a disabled `<button>`, which Bulma alone doesn't. With
+   * `as="a"`, neither a click nor a middle click follows the `href`. The
+   * `href` stays, though, so a browser can still open the link without a
+   * click, such as from the context menu's "Open link in new tab".
    */
   isDisabled?: boolean;
   /** Custom class name. */
@@ -315,6 +320,8 @@ export const Button = forwardRef(function Button(
       if (!OWNS_DISABLED.includes(Component)) delete forwardedRest.disabled;
     }
 
+    const dropsClicks = isDisabled || isLoading;
+
     return (
       <Component
         ref={ref as React.Ref<HTMLAnchorElement>}
@@ -325,12 +332,16 @@ export const Button = forwardRef(function Button(
         aria-disabled={isDisabled}
         tabIndex={isDisabled ? -1 : undefined}
         onClick={
-          isDisabled || isLoading
+          dropsClicks
             ? dropClick
             : (onClick as
                 React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }
         {...(forwardedRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+        // A middle click follows a link from `auxclick`, which `onClick` never
+        // sees, so it's dropped with the click. After the caller's attributes,
+        // so their `onAuxClick` can't put it back.
+        {...(dropsClicks ? { onAuxClick: dropClick } : undefined)}
         {...loading}
       >
         {children}
