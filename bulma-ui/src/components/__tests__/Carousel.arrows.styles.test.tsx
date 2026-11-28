@@ -291,6 +291,176 @@ describe.each([
         /^var\(--bulma-focus-shadow-size\) hsla\(/
       );
     });
+
+    // A carousel in another one's item took the outer one's arrowHover,
+    // arrowColor and overlay look, and its forced-colors disabled arrow
+    // (#2278).
+    describe('in an item of another carousel', () => {
+      type Props = React.ComponentProps<typeof Carousel>;
+
+      /**
+       * A carousel rendered with `outerProps`, holding one rendered with
+       * `innerProps` in its first item, and the Next or Previous arrow, or
+       * the rotation button, of each.
+       */
+      const nested = (outerProps: Props, innerProps: Props) => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Carousel {...outerProps}>
+              <CarouselItem>
+                <Carousel {...innerProps}>
+                  <CarouselItem>One</CarouselItem>
+                  <CarouselItem>Two</CarouselItem>
+                  <CarouselItem>Three</CarouselItem>
+                </Carousel>
+              </CarouselItem>
+              <CarouselItem>Two</CarouselItem>
+              <CarouselItem>Three</CarouselItem>
+            </Carousel>
+          </ConfigProvider>
+        );
+        const outer = container.querySelector(`.${prefix}carousel`)!;
+        const inner = outer.querySelector(`.${prefix}carousel`)!;
+        const arrowOf = (
+          carousel: Element,
+          side: 'next' | 'prev' | 'rotation'
+        ) =>
+          carousel.querySelector(
+            `:scope > .${prefix}carousel-container > .${prefix}carousel-arrow.${prefix}is-${side}`
+          )!;
+        return { outer, inner, arrowOf };
+      };
+
+      const PLAIN_COLOR = 'var(--bulma-carousel-arrow-color)';
+      const LIGHT = 'var(--bulma-scheme-main)';
+      const DARK = 'var(--bulma-text-strong)';
+
+      it.each([
+        ['arrowColor light', { arrowColor: 'light' }, {}, LIGHT, PLAIN_COLOR],
+        ['arrowColor dark', { arrowColor: 'dark' }, {}, DARK, PLAIN_COLOR],
+        [
+          'arrowColor dark around arrowColor light',
+          { arrowColor: 'dark' },
+          { arrowColor: 'light' },
+          DARK,
+          LIGHT,
+        ],
+        [
+          'the overlay look',
+          { overlayControls: true },
+          {},
+          'var(--bulma-carousel-overlay-arrow-color)',
+          PLAIN_COLOR,
+        ],
+        [
+          'the overlay look around transparent arrows',
+          { overlayControls: true },
+          { arrowBackground: false },
+          'var(--bulma-carousel-overlay-arrow-color)',
+          PLAIN_COLOR,
+        ],
+      ] as [string, Props, Props, string, string][])(
+        'colors each carousel’s arrows from its own props, with %s',
+        (_case, outerProps, innerProps, outerColor, innerColor) => {
+          const { outer, inner, arrowOf } = nested(outerProps, innerProps);
+          expect(valueOf(arrowOf(outer, 'next'), css, 'color')).toBe(
+            outerColor
+          );
+          expect(valueOf(arrowOf(inner, 'next'), css, 'color')).toBe(
+            innerColor
+          );
+        }
+      );
+
+      it('fills the inner arrows and rotation button plainly in an outer carousel with the overlay look', () => {
+        const { inner, arrowOf } = nested(
+          { overlayControls: true },
+          { autoplay: true, rotationControl: true }
+        );
+        for (const side of ['next', 'rotation'] as const) {
+          const arrow = arrowOf(inner, side);
+          expect(valueOf(arrow, css, 'background-color')).toBe(
+            'var(--bulma-carousel-arrow-background)'
+          );
+          inState(':hover', [arrow], sheet => {
+            expect(valueOf(arrow, sheet, 'background-color')).toBe(
+              'var(--bulma-carousel-arrow-background-hover)'
+            );
+          });
+        }
+      });
+
+      it('shows the inner arrows at rest in an outer carousel with arrowHover', () => {
+        const { outer, inner, arrowOf } = nested({ arrowHover: true }, {});
+        expect(valueOf(arrowOf(outer, 'next'), css, 'opacity')).toBe('0');
+        expect(valueOf(arrowOf(inner, 'next'), css, 'opacity')).toBe('1');
+      });
+
+      it('keeps an inner arrowHover carousel’s rotation button in view, and a focused arrow', () => {
+        const { inner, arrowOf } = nested(
+          { arrowHover: true },
+          { arrowHover: true, autoplay: true, rotationControl: true }
+        );
+        const next = arrowOf(inner, 'next');
+        expect(valueOf(next, css, 'opacity')).toBe('0');
+        expect(valueOf(arrowOf(inner, 'rotation'), css, 'opacity')).toBe('1');
+        inState(':focus-visible', [next], sheet => {
+          expect(valueOf(next, sheet, 'opacity')).toBe('1');
+        });
+      });
+
+      it('shows inner arrowHover arrows only under the pointer on the inner carousel', () => {
+        const { outer, inner, arrowOf } = nested(
+          { arrowHover: true },
+          { arrowHover: true, repeat: false }
+        );
+        const next = arrowOf(inner, 'next');
+        const prev = arrowOf(inner, 'prev');
+        expect(prev).toBeDisabled();
+        const value = (
+          el: Element,
+          sheet: string,
+          property: string,
+          forcedColors: boolean
+        ) => cascade(el, sheet, [property], declared, { forcedColors });
+        // Over the outer carousel alone, its arrows show and the inner
+        // ones stay hidden, the disabled one in forced colors too.
+        inState(':hover', [outer], sheet => {
+          expect(value(arrowOf(outer, 'next'), sheet, 'opacity', false)).toBe(
+            '1'
+          );
+          expect(value(next, sheet, 'opacity', false)).toBe('0');
+          for (const forcedColors of [false, true]) {
+            expect(value(prev, sheet, 'opacity', forcedColors)).toBe('0');
+          }
+        });
+        // Over the inner one, which puts it over the outer one too.
+        inState(':hover', [outer, inner], sheet => {
+          expect(value(next, sheet, 'opacity', false)).toBe('1');
+          expect(value(prev, sheet, 'opacity', false)).toBe(
+            'var(--bulma-carousel-arrow-disabled-opacity)'
+          );
+          expect(value(prev, sheet, 'opacity', true)).toBe('1');
+        });
+      });
+
+      it('hides a disabled inner arrowHover arrow at rest in forced colors, in a plain carousel', () => {
+        const { inner, arrowOf } = nested(
+          {},
+          { arrowHover: true, repeat: false }
+        );
+        const prev = arrowOf(inner, 'prev');
+        expect(prev).toBeDisabled();
+        for (const forcedColors of [false, true]) {
+          expect(
+            cascade(prev, css, ['opacity'], declared, { forcedColors })
+          ).toBe('0');
+        }
+        expect(
+          cascade(prev, css, ['color'], declared, { forcedColors: true })
+        ).toBe('graytext');
+      });
+    });
   });
 
   it.each(TRANSPARENT)(
