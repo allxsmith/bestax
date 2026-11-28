@@ -1,5 +1,5 @@
 import { Block, Button } from "@allxsmith/bestax-bulma";
-// TODO(bestax-migrate): Tile has no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Tile is still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Tile } from 'react-bulma-components';
 
 export function ValueRefs() {

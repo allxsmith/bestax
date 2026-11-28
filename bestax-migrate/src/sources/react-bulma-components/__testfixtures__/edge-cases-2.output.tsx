@@ -16,7 +16,7 @@ import {
   Tabs,
 } from "@allxsmith/bestax-bulma";
 
-// TODO(bestax-migrate): Whatever has no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Whatever is still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Whatever } from 'react-bulma-components';
 
 export function MoreEdgeCases({

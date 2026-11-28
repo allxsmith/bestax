@@ -1,5 +1,5 @@
 import { Box, Button, Buttons, Message } from "@allxsmith/bestax-bulma";
-// TODO(bestax-migrate): Element, Tile have no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Element, Tile are still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Element, Tile } from 'react-bulma-components';
 
 // TODO(bestax-migrate): `Element` — no generic Element in bestax-bulma; use a semantic component (Block, Box, …) with helper props, or plain JSX with classNames — see https://bestax.io/docs/api/helpers/usebulmaclasses

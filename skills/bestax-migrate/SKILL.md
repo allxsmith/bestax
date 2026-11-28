@@ -73,9 +73,11 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    and Bulma version stay unless you pass `--css bestax` or `--css bulma`.
 
 3. **Install** — the codemod edits package.json but never runs a package manager. Resolve the
-   retained imports first: a component with no bestax equivalent keeps a trimmed,
-   TODO-annotated import of the source library, which the manifest step has just removed — so a
-   clean install leaves those unresolvable. The report names them in a `deps` entry.
+   source library's remaining imports first: the manifest step has just removed the library, so
+   a clean install leaves them unresolvable. A file the codemod left using the library keeps a
+   trimmed, TODO-annotated import of it, whose TODO points at the file's other TODOs, which say
+   why each name stays. A file it couldn't parse, or of a type it can't read (`.vue`, `.astro`),
+   keeps its imports as written. A `deps` entry says when any import remains.
 
    ```sh
    npm install   # or pnpm/yarn

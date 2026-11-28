@@ -88,15 +88,16 @@ export const updateDependencies: DependenciesUpdate = (
   // fires.
   const bulma = moveBulmaToV1(manifest, options.bulmaReferenced);
 
-  // The transform deliberately keeps a trimmed rbx import for components
-  // with no bestax equivalent (Tile, Generic, List, …) so a partially
-  // migrated app still runs. Removing the package from the manifest strands
-  // exactly those imports once the user runs the install the report asks for,
-  // so say so rather than letting them find out at build time.
+  // Files can still import rbx after the run: a trimmed import the transform
+  // kept, so a partially migrated app still runs, one it couldn't rewrite, a
+  // file it couldn't parse or doesn't read (`.vue`, `.astro`). Removing the
+  // package from the manifest strands those imports once the user runs the
+  // install the report asks for, so say so rather than letting them find out
+  // at build time.
   if (removed.includes('rbx') && options.sourceStillImported) {
     manifest.report(
       'deps',
-      'rbx was removed from package.json, but some files still import it for components with no bestax equivalent — resolve those `TODO(bestax-migrate)` imports before installing, or re-add rbx until you have'
+      'rbx was removed from package.json, but some files still import it, and installing would leave those imports unresolved: migrate every remaining import of rbx (the ones the codemod kept are marked `TODO(bestax-migrate)`) before installing, or re-add rbx until you have'
     );
   }
 

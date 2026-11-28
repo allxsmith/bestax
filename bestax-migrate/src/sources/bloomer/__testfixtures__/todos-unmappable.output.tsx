@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Button, Columns, Title } from "@allxsmith/bestax-bulma";
-// TODO(bestax-migrate): Nav, NavItem, NavLeft, Tile, withHelpersModifiers have no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Nav, NavItem, NavLeft, Tile, withHelpersModifiers are still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Nav, NavItem, NavLeft, Tile, withHelpersModifiers } from "bloomer";
 // TODO(bestax-migrate): `bloomer/lib/elements/Box` reaches into bloomer's internals; import the component from 'bloomer' first, then re-run the codemod
 import "bloomer/lib/elements/Box";

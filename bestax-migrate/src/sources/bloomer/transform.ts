@@ -8,8 +8,9 @@
  *      (isDisplay / isHidden / Column sizes) → component prop map →
  *      universal helper props
  *   3. rewrite imports: drop bloomer, add one merged bestax-bulma import; keep
- *      a trimmed bloomer import (with a TODO) only for components that have
- *      no bestax equivalent (Tile, the Nav family, …)
+ *      a trimmed bloomer import (with a TODO) only for what another TODO left
+ *      using it, such as a component with no bestax equivalent (Tile, the Nav
+ *      family, …)
  *
  * Anything unsafe gets a `// TODO(bestax-migrate)` comment on the enclosing
  * statement plus an entry in the run report.
@@ -56,6 +57,7 @@ import {
   bestaxValueLocals,
   buildBestaxImport,
   carryPrunedComments,
+  noteRetainedImport,
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
@@ -793,8 +795,6 @@ export default function transform(
 
   // ---- 3. Rewrite imports -----------------------------------------------
   if (imports.size > 0) {
-    const retainedNames = [...ctx.retained].sort((a, b) => a.localeCompare(b));
-
     const bestaxImport = buildBestaxImport(ctx, bestaxImportState);
 
     let inserted = false;
@@ -840,18 +840,7 @@ export default function transform(
       }
       if (keepSpecifiers.length > 0) {
         node.specifiers = keepSpecifiers;
-        // Only when named/namespace bindings are being retained. An import
-        // kept solely for a broken default binding has no names to list, and
-        // already carries its own "bloomer has no default export" TODO.
-        if (retainedNames.length > 0) {
-          node.comments = node.comments ?? [];
-          const text = ` TODO(bestax-migrate): ${retainedNames.join(', ')} ${
-            retainedNames.length === 1 ? 'has' : 'have'
-          } no bestax-bulma equivalent yet — migrate and remove this import`;
-          if (!node.comments.some((c: any) => c.value === text)) {
-            node.comments.push(j.commentLine(text, true, false));
-          }
-        }
+        noteRetainedImport(ctx, path, ctx.retained);
       } else {
         carryPrunedComments(
           node,

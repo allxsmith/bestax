@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Column, Columns } from "@allxsmith/bestax-bulma";
-// TODO(bestax-migrate): Generic has no bestax-bulma equivalent yet — migrate and remove this import
+// TODO(bestax-migrate): Generic is still imported for what the other TODOs in this file flag; resolve those, then remove this import
 import { Generic } from "rbx";
 
 // TODO(bestax-migrate): dropped `touch.size`: no bestax per-viewport equivalent — set it by hand
