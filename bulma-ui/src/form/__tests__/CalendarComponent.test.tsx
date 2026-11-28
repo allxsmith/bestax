@@ -232,6 +232,26 @@ describe('Calendar', () => {
     }
   });
 
+  it("throws Intl's RangeError for a locale tag Intl refuses, inside a LocaleProvider too (#2269)", () => {
+    // Deliberate (#2269): a picker's own locale isn't checked, where a
+    // provider given the same tag drops it with a warning.
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() =>
+        render(<Calendar locale="en_US" defaultMonth={NOV_2026} />)
+      ).toThrow(RangeError);
+      expect(() =>
+        render(
+          <LocaleProvider locale="de-DE">
+            <Calendar locale="en_US" defaultMonth={NOV_2026} />
+          </LocaleProvider>
+        )
+      ).toThrow(RangeError);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   describe('naming days', () => {
     it('names each day by its full date, with the weekday row hidden', () => {
       const { container } = render(

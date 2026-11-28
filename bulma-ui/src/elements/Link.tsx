@@ -84,6 +84,14 @@ type LinkImplProps = LinkOwnProps & {
 /**
  * The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
  *
+ * Outside a `Notification` or `Message`, Bulma draws a link without an
+ * underline, so a `Link` inside a sentence is told apart from the text around
+ * it by color alone (WCAG 1.4.1). Give one in running text
+ * `textTransform="underlined"`, which adds Bulma's `is-underlined` helper. A
+ * build without Bulma's helpers has no such class, so there give the link one
+ * of your own that sets `text-decoration: underline`. A link that stands on
+ * its own, in a menu, a list of links or a button row, doesn't need it.
+ *
  * @function
  * @param {LinkProps} props - Props for the Link component.
  * @param {React.Ref} ref - Forwarded ref to the element `as` renders.

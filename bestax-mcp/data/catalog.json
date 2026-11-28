@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.80.0"
+    "version": "5.81.2"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -330,7 +330,7 @@
       "slug": "components/carousel",
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 32,
+      "propCount": 33,
       "exampleCount": 17
     },
     {

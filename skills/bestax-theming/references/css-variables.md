@@ -411,8 +411,20 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
 
-In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply without `arrowHover`: a
-disabled arrow draws at full strength in the system's color for a disabled control.
+The `--bulma-carousel-arrow-*` and `--bulma-carousel-overlay-arrow-*` variables also draw the
+button `rotationControl` shows to stop autoplay, at the top center of the slides, or the bottom
+center while the indicators sit over the slides at the top.
+
+At their default sizes the indicators sit at least 24px apart, center to center, the spacing WCAG
+asks for around a target smaller than 24px. For each style, `--bulma-carousel-indicator-gap`
+defaults to `max(0.5rem, calc(24px - <the mark's width>))` and
+`--bulma-carousel-indicator-gap-mobile` to `max(0.375rem, calc(24px - <the mark's phone width>))`,
+so a mark drawn wider keeps that much room. A gap you set replaces the default on every style. A Sass build that sets
+`$carousel-indicator-gap` gets it on every style on a wider screen, and
+`$carousel-indicator-gap-mobile` on every style on a phone.
+
+In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply: a disabled arrow draws
+at full strength in the system's color for a disabled control, with `arrowHover` under the pointer.
 
 `--bulma-carousel-item-gap` (a length, default `0px`) is the space between items in view; set it
 on the carousel's own element through a class. The `--bulma-carousel-items-to-show*` variables
@@ -1132,6 +1144,11 @@ the label along with the tick's line, whatever `--bulma-slider-tick-label-color`
 colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
 system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
 has a hairline in the page's color as long as `--bulma-slider-track-height`.
+
+At the stock thumb sizes, a range Slider's thumb at the default or small size (not a circle one)
+takes presses on a box 24px square around the circle it draws. There `--bulma-slider-thumb-border`
+draws the ring as an outline inside that box, and `--bulma-slider-thumb-shadow` is cast by the box,
+so a shadow starts a little further out than the circle's edge.
 
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,

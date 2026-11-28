@@ -43,18 +43,30 @@ This example shows the `Footer` component with centered content. Use the `Footer
 ```tsx live
 import { Footer } from '@allxsmith/bestax-bulma';
 import { Content } from '@allxsmith/bestax-bulma';
+import { Link, Paragraph, Strong } from '@allxsmith/bestax-bulma';
 
 <Footer>
   <Content textAlign="centered">
     <Paragraph>
       <Strong>Bestax</Strong> a Bulma component library by{' '}
-      <a href="https://bestax.io">Alex Smith</a>.<br />
-      <a href="https://opensource.org/license/mit">MIT Source Code License</a>
+      <Link href="https://bestax.io" textTransform="underlined">
+        Alex Smith
+      </Link>
+      .<br />
+      <Link
+        href="https://opensource.org/license/mit"
+        textTransform="underlined"
+      >
+        MIT Source Code License
+      </Link>
       {', '}
       Web content licensed{' '}
-      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0//">
+      <Link
+        href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        textTransform="underlined"
+      >
         CC BY NC SA 4.0
-      </a>
+      </Link>
       .
     </Paragraph>
   </Content>
