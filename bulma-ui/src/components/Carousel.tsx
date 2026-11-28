@@ -220,7 +220,9 @@ export interface CarouselProps
   /**
    * Enable drag/swipe navigation. Default: true. A swipe moves one step,
    * however far it travels. A swipe toward the start of the line goes on,
-   * so on a right-to-left page a swipe right brings the next slide in.
+   * so on a right-to-left page a swipe right brings the next slide in. A
+   * press that becomes a swipe doesn't also click what it started on, an
+   * arrow or a link in a slide.
    */
   hasDrag?: boolean;
   /**
@@ -1046,6 +1048,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           onTouchStart={hasDrag ? swipe.handlers.onTouchStart : undefined}
           onTouchMove={hasDrag ? swipe.handlers.onTouchMove : undefined}
           onTouchEnd={hasDrag ? swipe.handlers.onTouchEnd : undefined}
+          onClickCapture={hasDrag ? swipe.handlers.onClickCapture : undefined}
           style={{
             transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
             cursor: hasDrag ? (isDragging ? 'grabbing' : 'grab') : undefined,

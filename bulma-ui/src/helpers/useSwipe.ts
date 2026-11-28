@@ -1,5 +1,5 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type React from 'react';
 
 /** Which way a finished swipe went, on screen: where the pointer travelled. */
@@ -47,6 +47,12 @@ export interface SwipeHandlers<T extends Element = Element> {
   onTouchMove: (event: React.TouchEvent<T>) => void;
   /** Ends a drag. */
   onTouchEnd: () => void;
+  /**
+   * Swallows the click that the release of a swipe fires, so a press that
+   * became a swipe doesn't also press the button or follow the link it
+   * started on. Any other click goes through.
+   */
+  onClickCapture: (event: React.MouseEvent<T>) => void;
 }
 
 /** What `useSwipe` returns. */
@@ -83,6 +89,9 @@ export function useSwipe<T extends Element = Element>({
   const [isSwiping, setIsSwiping] = useState(false);
   const [start, setStart] = useState(AT_REST);
   const [offset, setOffset] = useState(AT_REST);
+  // Whether a swipe just ended. A browser fires the click a release makes in
+  // the same task as the release, so the flag lasts until the next task.
+  const swiped = useRef(false);
 
   const begin = useCallback(
     (x: number, y: number) => {
@@ -106,13 +115,21 @@ export function useSwipe<T extends Element = Element>({
     if (!isSwiping) return;
     setIsSwiping(false);
 
+    let direction: SwipeDirection | undefined;
     if (vertical && Math.abs(offset.y) > Math.abs(offset.x)) {
-      if (offset.y > SWIPE_THRESHOLD) onSwipe('down');
-      else if (offset.y < -SWIPE_THRESHOLD) onSwipe('up');
+      if (offset.y > SWIPE_THRESHOLD) direction = 'down';
+      else if (offset.y < -SWIPE_THRESHOLD) direction = 'up';
     } else if (offset.x < -SWIPE_THRESHOLD) {
-      onSwipe('left');
+      direction = 'left';
     } else if (offset.x > SWIPE_THRESHOLD) {
-      onSwipe('right');
+      direction = 'right';
+    }
+    if (direction) {
+      swiped.current = true;
+      setTimeout(() => {
+        swiped.current = false;
+      });
+      onSwipe(direction);
     }
 
     setOffset(AT_REST);
@@ -143,6 +160,12 @@ export function useSwipe<T extends Element = Element>({
       onTouchMove: event =>
         follow(event.touches[0].clientX, event.touches[0].clientY),
       onTouchEnd: end,
+      onClickCapture: event => {
+        if (!swiped.current) return;
+        swiped.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+      },
     },
     cancel,
   };
