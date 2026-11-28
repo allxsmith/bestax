@@ -265,6 +265,39 @@ export function makeAliasRegistry(): AliasRegistry {
 }
 
 /**
+ * Whether the identifier at `path` is a name in an export specifier that
+ * binds nothing here: the public name of `export { Card as Header }`, or any
+ * name in `export … from './other'`, which names that module's exports.
+ */
+export function namesNoLocal(path: ASTPath<any>): boolean {
+  const specifier = path.parent;
+  const type: string | undefined = specifier?.node?.type;
+  if (!type?.startsWith('Export') || !type.endsWith('Specifier')) return false;
+  return (
+    Boolean(specifier.parent?.node?.source) ||
+    specifier.node.local !== path.node
+  );
+}
+
+/**
+ * The locals `export { … }` names. Pruning the declaration that binds one of
+ * them (`const { Header } = Card; export { Header };`) leaves the specifier
+ * naming nothing.
+ */
+export function reExportedLocals(
+  j: JSCodeshift,
+  root: Collection<any>
+): Set<string> {
+  const names = new Set<string>();
+  root.find(j.ExportSpecifier).forEach(p => {
+    if (p.parent?.node?.source) return;
+    const local = p.node.local ?? p.node.exported;
+    if (local?.type === 'Identifier') names.add(local.name);
+  });
+  return names;
+}
+
+/**
  * The flat bestax name a re-export of `mapping`'s component is written as
  * (`export { Columns as Group }`), or undefined when it has none to write.
  */
@@ -277,6 +310,40 @@ export function flatReExportTarget(
     !mapping.target.includes('.')
     ? mapping.target
     : undefined;
+}
+
+/**
+ * Why the destructuring at `path`, of the library path `base`, stays for an
+ * export, or undefined when it exports nothing as it is. A name the
+ * value-reference pass re-exports as bestax's own flat name needs no
+ * declaration, but a declaration that is the export
+ * (`export const { Header } = Card`) takes the export with it.
+ */
+export function keptForExport(
+  path: ASTPath<any>,
+  base: string[],
+  reExported: Set<string>,
+  resolveMapping: (parts: string[]) => ComponentMapping | undefined
+): string | undefined {
+  const declaration = path.parent;
+  const exported =
+    declaration?.parent?.node?.type === 'ExportNamedDeclaration' &&
+    declaration.parent.node.declaration === declaration.node;
+  const names = path.node.id.properties
+    .filter(
+      (prop: any) =>
+        (prop.type === 'ObjectProperty' || prop.type === 'Property') &&
+        prop.value?.type === 'Identifier' &&
+        (exported ||
+          (reExported.has(prop.value.name) &&
+            !flatReExportTarget(resolveMapping([...base, nameOf(prop.key)]))))
+    )
+    .map((prop: any) => `\`${prop.value.name}\``)
+    .join(', ');
+  if (!names) return undefined;
+  return exported
+    ? `kept for the export of ${names}; migrate the modules that import this one, then this declaration, by hand`
+    : `kept for the re-export of ${names}; migrate that first`;
 }
 
 /** What the destructuring pass decided about its declarations. */

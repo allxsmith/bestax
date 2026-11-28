@@ -367,3 +367,59 @@ describe('a destructuring the pass keeps (#2350)', () => {
     expect(todos).toEqual([]);
   });
 });
+
+describe('exports and the destructuring pass (#2365)', () => {
+  it('keeps an exported destructuring, export and all', () => {
+    // Pruning it took the module's export with it: `export {};`.
+    for (const [root, name] of [
+      ['Card', 'Header'],
+      // A flat target too: no specifier is left for the value-reference
+      // pass to write as `export { IconText as Text }`.
+      ['Icon', 'Text'],
+    ]) {
+      const declaration = `export const { ${name} } = ${root};`;
+      const { output, todos } = migrate(
+        `import { ${root} } from 'react-bulma-components';\n${declaration}\n`
+      );
+      expect(output).toContain(declaration);
+      expect(output).toContain(
+        `import { ${root} } from 'react-bulma-components';`
+      );
+      expect(todos.map(t => t.message)).toEqual([
+        `kept for the export of \`${name}\`; migrate the modules that import this one, then this declaration, by hand`,
+      ]);
+    }
+  });
+
+  it('leaves a specifier of `export … from` alone', () => {
+    // `export { Text } from './other'` became
+    // `export { IconText as Text } from './other'`, asking `./other` for an
+    // export it doesn't have.
+    const { output, todos } = migrate(
+      [
+        "import { Icon, Element } from 'react-bulma-components';",
+        "import * as R from 'react-bulma-components';",
+        'const { Text } = Icon;',
+        "export { Text } from './other';",
+        "export * as Element from './more';",
+        "export { R } from './more';",
+        'export const A = () => <Text><R.Box /></Text>;',
+      ].join('\n')
+    );
+    expect(output).toContain("export { Text } from './other';");
+    expect(output).toContain("export * as Element from './more';");
+    expect(output).toContain("export { R } from './more';");
+    expect(output).toContain('<IconText><Box /></IconText>');
+    expect(output).not.toContain('= Icon');
+    expect(output).not.toContain("'react-bulma-components'");
+    expect(todos).toEqual([]);
+  });
+
+  it('reports a namespace re-exported here once', () => {
+    // The public name in `export { R }` was read as a second use of `R`.
+    const { todos } = migrate(
+      "import * as R from 'react-bulma-components';\nexport { R };\nexport const A = () => <R.Box />;\n"
+    );
+    expect(todos.map(t => t.rule)).toEqual(['value-reference']);
+  });
+});

@@ -66,6 +66,7 @@ import {
   collectBoundNames,
   makeReserve,
   nameOf,
+  namesNoLocal,
   prefersTabs,
   resolvesToBinding,
 } from '../_shared/imports.js';
@@ -555,6 +556,9 @@ export default function transform(
     // A TS qualified name (`B.BoxProps` in a type position) is erased at
     // runtime, so it is not a value use of the namespace at all.
     if (parentType === 'TSQualifiedName') return;
+    // A public name (`export { Card as Header }`) or a name in
+    // `export { Header } from './other'` binds nothing here.
+    if (namesNoLocal(path)) return;
     // A namespace binding in a real value position. `bloomer.Button` is still a
     // mappable component reference, so fall through to the member-expression
     // branch below with an empty prefix (the namespace itself is not part of
@@ -582,7 +586,6 @@ export default function transform(
     // target keeps the public name (\`export { SubTitle as Subtitle }\`), a
     // dotted one cannot be re-exported under a member name and is flagged.
     if (parentType === 'ExportSpecifier') {
-      if (parentNode.local !== path.node) return;
       const exportedName = nameOf(parentNode.exported ?? parentNode.local);
       const mapping = MAPPING[imported];
       if (

@@ -58,11 +58,14 @@ import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   collectBoundNames,
   flatReExportTarget,
+  keptForExport,
   makeAliasRegistry,
   makeDestructuringPlan,
   makeReserve,
   nameOf,
+  namesNoLocal,
   prefersTabs,
+  reExportedLocals,
   resolvesToBinding,
 } from '../_shared/imports.js';
 import { flattenResponsiveProps, RESPONSIVE_KINDS } from './responsive.js';
@@ -218,16 +221,7 @@ export default function transform(
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
   const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
 
-  /**
-   * Locals a re-export names. Pruning the declaration that binds one of them
-   * (`const { Header } = Card; export { Header };`) leaves the specifier
-   * pointing at nothing, so those declarations are kept.
-   */
-  const reExported = new Set<string>();
-  root.find(j.ExportSpecifier).forEach(p => {
-    const local = p.node.local ?? p.node.exported;
-    if (local?.type === 'Identifier') reExported.add(local.name);
-  });
+  const reExported = reExportedLocals(j, root);
 
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
   const destructurings = makeDestructuringPlan(ctx);
@@ -276,29 +270,11 @@ export default function transform(
         allResolved = false;
       }
     }
-    // The names re-exported as they are. One the value-reference pass writes
-    // as bestax's own flat name needs no declaration.
-    const reExports = node.id.properties
-      .filter(
-        (prop: any) =>
-          (prop.type === 'ObjectProperty' || prop.type === 'Property') &&
-          prop.value?.type === 'Identifier' &&
-          reExported.has(prop.value.name) &&
-          !flatReExportTarget(resolveMapping([...basePath, nameOf(prop.key)]))
-      )
-      .map((prop: any) => `\`${prop.value.name}\``);
-
-    if (allResolved && reExports.length === 0) {
-      destructurings.prune(path, basePath[0]);
-    } else {
-      destructurings.keep(
-        path,
-        basePath[0],
-        allResolved
-          ? `kept for the re-export of ${reExports.join(', ')}; migrate that first`
-          : `could not resolve every name destructured from \`${base}\`; migrate the leftovers by hand`
-      );
-    }
+    const kept = allResolved
+      ? keptForExport(path, basePath, reExported, resolveMapping)
+      : `could not resolve every name destructured from \`${base}\`; migrate the leftovers by hand`;
+    if (kept) destructurings.keep(path, basePath[0], kept);
+    else destructurings.prune(path, basePath[0]);
   });
 
   /** Resolve a JSX name into a canonical rbx component path, or null. */
@@ -720,6 +696,9 @@ export default function transform(
     // A TS qualified name (`RBC.ButtonProps` in a type position) is erased at
     // runtime, so it is not a value use of the namespace at all.
     if (parentType === 'TSQualifiedName') return;
+    // A public name (`export { Card as Header }`) or a name in
+    // `export { Header } from './other'` binds nothing here.
+    if (namesNoLocal(path)) return;
     // A namespace binding in a real value position. `rbx.Button` is still a
     // mappable component reference, so fall through to the member-expression
     // branch below with an empty prefix (the namespace itself is not part of
@@ -747,7 +726,6 @@ export default function transform(
     // target keeps the public name (\`export { SubTitle as Subtitle }\`), a
     // dotted one cannot be re-exported under a member name and is flagged.
     if (parentType === 'ExportSpecifier') {
-      if (parentNode.local !== path.node) return;
       const exportedName = nameOf(parentNode.exported ?? parentNode.local);
       const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
       const flat = flatReExportTarget(mapping);

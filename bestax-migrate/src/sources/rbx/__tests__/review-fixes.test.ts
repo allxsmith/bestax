@@ -1567,3 +1567,56 @@ describe('a destructuring the pass keeps (#2350)', () => {
     expect(todos).toEqual([]);
   });
 });
+
+describe('exports and the destructuring pass (#2365)', () => {
+  it('keeps an exported destructuring, export and all', () => {
+    // Pruning it took the module's `Header` export with it: `export {};`.
+    for (const [root, name] of [
+      ['Card', 'Header'],
+      // A flat target too: no specifier is left for the value-reference
+      // pass to write as `export { Columns as Group }`.
+      ['Column', 'Group'],
+    ]) {
+      const declaration = `export const { ${name} } = ${root};`;
+      const { output, todos } = migrate(
+        `import { ${root} } from 'rbx';\n${declaration}\n`
+      );
+      expect(output).toContain(declaration);
+      expect(output).toContain(`import { ${root} } from 'rbx';`);
+      expect(todos.map(t => t.message)).toEqual([
+        `kept for the export of \`${name}\`; migrate the modules that import this one, then this declaration, by hand`,
+      ]);
+    }
+  });
+
+  it('leaves a specifier of `export … from` alone', () => {
+    const { output, todos } = migrate(
+      [
+        "import { Column, Textarea } from 'rbx';",
+        "import * as R from 'rbx';",
+        'const { Group } = Column;',
+        "export { Group, Textarea as default } from './other';",
+        "export * as Textarea from './more';",
+        "export { R } from './more';",
+        'export const A = () => <Group><Textarea /><R.Box /></Group>;',
+      ].join('\n')
+    );
+    expect(output).toContain(
+      "export { Group, Textarea as default } from './other';"
+    );
+    expect(output).toContain("export * as Textarea from './more';");
+    expect(output).toContain("export { R } from './more';");
+    expect(output).toContain('<Columns><TextArea /><Box /></Columns>');
+    expect(output).not.toContain('= Column');
+    expect(output).not.toContain("'rbx'");
+    expect(todos).toEqual([]);
+  });
+
+  it('reports a namespace re-exported here once', () => {
+    // The public name in `export { R }` was read as a second use of `R`.
+    const { todos } = migrate(
+      "import * as R from 'rbx';\nexport { R };\nexport const A = () => <R.Box />;\n"
+    );
+    expect(todos.map(t => t.rule)).toEqual(['value-reference']);
+  });
+});
