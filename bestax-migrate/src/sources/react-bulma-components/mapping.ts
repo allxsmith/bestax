@@ -106,6 +106,101 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   },
 };
 
+const SPACING_HELPERS = new Set([
+  'm',
+  'mt',
+  'mr',
+  'mb',
+  'ml',
+  'mx',
+  'my',
+  'p',
+  'pt',
+  'pr',
+  'pb',
+  'pl',
+  'px',
+  'py',
+]);
+
+/**
+ * The Bulma class one of the universal helpers above stood for, written on
+ * a target that takes no helper props (`HELPERLESS_TARGETS` in
+ * `_shared/props.ts`) or named in its TODO. `value` is the helper's literal
+ * value, undefined when it is dynamic, and a falsy one wrote no class in RBC,
+ * so it gets null. `hidden` is left out: RBC passed it to the DOM as HTML's
+ * own attribute, which those parts take.
+ */
+export function helperClassHint(
+  name: string,
+  value: string | number | boolean | undefined
+): string | null {
+  if (value !== undefined && !value) return null;
+  const v =
+    typeof value === 'string' || typeof value === 'number'
+      ? String(value)
+      : undefined;
+  if (SPACING_HELPERS.has(name)) return `${name}-${v ?? '<size>'}`;
+  switch (name) {
+    case 'textColor':
+      return `has-text-${v ?? '<color>'}`;
+    case 'backgroundColor':
+      return `has-background-${v ?? '<color>'}`;
+    case 'textSize':
+      return `is-size-${v ?? '<size>'}`;
+    case 'textAlign': {
+      const aligned =
+        v === 'center' ? 'centered' : v === 'justify' ? 'justified' : v;
+      return `has-text-${aligned ?? '<alignment>'}`;
+    }
+    case 'textTransform':
+      return `is-${v ?? '<transform>'}`;
+    case 'textWeight':
+      return `has-text-weight-${v ?? '<weight>'}`;
+    case 'textFamily':
+      return `is-family-${v ?? '<family>'}`;
+    case 'italic':
+      return 'is-italic';
+    case 'pull':
+      return `is-pulled-${v ?? '<side>'}`;
+    case 'display':
+      return `is-${v ?? '<display>'}`;
+    case 'flexDirection':
+      return `is-flex-direction-${v ?? '<direction>'}`;
+    case 'flexWrap':
+      return `is-flex-wrap-${v ?? '<wrap>'}`;
+    case 'justifyContent':
+      return `is-justify-content-${v ?? '<value>'}`;
+    case 'alignContent':
+      return `is-align-content-${v ?? '<value>'}`;
+    case 'alignItems':
+      return `is-align-items-${v ?? '<value>'}`;
+    case 'clearfix':
+      return 'is-clearfix';
+    case 'overlay':
+      return 'is-overlay';
+    case 'clipped':
+      return 'is-clipped';
+    case 'invisible':
+      return 'is-invisible';
+    case 'srOnly':
+      return 'is-sr-only';
+    // Bulma v1 removed `is-marginless` and `is-paddingless`; these do their job.
+    case 'marginless':
+      return 'm-0';
+    case 'paddingless':
+      return 'p-0';
+    case 'radiusless':
+      return 'is-radiusless';
+    case 'shadowless':
+      return 'is-shadowless';
+    case 'unselectable':
+      return 'is-unselectable';
+    default:
+      return null;
+  }
+}
+
 /** Breakpoint-object props flattened by the responsive pass. */
 export const RESPONSIVE_BREAKPOINTS: Record<string, string | null> = {
   mobile: 'Mobile',

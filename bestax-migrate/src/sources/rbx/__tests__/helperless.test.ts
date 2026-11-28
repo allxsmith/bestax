@@ -53,7 +53,7 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
     const dynamicFlag = migrate(
       panel('<Panel.Block hidden={p.h}>x</Panel.Block>')
     );
-    expect(dynamicFlag.todos[0].message).toContain('wherever its value set it');
+    expect(dynamicFlag.todos[0].message).toContain('`hidden={p.h}` stood for');
   });
 
   it('writes no placeholder class for a value helper given no value', () => {
@@ -67,7 +67,9 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
 
   it('writes no class for a falsy literal, as rbx wrote none', () => {
     const { output, rules } = migrate(
-      panel('<Panel.Heading hidden={0} srOnly="">x</Panel.Heading>')
+      panel(
+        '<Panel.Heading hidden={0} srOnly="" textSize={0}>x</Panel.Heading>'
+      )
     );
     expect(rules).toEqual([]);
     expect(output).toContain('<Panel.Heading>x</Panel.Heading>');
@@ -139,10 +141,11 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
       '<Tooltip key="k" label="hi"><Dropdown.Divider /></Tooltip>'
     );
     const once = passes.todos.filter(t => /Dropdown\.Divider`/.test(t.message));
-    expect(once.map(t => t.rule)).toEqual(['component:Dropdown.Divider']);
-    expect(once[0].message).toContain(
-      '`as`, `innerRef`, `textColor` were removed'
-    );
+    expect(once.map(t => t.rule)).toEqual([
+      'prop:textColor',
+      'component:Dropdown.Divider',
+    ]);
+    expect(once[1].message).toContain('`as`, `innerRef` were removed');
   });
 
   it('flags a breakpoint object, which has no one class to write', () => {
@@ -192,14 +195,8 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
   });
 
   it('knows a class for every universal helper but the ones other passes handle', () => {
-    // `as` and `innerRef` aren't helpers, and the colors have passes of
-    // their own that flag them on these parts.
-    const elsewhere = new Set([
-      'as',
-      'innerRef',
-      'textColor',
-      'backgroundColor',
-    ]);
+    // `as` and `innerRef` aren't helpers.
+    const elsewhere = new Set(['as', 'innerRef']);
     for (const name of Object.keys(UNIVERSAL_PROPS)) {
       expect({ name, known: helperClassHint(name, 'x') !== null }).toEqual({
         name,

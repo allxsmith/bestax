@@ -9,9 +9,11 @@
 
 import type { ASTPath } from 'jscodeshift';
 import type { PropAction } from '../../types.js';
+import { releaseRaise } from './bestax-floor.js';
 import {
   addAttr,
   addTodo,
+  attrSource,
   attributesOf,
   findAttr,
   jsxNameParts,
@@ -370,12 +372,138 @@ export const NO_CLASSNAME_TARGETS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * On a `HELPERLESS_TARGETS` or `NO_CLASSNAME_TARGETS` element, write each of
+ * the source's helpers as the Bulma class it stood for (`classOf`, the
+ * source's `helperClassHint`), as bestax renders it on a part that takes the
+ * prop, and add it to `handled` so the universal pass leaves it alone. Where
+ * no `className` can carry the class, it is named in a TODO instead: a
+ * dynamic value, a value helper given none, a dynamic `className`, a spread
+ * that could replace the `className`, a target that takes no props at all,
+ * and below `since`, the release a CLASSNAME_SINCE target keeps its own class
+ * beside a `className` from. A literal that wrote no class, which `classOf`
+ * gives null for, goes quietly. On
+ * a target that takes no props, the rest is marked handled for
+ * `dropPropsTargetIgnores`, apart from what `keepForLater` names.
+ * `isBreakpoints` names the source's breakpoint-object props, which
+ * stand for several classes, so each of those is named in a TODO.
+ */
+export function writeHelpersAsClasses(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  target: string,
+  handled: Set<string>,
+  {
+    classOf,
+    isBreakpoints,
+    since,
+    keepForLater = () => false,
+  }: {
+    classOf: (
+      name: string,
+      value: string | number | boolean | undefined
+    ) => string | null;
+    isBreakpoints: (name: string) => boolean;
+    since?: string;
+    keepForLater?: (name: string) => boolean;
+  }
+): void {
+  const noProps = NO_CLASSNAME_TARGETS.has(target);
+  // Why a class can't be written, and what to do about it.
+  const refusal = (what: string): string | undefined =>
+    noProps
+      ? `bestax \`${target}\` takes no props at all, so ${what} cannot be set on it: wrap it, or restyle by hand`
+      : since
+        ? `${releaseRaise(target, since)}, so ${what} isn't set on it: declare \`@allxsmith/bestax-bulma\` at \`^${since}\` or later and re-run, or restyle by hand`
+        : undefined;
+  const takesNone = `bestax \`${target}\` takes no Bulma helper props (it extends only React's HTML attributes)`;
+  // A spread after the `className`, or anywhere when there is none, can
+  // carry a `className` of its own that replaces the class written here.
+  const attributes: any[] = element.openingElement.attributes ?? [];
+  const classAt = attributes.indexOf(findAttr(element, 'className'));
+  const spread = attributes.some(
+    (a: any, i: number) => a.type === 'JSXSpreadAttribute' && i > classAt
+  );
+  for (const attr of [...attributesOf(element)]) {
+    const name: string = attr.name.name;
+    if (handled.has(name)) continue;
+    // Quoted wherever it goes, since what decided the class leaves the file.
+    const quoted = (): string => `\`${attrSource(ctx.j, attr) || name}\``;
+    if (isBreakpoints(name)) {
+      removeAttr(element, attr);
+      handled.add(name);
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        refusal(`the classes ${quoted()} stood for`) ??
+          `${takesNone}; add the classes ${quoted()} stood for to \`className\` by hand`
+      );
+      continue;
+    }
+    // A helper has a class with no value given; `classOf` gives null for a
+    // literal that wrote no class (`hidden={false}`).
+    const hint = classOf(name, undefined);
+    if (hint === null) continue;
+    removeAttr(element, attr);
+    handled.add(name);
+    const literal = literalValueOf(attr);
+    const cls =
+      literal.kind === 'expression' ? hint : classOf(name, literal.value);
+    if (cls === null) continue;
+    const refused = refusal(
+      literal.kind === 'expression'
+        ? `the \`${cls}\` class ${quoted()} stood for`
+        : `the \`${cls}\` class this became`
+    );
+    if (refused) {
+      addTodo(ctx, path, `prop:${name}`, refused);
+    } else if (literal.kind === 'expression') {
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        `${takesNone}; ${quoted()} stood for the \`${cls}\` class, so add it to \`className\` by hand where that value set it`
+      );
+    } else if (cls.includes('<')) {
+      // A placeholder (`is-pulled-<side>`): the helper took a value and was
+      // given none, so there is no class to write.
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        `${takesNone}, and \`${name}\` carries no value here; add the \`${cls}\` class it takes to \`className\` by hand, with the value you meant`
+      );
+    } else if (spread) {
+      addTodo(
+        ctx,
+        path,
+        `prop:${name}`,
+        `${takesNone}; add the \`${cls}\` class to the \`className\` its spread may carry, by hand`
+      );
+    } else {
+      mergeClass(ctx, path, element, cls, name);
+    }
+  }
+  // On a target that takes no props, what the later passes would only flag
+  // (`as`, a ref, a color) is left to `dropPropsTargetIgnores`, which removes
+  // it and names it once, apart from what `keepForLater` names for a pass that
+  // can still use it.
+  if (noProps) {
+    for (const attr of attributesOf(element)) {
+      const name: string = attr.name.name;
+      if (!keepForLater(name)) handled.add(name);
+    }
+  }
+}
+
+/**
  * On a `NO_CLASSNAME_TARGETS` element, once every other pass has taken what
  * it can, remove what is left and name it in one TODO under `rule`, since
  * the target would fail the typecheck on it and drop it at runtime. `key`
  * stays: it belongs to the list around the element. A spread can't be taken
  * apart, so it stays, with a TODO saying the target drops what it carries
- * (bloomer keeps its own element beside a spread, so only rbx reaches that).
+ * (bloomer keeps its own element beside a spread, so it never reaches that).
  */
 export function dropPropsTargetIgnores(
   ctx: TransformContext,

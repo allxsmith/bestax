@@ -104,18 +104,23 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
  * The Bulma class one of the universal helpers above stood for, written on
  * a target that takes no helper props (`HELPERLESS_TARGETS` in
  * `_shared/props.ts`) or named in its TODO. `value` is the helper's literal
- * value, undefined when it is dynamic; `textColor` and `backgroundColor` are
- * left to their own passes, which flag them on these targets.
+ * value, undefined when it is dynamic, and a falsy one wrote no class in rbx,
+ * so it gets null.
  */
 export function helperClassHint(
   name: string,
   value: string | number | boolean | undefined
 ): string | null {
+  if (value !== undefined && !value) return null;
   const v =
     typeof value === 'string' || typeof value === 'number'
       ? String(value)
       : undefined;
   switch (name) {
+    case 'textColor':
+      return `has-text-${v ?? '<color>'}`;
+    case 'backgroundColor':
+      return `has-background-${v ?? '<color>'}`;
     case 'textAlign':
       return `has-text-${v ?? '<alignment>'}`;
     case 'textTransform':
