@@ -75,7 +75,10 @@ the titles are `h3`s.
       dateTime="2026-10-14T08:12"
     >
       <Paragraph>
-        Tracking number <Link href="#track">1Z999AA10123456784</Link>
+        Tracking number{' '}
+        <Link href="#track" textTransform="underlined">
+          1Z999AA10123456784
+        </Link>
       </Paragraph>
     </Timeline.Item>
     <Timeline.Item
@@ -344,7 +347,10 @@ function example() {
       </Stage>
       <Stage name="Deploy to staging" icon="server">
         <Paragraph>
-          Rolling out. <Link href="#logs">See the logs</Link>
+          Rolling out.{' '}
+          <Link href="#logs" textTransform="underlined">
+            See the logs
+          </Link>
         </Paragraph>
       </Stage>
       <Stage name="Deploy to production" icon="globe" />

@@ -162,12 +162,15 @@ Display links in all Bulma theme colors.
 
 ### Inline Link
 
-Links work seamlessly inline within text content.
+A link inside a sentence takes `textTransform="underlined"`. Outside a `Notification` or `Message`, Bulma draws links without an underline, so without it the link differs from the words around it only by color.
 
 ```tsx live
 <Paragraph>
-  This is a paragraph with an <Link href="#">inline link</Link> in the middle of
-  the text.
+  This is a paragraph with an{' '}
+  <Link href="#" textTransform="underlined">
+    inline link
+  </Link>{' '}
+  in the middle of the text.
 </Paragraph>
 ```
 
@@ -201,6 +204,13 @@ function example() {
 ## Accessibility
 
 - **Descriptive Text:** Use meaningful link text that describes the destination, not generic text like "click here".
+- **Links in running text:** Outside a `Notification` or `Message`, Bulma draws a link without
+  an underline, so a `Link` inside a sentence is told apart from the text around it by color
+  alone (WCAG 1.4.1 Use of Color). Give it `textTransform="underlined"`, which adds Bulma's
+  `is-underlined` helper, as the [inline example](#inline-link) does. A build without Bulma's
+  helpers has no such class, so there give the link one of your own that sets
+  `text-decoration: underline`. A link that stands on its own, in a menu, a list of links or a
+  button row, doesn't need it.
 - **External Links:** When opening links in new tabs, consider informing users (e.g., with an icon or text like "opens in new tab").
 - **Current page:** `isActive` writes `aria-current="page"` beside Bulma's `is-active` class, so
   a screen reader says which link is the page you're on, the way a menu or navbar draws it. Pass

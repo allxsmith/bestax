@@ -1,3 +1,47 @@
+## [5.81.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.81.1...@allxsmith/bestax-bulma@5.81.2) (2026-11-28)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.49 in the peer range ([1460072](https://github.com/allxsmith/bestax/commit/1460072bf9bc9cbb141d0d2c64544100bb4676f3))
+* **create-bestax:** catch the starters up to create-vite 9.4.0 ([ae5c6f3](https://github.com/allxsmith/bestax/commit/ae5c6f3e1a89986f77c98ea96e3d3ba271666c05))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([bd6a435](https://github.com/allxsmith/bestax/commit/bd6a435ce639c62dd1385c2b8c7a387de6bf73b8))
+
+## [5.81.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.81.0...@allxsmith/bestax-bulma@5.81.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a wrapped row of Carousel lines or bars 24px below the one above ([7c82072](https://github.com/allxsmith/bestax/commit/7c820724c4844208d2801d44aeb892e8768b105e))
+* **bulma-ui:** keep a wrapped row of tall Carousel lines or bars off the row above ([bbadda4](https://github.com/allxsmith/bestax/commit/bbadda40dd75d0a6038671f0e595e1314be84cc4))
+* **bulma-ui:** keep Carousel indicators drawn wider as far apart as they were ([49943c2](https://github.com/allxsmith/bestax/commit/49943c21794d4e4fb99a0c5d9aec097ea25a7800))
+* **bulma-ui:** pause a Carousel under a pointer that comes from outside its shadow root ([638c967](https://github.com/allxsmith/bestax/commit/638c9676d116c7fadcd0116fea2f5fbd78d0149b)), closes [#2309](https://github.com/allxsmith/bestax/issues/2309)
+* **bulma-ui:** space Carousel's indicators 24px apart, with the marks drawn as before ([1c10830](https://github.com/allxsmith/bestax/commit/1c10830e1685571f6ca08a5496c265a9f3612633)), closes [#1926](https://github.com/allxsmith/bestax/issues/1926)
+
+# [5.81.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.80.1...@allxsmith/bestax-bulma@5.81.0) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** name rotationControl in the carousel TODO ([4d162d9](https://github.com/allxsmith/bestax/commit/4d162d9186315f13d05c6f5bc47ef908f1266fcc))
+* **bulma-ui:** give a range Slider's thumbs a 24px target, drawn the same size ([5d21faf](https://github.com/allxsmith/bestax/commit/5d21faf50ddce7995f44af6b8d28f96c8c9c8290)), closes [#2195](https://github.com/allxsmith/bestax/issues/2195)
+
+
+### Features
+
+* **bulma-ui:** add rotationControl, a Carousel button that stops autoplay ([48aa92c](https://github.com/allxsmith/bestax/commit/48aa92c156f21202ca41a7b2ce906cb49cb24082)), closes [#1925](https://github.com/allxsmith/bestax/issues/1925)
+
+## [5.80.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.80.0...@allxsmith/bestax-bulma@5.80.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **bulma-ui:** hide a disabled arrowHover arrow at rest, and show it disabled on hover ([e2c3a8c](https://github.com/allxsmith/bestax/commit/e2c3a8c8eefab19ee8fb126ed16ba3318e4bd321)), closes [#2145](https://github.com/allxsmith/bestax/issues/2145)
+* **bulma-ui:** keep a disabled arrowHover arrow in GrayText as it fades out ([9397df1](https://github.com/allxsmith/bestax/commit/9397df1b7fc9b3c23ed4a24444fdc8fc92b31587))
+* **bulma-ui:** keep a focused arrowHover arrow showing when is-disabled marks it ([3bc0fc0](https://github.com/allxsmith/bestax/commit/3bc0fc048beaf56c8730a7ad7e4d008e9db8e87f))
+* **docs:** give the homepage's form-controls carousel a button that stops it ([0cbca67](https://github.com/allxsmith/bestax/commit/0cbca677c93c6d52ed8a8761557dd600b82c12d0)), closes [#2309](https://github.com/allxsmith/bestax/issues/2309)
+* **docs:** move the homepage carousel's controls to a row under the slides ([4414b8d](https://github.com/allxsmith/bestax/commit/4414b8df25aa2359cd9ade4f23528d58d93f9d4a))
+
 # [5.80.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.5...@allxsmith/bestax-bulma@5.80.0) (2026-11-22)
 
 

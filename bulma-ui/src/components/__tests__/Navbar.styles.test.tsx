@@ -50,6 +50,29 @@ const compile = (prefix = '') =>
 const bulmaCss = (file = 'bulma.css') =>
   fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
+type VarIndex = {
+  /** The rules that declare a custom property, all a variable lookup reads. */
+  varRules: CSSStyleRule[];
+  schemes: { light: Vars; dark: Vars };
+};
+const varIndexes = new WeakMap<CSSStyleRule[], VarIndex>();
+/** A sheet's variable rules and its two schemes, once per list of rules. */
+const varIndexOf = (rules: CSSStyleRule[]) => {
+  let index = varIndexes.get(rules);
+  if (!index) {
+    index = {
+      varRules: rules.filter(rule =>
+        Array.from({ length: rule.style.length }, (_, i) => rule.style[i]).some(
+          name => name.startsWith('--')
+        )
+      ),
+      schemes: schemesOf(rules),
+    };
+    varIndexes.set(rules, index);
+  }
+  return index;
+};
+
 const FORCED = '@media (forced-colors: active)';
 
 // A spaced navbar's height from desktop up: Bulma's navbar height and its
@@ -1328,15 +1351,15 @@ describe('an active navbar item', () => {
     item: Element,
     scheme: 'light' | 'dark'
   ) {
-    const rules = bulmaRules(bulmaFile);
+    const { varRules, schemes } = varIndexOf(bulmaRules(bulmaFile));
     const navbarSelectors = new Set(
       Array.from(navbar.classList, name => `.${prefix}navbar.${name}`).concat(
         `.${prefix}navbar`
       )
     );
     const onNavbar: Vars = {
-      ...schemesOf(rules)[scheme],
-      ...varsOn(rules, s => navbarSelectors.has(s)),
+      ...schemes[scheme],
+      ...varsOn(varRules, s => navbarSelectors.has(s)),
     };
     const onItem: Vars = {
       ...onNavbar,
@@ -1345,7 +1368,7 @@ describe('an active navbar item', () => {
         onNavbar['--bulma-navbar-item-color'],
         onNavbar
       ),
-      ...varsOn(rules, s => matches(item, s)),
+      ...varsOn(varRules, s => matches(item, s)),
     };
     const own = customProperty(item, css, '--bulma-navbar-item-color');
     if (own) onItem['--bulma-navbar-item-color'] = own;
@@ -1551,6 +1574,15 @@ describe('an active dropdown row in a prefixed build', () => {
     return widthRules.get(key) as CSSStyleRule[];
   };
 
+  const widthSheets = new Map<string, Map<number, string>>();
+  /** `css` as a screen `width` pixels wide sees it, once per sheet and width. */
+  const sheetAt = (css: string, width: number) => {
+    let byWidth = widthSheets.get(css);
+    if (!byWidth) widthSheets.set(css, (byWidth = new Map()));
+    if (!byWidth.has(width)) byWidth.set(width, atWidth(css, width));
+    return byWidth.get(width) as string;
+  };
+
   type Setup = { color?: 'primary'; transparent?: boolean; hero?: boolean };
 
   /**
@@ -1610,21 +1642,23 @@ describe('an active dropdown row in a prefixed build', () => {
 
   /**
    * The row's text and fill, with every variable worked out, as the sheet
-   * `css` over Bulma's sheet `bulmaFile` draws them in `scheme` on a screen
-   * `width` pixels wide. The variables come from Bulma's sheet, and the one
-   * the partial declares that the row reads, `--bulma-navbar-item-color`,
-   * through the cascade.
+   * `css` over Bulma's sheet `bulmaFile` draws them on a screen `width`
+   * pixels wide, for each scheme. The variables come from Bulma's sheet, and
+   * the one the partial declares that the row reads,
+   * `--bulma-navbar-item-color`, through the cascade. What doesn't depend on
+   * the scheme is worked out once. Everything that reads the page, focus
+   * included, is read here rather than in the function it returns, since a
+   * caller may move focus to another row before calling that.
    */
   function drawnRow(
     css: string,
     bulmaFile: string,
     navbar: Element,
     row: Element,
-    scheme: 'light' | 'dark',
     width: number
   ) {
-    const sheet = atWidth(css, width);
-    const rules = bulmaAt(bulmaFile, width);
+    const sheet = sheetAt(css, width);
+    const { varRules, schemes } = varIndexOf(bulmaAt(bulmaFile, width));
     /** The variables Bulma declares on `from`'s ancestors down to `to`. */
     const down = (from: Element | null, to: Element): Vars => {
       const chain: Element[] = [];
@@ -1636,24 +1670,12 @@ describe('an active dropdown row in a prefixed build', () => {
         chain.unshift(el);
       return Object.assign(
         {},
-        ...chain.map(el => varsOn(rules, s => matches(el, s)))
+        ...chain.map(el => varsOn(varRules, s => matches(el, s)))
       );
     };
-    const onNavbar: Vars = {
-      ...schemesOf(rules)[scheme],
-      ...down(null, navbar),
-    };
-    const onRow: Vars = {
-      ...onNavbar,
-      // Inherited as the navbar worked it out.
-      '--bulma-navbar-item-color': substitute(
-        onNavbar['--bulma-navbar-item-color'],
-        onNavbar
-      ),
-      ...down(navbar, row),
-    };
+    const onNavbarDown = down(null, navbar);
+    const onRowDown = down(navbar, row);
     const own = customProperty(row, sheet, '--bulma-navbar-item-color');
-    if (own) onRow['--bulma-navbar-item-color'] = own;
     const declared = (property: string) =>
       cascade(
         row,
@@ -1661,9 +1683,24 @@ describe('an active dropdown row in a prefixed build', () => {
         [property],
         (style, name) => style.getPropertyValue(name) || undefined
       ) as string;
-    return {
-      text: substitute(declared('color'), onRow),
-      fill: substitute(declared('background-color'), onRow),
+    const text = declared('color');
+    const fill = declared('background-color');
+    return (scheme: 'light' | 'dark') => {
+      const onNavbar: Vars = { ...schemes[scheme], ...onNavbarDown };
+      const onRow: Vars = {
+        ...onNavbar,
+        // Inherited as the navbar worked it out.
+        '--bulma-navbar-item-color': substitute(
+          onNavbar['--bulma-navbar-item-color'],
+          onNavbar
+        ),
+        ...onRowDown,
+      };
+      if (own) onRow['--bulma-navbar-item-color'] = own;
+      return {
+        text: substitute(text, onRow),
+        fill: substitute(fill, onRow),
+      };
     };
   }
 
@@ -1717,25 +1754,25 @@ describe('an active dropdown row in a prefixed build', () => {
       const plain = dropdownOf('', setup);
       const withPrefix = dropdownOf('bulma-', setup);
       for (const width of [1280, 800]) {
+        if (focus) pick(plain).focus();
+        const wantIn = drawnRow(
+          unprefixed,
+          'bulma.css',
+          plain.navbar,
+          pick(plain),
+          width
+        );
+        if (focus) pick(withPrefix).focus();
+        const gotIn = drawnRow(
+          prefixed,
+          'versions/bulma-prefixed.css',
+          withPrefix.navbar,
+          pick(withPrefix),
+          width
+        );
         for (const scheme of ['light', 'dark'] as const) {
-          if (focus) pick(plain).focus();
-          const want = drawnRow(
-            unprefixed,
-            'bulma.css',
-            plain.navbar,
-            pick(plain),
-            scheme,
-            width
-          );
-          if (focus) pick(withPrefix).focus();
-          const got = drawnRow(
-            prefixed,
-            'versions/bulma-prefixed.css',
-            withPrefix.navbar,
-            pick(withPrefix),
-            scheme,
-            width
-          );
+          const want = wantIn(scheme);
+          const got = gotIn(scheme);
           // The same color measures 1:1 against itself.
           expect(contrast(got.text, want.text)).toBeCloseTo(1, 6);
           expect(contrast(got.fill, want.fill)).toBeCloseTo(1, 6);
@@ -1782,17 +1819,15 @@ describe('an active dropdown row in a prefixed build', () => {
       'bulma.css',
       plain.navbar,
       plain.row,
-      'light',
       1280
-    );
+    )('light');
     const got = drawnRow(
       bulmaCss('versions/bulma-prefixed.css'),
       'versions/bulma-prefixed.css',
       withPrefix.navbar,
       withPrefix.row,
-      'light',
       1280
-    );
+    )('light');
     expect(contrast(got.fill, want.fill)).toBeGreaterThan(1.5);
   });
 });
