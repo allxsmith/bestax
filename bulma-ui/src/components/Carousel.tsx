@@ -23,6 +23,7 @@ import { inertProps } from '../helpers/inertProps';
 import { useSwipe } from '../helpers/useSwipe';
 import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { chain } from '../helpers/useHoverOpen';
+import { hoverHandlers } from '../helpers/hoverHandlers';
 import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { PauseIcon, PlayIcon } from '../helpers/rotationIcons';
 import { Icon } from '../elements/Icon';
@@ -695,15 +696,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // Pause on hover (with `pauseOnHover`, read as it is now) and on focus
     // anywhere inside. A caller's own handlers for these events run too,
     // rather than replacing these.
-    const handleMouseEnter = chain(onMouseEnter, () => setIsHovered(true));
-    const handleMouseLeave = chain(onMouseLeave, () => setIsHovered(false));
-    // React makes the enter out of the mouseout on the element the pointer
-    // left. When the page around a carousel in a shadow root is React's too,
-    // as through a portal, that mouseout names only the shadow host, so no
-    // enter reaches here, as useHoverOpen's onPointerOver says. Any mouseover
-    // inside means the pointer is over the carousel, and the leave still
-    // comes, from a mouseout inside.
-    const handleMouseOver = chain(onMouseOver, () => setIsHovered(true));
+    const hover = hoverHandlers<HTMLDivElement>(setIsHovered, {
+      onMouseEnter,
+      onMouseOver,
+      onMouseLeave,
+    });
     const handleFocus = chain(
       onFocus,
       (e: React.FocusEvent<HTMLDivElement>) => {
@@ -1028,9 +1025,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         aria-label={ariaLabel}
         style={{ ...countStyle, ...style }}
         {...rest}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onMouseOver={handleMouseOver}
+        {...hover}
         onFocus={handleFocus}
         onBlur={handleBlur}
       >
