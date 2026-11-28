@@ -7,7 +7,7 @@
  */
 
 import transform from '../transform.js';
-import { runTransform } from '../../../runner.js';
+import { makeApi, runTransform } from '../../../runner.js';
 import type { TodoEntry } from '../../../types.js';
 
 function migrate(source: string) {
@@ -241,5 +241,129 @@ describe('an alias shadowed by a nearer binding', () => {
     );
     expect(output).toContain('<Card.Header.Title/>');
     expect(output).toContain('function F(Header) { return <Header.Title/>; }');
+  });
+});
+
+describe('a destructuring the pass keeps (#2350)', () => {
+  /** The output, which must parse: a rewritten pattern did not. */
+  function kept(lines: string[]) {
+    const result = migrate(lines.join('\n'));
+    expect(() => makeApi().j(result.output)).not.toThrow();
+    return result;
+  }
+
+  it("leaves the pattern alone and keeps the library's root for it", () => {
+    const { output, todos } = kept([
+      "import { Card } from 'react-bulma-components';",
+      'const { Header, Bogus } = Card;',
+      'export const A = () => <Card><Header /><Bogus /></Card>;',
+    ]);
+    expect(output).toContain('const { Header, Bogus } = Card;');
+    expect(output).toContain("import { Card } from 'react-bulma-components';");
+    expect(output).toContain(
+      'import { Card as BulmaCard } from "@allxsmith/bestax-bulma";'
+    );
+    expect(output).toContain(
+      '<BulmaCard><BulmaCard.Header /><Bogus /></BulmaCard>'
+    );
+    expect(todos.map(t => t.rule)).toEqual(['imports', 'unknown-component']);
+  });
+
+  it('keeps a rest element and a re-export as written', () => {
+    for (const [declaration, use] of [
+      ['const { Input, ...rest } = Form;', 'export const A = () => <Input />;'],
+      ['const { Header } = Card;', 'export { Header };'],
+    ]) {
+      const root = declaration.split('= ')[1].replace(';', '');
+      const { output } = kept([
+        `import { ${root} } from 'react-bulma-components';`,
+        declaration,
+        use,
+      ]);
+      expect(output).toContain(declaration);
+      expect(output).toContain(
+        `import { ${root} } from 'react-bulma-components';`
+      );
+    }
+  });
+
+  it('keeps the declaration a kept one reads, wherever it reads it', () => {
+    // Pruning `const { Footer } = Card` left the kept declarations reading a
+    // name nothing declared.
+    const { output, todos } = kept([
+      "import { Card } from 'react-bulma-components';",
+      'const { Footer } = Card;',
+      'const { Item, Bogus } = Footer;',
+      'export function F({ Card }: any) {',
+      '  const { Item: I, Bogus: B } = Footer;',
+      '  return <Bogus>{String(Card)}{String(I)}{String(B)}</Bogus>;',
+      '}',
+      'export const A = () => <Footer><Item>x</Item><Bogus /></Footer>;',
+    ]);
+    expect(output).toContain('const { Footer } = Card;');
+    expect(output).toContain('const { Item, Bogus } = Footer;');
+    expect(output).toContain('const { Item: I, Bogus: B } = Footer;');
+    expect(output).toContain("import { Card } from 'react-bulma-components';");
+    expect(todos.filter(t => t.rule === 'imports').map(t => t.message)).toEqual(
+      [
+        'could not resolve every name destructured from `Footer`; migrate the leftovers by hand',
+        'could not resolve every name destructured from `Footer`; migrate the leftovers by hand',
+        'kept for a destructuring of `Footer` that stays; migrate that one first',
+      ]
+    );
+  });
+
+  it('leaves alone a destructuring of a local named like the import (#2363)', () => {
+    const { output, todos } = kept([
+      "import { Card } from 'react-bulma-components';",
+      'export function F({ Card }: any) {',
+      '  const { Header } = Card;',
+      '  return <Header />;',
+      '}',
+      'export const G = () => <Card />;',
+    ]);
+    expect(output).toContain(
+      '  const { Header } = Card;\n  return <Header />;'
+    );
+    expect(output).toContain('<BulmaCard />');
+    expect(output).not.toContain("'react-bulma-components'");
+    expect(todos).toEqual([]);
+  });
+
+  it('keeps every declaration in the scope of the name a kept one reads', () => {
+    // The scope table has no blocks, so either `Footer` could be the one read.
+    const { output } = kept([
+      "import { Card } from 'react-bulma-components';",
+      'export function F(x: boolean) {',
+      '  if (x) { const { Footer } = Card; return <Footer />; }',
+      '  const { Footer } = Card;',
+      '  const { Item, Bogus } = Footer;',
+      '  return <Bogus><Item /></Bogus>;',
+      '}',
+    ]);
+    expect(output.match(/const \{ Footer \} = Card;/g)).toHaveLength(2);
+  });
+
+  it('says a declaration kept only for a re-export is kept for it', () => {
+    const { todos } = kept([
+      "import { Card } from 'react-bulma-components';",
+      'const { Header } = Card;',
+      'export { Header };',
+    ]);
+    expect(todos.map(t => t.message)).toContain(
+      'kept for the re-export of `Header`; migrate that first'
+    );
+  });
+
+  it('drops one whose only re-export becomes a bestax name', () => {
+    const { output, todos } = kept([
+      "import { Icon } from 'react-bulma-components';",
+      'const { Text } = Icon;',
+      'export { Text };',
+    ]);
+    expect(output).toContain('export { IconText as Text };');
+    expect(output).not.toContain('= Icon');
+    expect(output).not.toContain("'react-bulma-components'");
+    expect(todos).toEqual([]);
   });
 });
