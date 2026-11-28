@@ -1,0 +1,82 @@
+// Input and TextArea styles
+// Bulma already styles the input and the textarea; this gives a focused
+// read-only one Bulma's focus ring, and an outline in forced colors
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma draws its focus ring on a focused field as a box-shadow, then gives a
+// read-only field `box-shadow: none`, to drop the inset shadow it shouldn't
+// have. That rule ranks the same as the focus rule and comes after it, so it
+// drops the ring too: a focused read-only field only changes its border's
+// color, and a colored one, whose border is already its focus color, doesn't
+// change at all. This draws Bulma's own ring on it again, in the field's
+// focus color, while it's focused or has `is-focused`. The `[readonly]`
+// attribute and the state together rank it above both of Bulma's rules
+// whichever stylesheet loads first. A disabled field keeps Bulma's no ring,
+// and a static input, which reads as plain text, is left without one;
+// `:where()` leaves them out without ranking the rule any higher.
+.#{iv.$class-prefix}input[readonly]:where(
+    :not(.#{iv.$class-prefix}is-static, :disabled)
+  ),
+.#{iv.$class-prefix}textarea[readonly]:where(:not(:disabled)) {
+  &:focus,
+  &.#{iv.$class-prefix}is-focused {
+    box-shadow: cv.getVar("input-focus-shadow-size")
+      hsla(
+        cv.getVar("input-focus-h"),
+        cv.getVar("input-focus-s"),
+        cv.getVar("input-focus-l"),
+        cv.getVar("input-focus-shadow-alpha")
+      );
+  }
+}
+
+// Taginput's text box is a borderless input inside the box that shows the
+// field's focus, and turns its own ring off. It's read-only at its tag limit
+// or with `readonly`, and keeps the ring off then too, whichever partial
+// loads first.
+.#{iv.$class-prefix}taginput .#{iv.$class-prefix}input[readonly] {
+  &:focus,
+  &.#{iv.$class-prefix}is-focused {
+    box-shadow: none;
+  }
+}
+
+// Bulma shows a focused field with a border in the focus color and turns the
+// outline off. Forced colors (Windows' contrast themes) paints that border in
+// one system color, focused or not, and doesn't show the ring, a box-shadow.
+// So in forced colors a read-only input or textarea that matches
+// `:focus-visible`, or has `is-focused`, draws Bulma's focus outline, as a
+// Select does there. Forced colors paints it in a system color. The
+// `[readonly]` attribute ranks the rule above Bulma's `outline: none`
+// whichever stylesheet loads first. TreeSelect's and Cascader's field is a
+// read-only input, and so is a read-only ColorInput's or PasswordInput's, and
+// a DateInput's, TimeInput's, DateTimeInput's or Numberinput's that can't be
+// typed in, so each of them draws it too.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}input[readonly],
+  .#{iv.$class-prefix}textarea[readonly] {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: hsl(
+        cv.getVar("focus-h"),
+        cv.getVar("focus-s"),
+        cv.getVar("focus-l")
+      );
+      outline-offset: cv.getVar("focus-offset");
+      outline-style: cv.getVar("focus-style");
+      outline-width: cv.getVar("focus-width");
+    }
+  }
+
+  // Taginput's text box is a borderless input inside the box that shows the
+  // field's focus, and turns its own outline off. It's read-only at its tag
+  // limit, and keeps the outline off then too, whichever partial loads first.
+  .#{iv.$class-prefix}taginput .#{iv.$class-prefix}input[readonly] {
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline: none;
+    }
+  }
+}

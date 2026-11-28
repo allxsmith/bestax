@@ -547,6 +547,10 @@ field's right edge. A `position` you pass stays physical.
   the screen, to the edge its text starts from.
 - The `message` describes the field through `aria-describedby`, after any ids you pass there and, with checkboxes, after the picked tags.
 - `aria-invalid` and `aria-errormessage` go on the field, while the other attributes you pass go on the wrapper, so a screen reader hears the field is invalid when it takes focus.
+- **Focus:** the field is read-only, and shows Bulma's focus ring when it's focused, as a field
+  you can type in does.
+- **Forced colors:** a focused field draws an outline in Bulma's focus style and width, painted
+  in a system color.
 
 ---
 
