@@ -117,7 +117,10 @@ describe.each([
   it.each([
     ['a single thumb', input],
     ['a single thumb right to left', `${input}:dir(rtl)`],
-    ['a vertical slider', `${p('slider')}${p('is-vertical')} ${input}`],
+    [
+      'a vertical slider',
+      `${p('slider')}${p('is-vertical')}:not(${p('is-range')}) ${input}`,
+    ],
     ['the range track', rangeTrack],
     ['the range track right to left', `${rangeTrack}:dir(rtl)`],
   ])('paints %s from the two variables', (_what, selector) => {
@@ -781,6 +784,102 @@ describe.each([
           r.rule.style.getPropertyValue('opacity')
       );
     expect(at([FORCED])).toBeGreaterThan(at([]));
+  });
+});
+
+// A range slider paints its track and fill on `.slider-track` and shows only
+// its inputs' thumbs. A vertical input's gradient weighed as much as the
+// range rule that clears it and came later, so a vertical range slider's
+// inputs painted the track over the fill and the low thumb (#2325). jsdom
+// drops a gradient that reads a variable, so each gradient is swapped for a
+// color it keeps, and its cascade picks which one an input takes.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('A Slider input’s background, with %s', (_label, prefix) => {
+  const GRADIENT = 'rgb(1, 2, 3)';
+  const CLEAR = 'rgba(0, 0, 0, 0)';
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass
+      .compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'form/slider';`,
+        {
+          loadPaths: [SCSS, NODE_MODULES],
+          quietDeps: true,
+          logger: sass.Logger.silent,
+        }
+      )
+      .css.replace(/linear-gradient\((?:[^()]|\([^()]*\))*\)/g, GRADIENT);
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  it.each([
+    [
+      'a vertical range slider',
+      <Slider key="vr" range orientation="vertical" />,
+      CLEAR,
+    ],
+    [
+      'a rounded, disabled vertical range slider',
+      <Slider key="vd" range orientation="vertical" isRounded disabled />,
+      CLEAR,
+    ],
+    [
+      'a vertical range slider on a right-to-left page',
+      <div key="vrtl" dir="rtl">
+        <Slider range orientation="vertical" />
+      </div>,
+      CLEAR,
+    ],
+    ['a range slider', <Slider key="r" range />, CLEAR],
+    [
+      'a vertical slider',
+      <Slider key="v" aria-label="Level" orientation="vertical" />,
+      GRADIENT,
+    ],
+    ['a slider', <Slider key="1" aria-label="Level" />, GRADIENT],
+  ])('paints the inputs of %s: %s', (_name, ui, background) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    const inputs = Array.from(
+      container.querySelectorAll(`.${prefix}slider-input`)
+    );
+    expect(inputs.length).toBeGreaterThan(0);
+    for (const input of inputs) {
+      expect(getComputedStyle(input).backgroundColor).toBe(background);
+    }
+  });
+
+  // Once they no longer paint the track, a vertical range slider's inputs
+  // stand 24px wide, as a horizontal one's stand 24px tall, the box its thumbs
+  // press on, which is what axe measures of them.
+  it.each([
+    [
+      'a vertical range slider',
+      <Slider key="vr" range orientation="vertical" />,
+      'max(24px, var(--slider-size-track-height, var(--bulma-slider-track-height)))',
+    ],
+    [
+      'a vertical slider',
+      <Slider key="v" aria-label="Level" orientation="vertical" />,
+      'var(--bulma-slider-track-height)',
+    ],
+  ])('stands the inputs of %s as wide as: %s', (_name, ui, width) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    const inputs = Array.from(
+      container.querySelectorAll(`.${prefix}slider-input`)
+    );
+    expect(inputs.length).toBeGreaterThan(0);
+    for (const input of inputs) {
+      expect(getComputedStyle(input).width.replace(/\s+/g, ' ')).toBe(width);
+    }
   });
 });
 

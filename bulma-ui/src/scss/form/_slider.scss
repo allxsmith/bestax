@@ -415,13 +415,6 @@ $slider-vertical-height: 200px !default;
     writing-mode: vertical-lr;
     direction: rtl;
     width: cv.getVar("slider-track-height");
-    background: linear-gradient(
-      to top,
-      cv.getVar("slider-fill-color") 0%,
-      cv.getVar("slider-fill-color") var(--slider-progress, 0%),
-      cv.getVar("slider-track-color") var(--slider-progress, 0%),
-      cv.getVar("slider-track-color") 100%
-    );
   }
 
   // A size gives the input its track's height, a horizontal track's
@@ -429,9 +422,19 @@ $slider-vertical-height: 200px !default;
   // so a vertical slider with a size shrank to that height when the rule
   // above set it (#2293). A vertical input runs the slider's height at every
   // size, so it's set here, where it outweighs them, as the vertical range
-  // slider's rule below does.
+  // slider's rule below does. A single slider's input paints its track too.
+  // A range slider's track is `.slider-track`, and its inputs are clear, so
+  // they show only their thumbs: painted, they covered its fill and its low
+  // thumb (#2325).
   &:not(.#{iv.$class-prefix}is-range) .#{iv.$class-prefix}slider-input {
     height: 100%;
+    background: linear-gradient(
+      to top,
+      cv.getVar("slider-fill-color") 0%,
+      cv.getVar("slider-fill-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") 100%
+    );
   }
 
   // Vertical output tooltip — positioned via inline left/right style
@@ -508,11 +511,13 @@ $slider-vertical-height: 200px !default;
       );
     }
 
+    // The inputs are clear, so they stand 24px wide, as a horizontal range
+    // slider's stand 24px tall (see Range thumbs' target, below).
     .#{iv.$class-prefix}slider-input {
       writing-mode: vertical-lr;
       direction: rtl;
       height: 100%;
-      width: cv.getVar("slider-track-height");
+      width: max(24px, var(--slider-size-track-height, #{cv.getVar("slider-track-height")}));
       top: 0;
       left: 50%;
       transform: translateX(-50%);
@@ -709,8 +714,8 @@ $-input: ".#{iv.$class-prefix}slider-input.#{iv.$class-prefix}slider-input";
 
 // A horizontal range slider's inputs stand 24px tall, as tall as the box its
 // thumbs press on, which is what axe measures of them. They're transparent
-// and take no presses, so it shows nothing. A vertical one's inputs paint its
-// track (#2325), so they keep their width.
+// and take no presses, so it shows nothing. A vertical one's stand 24px wide
+// (see Vertical range, above).
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range:not(.#{iv.$class-prefix}is-vertical) #{$-input} {
   height: max(24px, var(--slider-size-track-height, #{cv.getVar("slider-track-height")}));
 }
