@@ -17,6 +17,7 @@ import { useClassPrefix } from '../helpers/Config';
 import { warnIfUnnamed, warnOnce } from '../helpers/devWarnings';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { hoverHandlers } from '../helpers/hoverHandlers';
 import {
   useInsideField,
   useInsideControl,
@@ -559,6 +560,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);
+    // The hover that shows each thumb's tooltip. The only thumb's, or the low
+    // one's, goes after the caller's props there, so the caller's own mouse
+    // handlers run as well rather than replacing these.
+    const hover = hoverHandlers<HTMLInputElement>(setShowTooltip, rest);
+    const hoverHigh = hoverHandlers<HTMLInputElement>(setShowTooltipHigh);
     const inputRef = useRef<HTMLInputElement>(null);
     const inputHighRef = useRef<HTMLInputElement>(null);
     const outputRef = useRef<HTMLOutputElement>(null);
@@ -973,8 +979,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           disabled={disabled}
           onChange={handleSingleChange}
           onKeyDown={handleKeyDown}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
           onBlur={() => setShowTooltip(false)}
           className={prefixedClassNames(classPrefix, 'slider-input')}
@@ -990,6 +994,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-label={ariaLabel as string | undefined}
           {...getAriaProps(currentSingle)}
           {...rest}
+          {...hover}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
           aria-describedby={describedBy}
@@ -1058,8 +1063,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[0]}
           disabled={disabled}
           onChange={handleRangeLowChange}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
           onBlur={() => setShowTooltip(false)}
           className={prefixedClassNames(
@@ -1074,6 +1077,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...lowThumb.aria}
           {...getAriaProps(currentRange[0])}
           {...thumbRest}
+          {...hover}
           id={controlId}
           aria-describedby={describedBy}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
@@ -1088,8 +1092,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[1]}
           disabled={disabled}
           onChange={handleRangeHighChange}
-          onMouseEnter={() => setShowTooltipHigh(true)}
-          onMouseLeave={() => setShowTooltipHigh(false)}
+          {...hoverHigh}
           onFocus={() => setShowTooltipHigh(true)}
           onBlur={() => setShowTooltipHigh(false)}
           className={prefixedClassNames(
