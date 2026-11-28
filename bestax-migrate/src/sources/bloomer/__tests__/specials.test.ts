@@ -5,7 +5,7 @@
  */
 
 import transform from '../transform.js';
-import { CLASSNAME_SINCE } from '../mapping.js';
+import { CLASSNAME_SINCE } from '../../_shared/bestax-floor.js';
 import { runSpecial } from '../specials.js';
 import { ROOTS } from '../../bulma-classes/class-map.js';
 import { runTransform } from '../../../runner.js';
