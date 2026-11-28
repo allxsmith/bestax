@@ -7,7 +7,8 @@
  */
 
 import type { ASTPath, Collection, JSCodeshift } from 'jscodeshift';
-import type { TransformContext } from './jsx-utils.js';
+import type { ComponentMapping } from '../../types.js';
+import { addTodo, type TransformContext } from './jsx-utils.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -261,4 +262,172 @@ export function makeAliasRegistry(): AliasRegistry {
   };
   const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
   return { register, aliasAt, anyAlias };
+}
+
+/**
+ * Whether the identifier at `path` is a name in an export specifier that
+ * binds nothing here: the public name of `export { Card as Header }`, or any
+ * name in `export … from './other'`, which names that module's exports.
+ */
+export function namesNoLocal(path: ASTPath<any>): boolean {
+  const specifier = path.parent;
+  const type: string | undefined = specifier?.node?.type;
+  if (!type?.startsWith('Export') || !type.endsWith('Specifier')) return false;
+  return (
+    Boolean(specifier.parent?.node?.source) ||
+    specifier.node.local !== path.node
+  );
+}
+
+/**
+ * The locals `export { … }` names. Pruning the declaration that binds one of
+ * them (`const { Header } = Card; export { Header };`) leaves the specifier
+ * naming nothing.
+ */
+export function reExportedLocals(
+  j: JSCodeshift,
+  root: Collection<any>
+): Set<string> {
+  const names = new Set<string>();
+  root.find(j.ExportSpecifier).forEach(p => {
+    if (p.parent?.node?.source) return;
+    const local = p.node.local ?? p.node.exported;
+    if (local?.type === 'Identifier') names.add(local.name);
+  });
+  return names;
+}
+
+/**
+ * The flat bestax name a re-export of `mapping`'s component is written as
+ * (`export { Columns as Group }`), or undefined when it has none to write.
+ */
+export function flatReExportTarget(
+  mapping: ComponentMapping | undefined
+): string | undefined {
+  return mapping &&
+    mapping.status !== 'todo' &&
+    mapping.target &&
+    !mapping.target.includes('.')
+    ? mapping.target
+    : undefined;
+}
+
+/**
+ * Why the destructuring at `path`, of the library path `base`, stays for an
+ * export, or undefined when it exports nothing as it is. A name the
+ * value-reference pass re-exports as bestax's own flat name needs no
+ * declaration, but a declaration that is the export
+ * (`export const { Header } = Card`) takes the export with it.
+ */
+export function keptForExport(
+  path: ASTPath<any>,
+  base: string[],
+  reExported: Set<string>,
+  resolveMapping: (parts: string[]) => ComponentMapping | undefined
+): string | undefined {
+  const declaration = path.parent;
+  const exported =
+    declaration?.parent?.node?.type === 'ExportNamedDeclaration' &&
+    declaration.parent.node.declaration === declaration.node;
+  const names = path.node.id.properties
+    .filter(
+      (prop: any) =>
+        (prop.type === 'ObjectProperty' || prop.type === 'Property') &&
+        prop.value?.type === 'Identifier' &&
+        (exported ||
+          (reExported.has(prop.value.name) &&
+            !flatReExportTarget(resolveMapping([...base, nameOf(prop.key)]))))
+    )
+    .map((prop: any) => `\`${prop.value.name}\``)
+    .join(', ');
+  if (!names) return undefined;
+  return exported
+    ? `kept for the export of ${names}; migrate the modules that import this one, then this declaration, by hand`
+    : `kept for the re-export of ${names}; migrate that first`;
+}
+
+/** What the destructuring pass decided about its declarations. */
+export interface DestructuringPlan {
+  /**
+   * The nodes of each kept declaration, which the value-reference pass
+   * leaves as written: the pattern's names are bindings, not references, and
+   * the initialiser names the library's root, which stays imported for it.
+   * Rewriting them as references wrote `{ Header: Card.Header }` into the
+   * pattern and pointed the initialiser at bestax's root.
+   */
+  kept: WeakSet<object>;
+  /** Keep the declaration at `path`, destructured from `root`, with a TODO. */
+  keep(path: ASTPath<any>, root: string, message: string): void;
+  /** Prune the declaration at `path` in `settle`, unless a kept one reads it. */
+  prune(path: ASTPath<any>, root: string): void;
+  /**
+   * Keep each declaration a kept one reads (`const { Item, Bogus } = Footer`
+   * reads the one that destructures `Footer`), then prune the rest. It runs
+   * once every declaration is decided, before the scope tables change.
+   */
+  settle(): void;
+}
+
+/** A `DestructuringPlan` for the transform whose context is `ctx`. */
+export function makeDestructuringPlan(
+  ctx: TransformContext
+): DestructuringPlan {
+  const kept = new WeakSet<object>();
+  const keptPaths: ASTPath<any>[] = [];
+  const prunable: { path: ASTPath<any>; root: string }[] = [];
+  const keep = (path: ASTPath<any>, root: string, message: string) => {
+    const declarator = path.node;
+    for (const prop of declarator.id.properties) {
+      if (prop.value?.type !== 'Identifier') continue;
+      kept.add(prop.value);
+      if (prop.shorthand) kept.add(prop.key);
+    }
+    kept.add(declarator.init);
+    ctx.retained.add(root);
+    keptPaths.push(path);
+    addTodo(ctx, path, 'imports', message);
+  };
+  const settle = () => {
+    for (let i = 0; i < keptPaths.length; i++) {
+      const base: string = keptPaths[i].node.init.name;
+      // Every binding of the name in that scope, since its table has no
+      // blocks. One kept too many costs a TODO; pruning the one it reads
+      // would leave it reading nothing.
+      const bindings = new Set(
+        (
+          (keptPaths[i] as any).scope?.lookup(base)?.getBindings()[base] ?? []
+        ).map((binding: any) => binding.node)
+      );
+      for (let k = prunable.length - 1; k >= 0; k--) {
+        const { path, root } = prunable[k];
+        if (!path.node.id.properties.some((p: any) => bindings.has(p.value))) {
+          continue;
+        }
+        prunable.splice(k, 1);
+        keep(
+          path,
+          root,
+          `kept for a destructuring of \`${base}\` that stays; migrate that one first`
+        );
+      }
+    }
+    for (const { path } of prunable) {
+      const declaration = path.parent;
+      if (
+        declaration?.node?.type === 'VariableDeclaration' &&
+        declaration.node.declarations.length === 1
+      ) {
+        declaration.prune();
+      } else {
+        path.prune();
+      }
+      ctx.dirty = true;
+    }
+  };
+  return {
+    kept,
+    keep,
+    prune: (path, root) => prunable.push({ path, root }),
+    settle,
+  };
 }

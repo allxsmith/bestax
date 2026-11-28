@@ -57,10 +57,15 @@ import {
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   collectBoundNames,
+  flatReExportTarget,
+  keptForExport,
   makeAliasRegistry,
+  makeDestructuringPlan,
   makeReserve,
   nameOf,
+  namesNoLocal,
   prefersTabs,
+  reExportedLocals,
   resolvesToBinding,
 } from '../_shared/imports.js';
 import { flattenResponsiveProps, RESPONSIVE_KINDS } from './responsive.js';
@@ -216,32 +221,22 @@ export default function transform(
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
   const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
 
-  /**
-   * Locals a re-export names. Pruning the declaration that binds one of them
-   * (`const { Header } = Card; export { Header };`) leaves the specifier
-   * pointing at nothing, so those declarations are kept: the value-reference
-   * pass rewrites their initialiser to the bestax component, and the export
-   * goes on re-exporting the same member.
-   */
-  const reExported = new Set<string>();
-  root.find(j.ExportSpecifier).forEach(p => {
-    const local = p.node.local ?? p.node.exported;
-    if (local?.type === 'Identifier') reExported.add(local.name);
-  });
+  const reExported = reExportedLocals(j, root);
 
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
+  const destructurings = makeDestructuringPlan(ctx);
   root.find(j.VariableDeclarator).forEach(path => {
     const node = path.node;
     if (node.id?.type !== 'ObjectPattern' || node.init?.type !== 'Identifier')
       return;
     const base = node.init.name;
-    const baseAlias = aliasAt(base, path);
-    const imported = imports.get(base) ?? baseAlias?.join('.');
-    if (!imported || imported === '*') return;
-    if (!imports.has(base) && !baseAlias) return;
-    const basePath = imports.has(base)
+    // By binding: a parameter named like the import is the caller's object.
+    const fromImport =
+      imports.has(base) && resolvesToBinding(path, base, programScope);
+    const basePath = fromImport
       ? [imports.get(base) as string]
-      : (baseAlias as string[]);
+      : aliasAt(base, path);
+    if (!basePath || basePath[0] === '*') return;
 
     let allResolved = true;
     for (const prop of node.id.properties) {
@@ -275,32 +270,11 @@ export default function transform(
         allResolved = false;
       }
     }
-    const exportsAnAlias = node.id.properties.some(
-      (prop: any) =>
-        (prop.type === 'ObjectProperty' || prop.type === 'Property') &&
-        prop.value?.type === 'Identifier' &&
-        reExported.has(prop.value.name)
-    );
-
-    if (allResolved && !exportsAnAlias) {
-      const declaration = path.parent;
-      if (
-        declaration?.node?.type === 'VariableDeclaration' &&
-        declaration.node.declarations.length === 1
-      ) {
-        declaration.prune();
-      } else {
-        path.prune();
-      }
-      ctx.dirty = true;
-    } else {
-      addTodo(
-        ctx,
-        path,
-        'imports',
-        `could not resolve every name destructured from \`${base}\`; migrate the leftovers by hand`
-      );
-    }
+    const kept = allResolved
+      ? keptForExport(path, basePath, reExported, resolveMapping)
+      : `could not resolve every name destructured from \`${base}\`; migrate the leftovers by hand`;
+    if (kept) destructurings.keep(path, basePath[0], kept);
+    else destructurings.prune(path, basePath[0]);
   });
 
   /** Resolve a JSX name into a canonical rbx component path, or null. */
@@ -364,6 +338,9 @@ export default function transform(
     return null;
   };
 
+  // 1b's decisions land here, before the bindings below are read.
+  destructurings.settle();
+
   // ---- 1c. Collect local bindings so new imports never collide -----------
   const bound = collectBoundNames(j, root, RBX);
   // Seed the reserved set with the local names of rbx imports that CANNOT be
@@ -383,8 +360,14 @@ export default function transform(
     // `partial`, but `<Icon.Unknown>` retains it), and when the local name
     // differs from the imported one that retained binding can collide with a
     // bestax local for a completely different component. An unaliased import
-    // is safe: its name already means the same component on both sides.
-    if (!entry || entry.status === 'todo' || local !== imported) {
+    // is safe: its name already means the same component on both sides. A
+    // root a kept destructuring names (1b) is retained already.
+    if (
+      !entry ||
+      entry.status === 'todo' ||
+      local !== imported ||
+      ctx.retained.has(imported)
+    ) {
       bound.add(local);
     }
   }
@@ -683,6 +666,7 @@ export default function transform(
     // were already handled by the element walker above.
     if (path.node.type !== 'Identifier') return;
     if (handledValueRefs.has(path.node)) return;
+    if (destructurings.kept.has(path.node)) return;
     const name = path.node.name;
     // A name bound by `const { Footer } = Card` is in `aliases`, not
     // `imports` — and the destructuring pass has already deleted the
@@ -712,6 +696,9 @@ export default function transform(
     // A TS qualified name (`RBC.ButtonProps` in a type position) is erased at
     // runtime, so it is not a value use of the namespace at all.
     if (parentType === 'TSQualifiedName') return;
+    // A public name (`export { Card as Header }`) or a name in
+    // `export { Header } from './other'` binds nothing here.
+    if (namesNoLocal(path)) return;
     // A namespace binding in a real value position. `rbx.Button` is still a
     // mappable component reference, so fall through to the member-expression
     // branch below with an empty prefix (the namespace itself is not part of
@@ -739,16 +726,11 @@ export default function transform(
     // target keeps the public name (\`export { SubTitle as Subtitle }\`), a
     // dotted one cannot be re-exported under a member name and is flagged.
     if (parentType === 'ExportSpecifier') {
-      if (parentNode.local !== path.node) return;
       const exportedName = nameOf(parentNode.exported ?? parentNode.local);
       const mapping = aliasPath ? resolveMapping(aliasPath) : MAPPING[imported];
-      if (
-        mapping &&
-        mapping.status !== 'todo' &&
-        mapping.target &&
-        !mapping.target.includes('.')
-      ) {
-        const local = ctx.reserve(mapping.target);
+      const flat = flatReExportTarget(mapping);
+      if (flat) {
+        const local = ctx.reserve(flat);
         // Replace the node: recast reprints a specifier whose identifiers were
 
         // swapped in place in its original shorthand form, dropping the `as`.

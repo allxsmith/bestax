@@ -7,7 +7,7 @@
 
 import transform from '../transform.js';
 import { rbx } from '../index.js';
-import { runTransform } from '../../../runner.js';
+import { makeApi, runTransform } from '../../../runner.js';
 import type { TodoEntry } from '../../../types.js';
 
 function migrate(source: string) {
@@ -1430,5 +1430,193 @@ describe('rbx Title spaced', () => {
     );
     expect(todos.map(t => t.rule)).toEqual(['prop:spaced']);
     expect(output).toContain('spaced={p.s}');
+  });
+});
+
+describe('a destructuring the pass keeps (#2350)', () => {
+  /** The output, which must parse: a rewritten pattern did not. */
+  function kept(lines: string[]) {
+    const result = migrate(lines.join('\n'));
+    expect(() => makeApi().j(result.output)).not.toThrow();
+    return result;
+  }
+
+  it("leaves the pattern alone and keeps rbx's root for it", () => {
+    const { output, todos } = kept([
+      "import { Pagination } from 'rbx';",
+      'const { Ellipsis, Bogus } = Pagination;',
+      'export const A = () => <Pagination><Ellipsis /><Bogus /></Pagination>;',
+    ]);
+    expect(output).toContain('const { Ellipsis, Bogus } = Pagination;');
+    expect(output).toContain("import { Pagination } from 'rbx';");
+    expect(output).toContain(
+      'import { Pagination as BulmaPagination } from "@allxsmith/bestax-bulma";'
+    );
+    expect(output).toContain(
+      '<BulmaPagination><BulmaPagination.Ellipsis /><Bogus /></BulmaPagination>'
+    );
+    expect(todos.map(t => t.rule)).toEqual(['imports', 'unknown-component']);
+  });
+
+  it('does the same for a `todo` member, a rest element and a re-export', () => {
+    for (const [declaration, use, root] of [
+      [
+        'const { Context } = Navbar;',
+        'export const A = () => <Navbar><Context.Consumer>{() => null}</Context.Consumer></Navbar>;',
+        'Navbar',
+      ],
+      [
+        'const { Content, ...rest } = Card;',
+        'export const A = () => <Card><Content>{String(rest)}</Content></Card>;',
+        'Card',
+      ],
+      [
+        'const { Header } = Card;',
+        'export { Header };\nexport const A = () => <Card><Header /></Card>;',
+        'Card',
+      ],
+    ]) {
+      const { output } = kept([
+        `import { ${root} } from 'rbx';`,
+        declaration,
+        use,
+      ]);
+      expect(output).toContain(declaration);
+      expect(output).toContain(`import { ${root} } from 'rbx';`);
+      expect(output).toContain(`${root} as Bulma${root}`);
+    }
+  });
+
+  it('keeps the declaration a kept one reads, wherever it reads it', () => {
+    // Pruning `const { Footer } = C` left the kept declarations reading a
+    // name nothing declared.
+    const { output, todos } = kept([
+      "import { Card as C } from 'rbx';",
+      'const { Footer } = C;',
+      'const { Item, Bogus } = Footer;',
+      'export function F({ C }: any) {',
+      '  const { Item: I, Bogus: B } = Footer;',
+      '  return <Bogus>{String(C)}{String(I)}{String(B)}</Bogus>;',
+      '}',
+      'export const A = () => <Footer><Item>x</Item><Bogus /></Footer>;',
+    ]);
+    expect(output).toContain('const { Footer } = C;');
+    expect(output).toContain('const { Item, Bogus } = Footer;');
+    expect(output).toContain('const { Item: I, Bogus: B } = Footer;');
+    expect(output).toContain("import { Card as C } from 'rbx';");
+    expect(todos.filter(t => t.rule === 'imports').map(t => t.message)).toEqual(
+      [
+        'could not resolve every name destructured from `Footer`; migrate the leftovers by hand',
+        'could not resolve every name destructured from `Footer`; migrate the leftovers by hand',
+        'kept for a destructuring of `Footer` that stays; migrate that one first',
+      ]
+    );
+  });
+
+  it('leaves alone a destructuring of a local named like the import (#2363)', () => {
+    const { output, todos } = kept([
+      "import { Card } from 'rbx';",
+      'export function F({ Card }: any) {',
+      '  const { Header } = Card;',
+      '  return <Header />;',
+      '}',
+      'export const G = () => <Card />;',
+    ]);
+    expect(output).toContain(
+      '  const { Header } = Card;\n  return <Header />;'
+    );
+    expect(output).toContain('<BulmaCard />');
+    expect(output).not.toContain("'rbx'");
+    expect(todos).toEqual([]);
+  });
+
+  it('keeps every declaration in the scope of the name a kept one reads', () => {
+    // The scope table has no blocks, so either `Footer` could be the one read.
+    const { output } = kept([
+      "import { Card } from 'rbx';",
+      'export function F(x: boolean) {',
+      '  if (x) { const { Footer } = Card; return <Footer />; }',
+      '  const { Footer } = Card;',
+      '  const { Item, Bogus } = Footer;',
+      '  return <Bogus><Item /></Bogus>;',
+      '}',
+    ]);
+    expect(output.match(/const \{ Footer \} = Card;/g)).toHaveLength(2);
+  });
+
+  it('says a declaration kept only for a re-export is kept for it', () => {
+    const { todos } = kept([
+      "import { Card } from 'rbx';",
+      'const { Header } = Card;',
+      'export { Header };',
+    ]);
+    expect(todos.map(t => t.message)).toContain(
+      'kept for the re-export of `Header`; migrate that first'
+    );
+  });
+
+  it('drops one whose only re-export becomes a bestax name', () => {
+    const { output, todos } = kept([
+      "import { Column } from 'rbx';",
+      'const { Group } = Column;',
+      'export { Group };',
+    ]);
+    expect(output).toContain('export { Columns as Group };');
+    expect(output).not.toContain('= Column');
+    expect(output).not.toContain("'rbx'");
+    expect(todos).toEqual([]);
+  });
+});
+
+describe('exports and the destructuring pass (#2365)', () => {
+  it('keeps an exported destructuring, export and all', () => {
+    // Pruning it took the module's `Header` export with it: `export {};`.
+    for (const [root, name] of [
+      ['Card', 'Header'],
+      // A flat target too: no specifier is left for the value-reference
+      // pass to write as `export { Columns as Group }`.
+      ['Column', 'Group'],
+    ]) {
+      const declaration = `export const { ${name} } = ${root};`;
+      const { output, todos } = migrate(
+        `import { ${root} } from 'rbx';\n${declaration}\n`
+      );
+      expect(output).toContain(declaration);
+      expect(output).toContain(`import { ${root} } from 'rbx';`);
+      expect(todos.map(t => t.message)).toEqual([
+        `kept for the export of \`${name}\`; migrate the modules that import this one, then this declaration, by hand`,
+      ]);
+    }
+  });
+
+  it('leaves a specifier of `export … from` alone', () => {
+    const { output, todos } = migrate(
+      [
+        "import { Column, Textarea } from 'rbx';",
+        "import * as R from 'rbx';",
+        'const { Group } = Column;',
+        "export { Group, Textarea as default } from './other';",
+        "export * as Textarea from './more';",
+        "export { R } from './more';",
+        'export const A = () => <Group><Textarea /><R.Box /></Group>;',
+      ].join('\n')
+    );
+    expect(output).toContain(
+      "export { Group, Textarea as default } from './other';"
+    );
+    expect(output).toContain("export * as Textarea from './more';");
+    expect(output).toContain("export { R } from './more';");
+    expect(output).toContain('<Columns><TextArea /><Box /></Columns>');
+    expect(output).not.toContain('= Column');
+    expect(output).not.toContain("'rbx'");
+    expect(todos).toEqual([]);
+  });
+
+  it('reports a namespace re-exported here once', () => {
+    // The public name in `export { R }` was read as a second use of `R`.
+    const { todos } = migrate(
+      "import * as R from 'rbx';\nexport { R };\nexport const A = () => <R.Box />;\n"
+    );
+    expect(todos.map(t => t.rule)).toEqual(['value-reference']);
   });
 });

@@ -149,6 +149,29 @@ describe('bloomer imports', () => {
     expect(output).toContain("import { CardHeader } from 'bloomer'");
   });
 
+  it('leaves a specifier of `export … from` alone (#2365)', () => {
+    // It names `./other`'s export: `export { Subtitle } from './other'`
+    // became `export { SubTitle as Subtitle } from './other'`.
+    const { output, rules } = migrate(
+      "import { Subtitle, PageEllipsis, Input } from 'bloomer';\nimport * as B from 'bloomer';\nexport { Subtitle, PageEllipsis } from './other';\nexport * as Input from './more';\nexport { B } from './more';\nexport const A = () => <Subtitle><PageEllipsis /><Input /><B.Box /></Subtitle>;\n"
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      "export { Subtitle, PageEllipsis } from './other';"
+    );
+    expect(output).toContain("export * as Input from './more';");
+    expect(output).toContain("export { B } from './more';");
+    expect(output).not.toContain("'bloomer'");
+  });
+
+  it('reports a namespace re-exported here once', () => {
+    // The public name in `export { B }` was read as a second use of `B`.
+    const { rules } = migrate(
+      "import * as B from 'bloomer';\nexport { B };\nexport const A = () => <B.Box />;\n"
+    );
+    expect(rules).toEqual(['value-reference']);
+  });
+
   it('never rewrites a member name that merely matches an import', () => {
     const source =
       "import { CardHeader } from 'bloomer';\nconst reg = { CardHeader() { return 1; } };\ninterface P { CardHeader: string }\nenum E { CardHeader }\nclass C { CardHeader = 1; }\nexport const A = () => <CardHeader>{reg.CardHeader()}</CardHeader>;\nexport type { P, E, C };\n";
