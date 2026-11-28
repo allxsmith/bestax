@@ -367,3 +367,123 @@ describe('a destructuring the pass keeps (#2350)', () => {
     expect(todos).toEqual([]);
   });
 });
+
+describe('a destructuring with a use the later passes leave (#2366)', () => {
+  /** The output, which must parse. */
+  function migrated(lines: string[]) {
+    const result = migrate(lines.join('\n'));
+    expect(() => makeApi().j(result.output)).not.toThrow();
+    return result;
+  }
+  const stays = (names: string) =>
+    `kept for the uses of ${names} that stay as written; migrate them first`;
+
+  it('keeps one an unknown member reads through', () => {
+    // Pruning it left `<Footer.Bogus />` reading a name nothing declared.
+    for (const use of [
+      'export const A = () => <Footer.Bogus />;',
+      'export const X = Footer.Bogus;',
+      'type P = Footer.Props;',
+      'export const K = { [Footer]: 1 };',
+      'export enum E { A = Footer }',
+    ]) {
+      const { output, todos } = migrated([
+        "import { Card } from 'react-bulma-components';",
+        'const { Footer } = Card;',
+        use,
+        'export const B = () => <Card><Footer /></Card>;',
+      ]);
+      expect(output).toContain('const { Footer } = Card;');
+      expect(output).toContain(use);
+      expect(output).toContain(
+        "import { Card } from 'react-bulma-components';"
+      );
+      expect(output).toContain('<BulmaCard><BulmaCard.Footer /></BulmaCard>');
+      expect(todos.map(t => t.message)).toContain(stays('`Footer`'));
+    }
+  });
+
+  it('keeps one read as a value through a `special` mapping', () => {
+    // `Columns.Column` converts as an element, through its handler, and not
+    // as a value.
+    const { output, todos } = migrated([
+      "import { Columns } from 'react-bulma-components';",
+      'const { Column } = Columns;',
+      'register(Column);',
+      'export const A = () => <Columns><Column /></Columns>;',
+    ]);
+    expect(output).toContain('const { Column } = Columns;');
+    expect(output).toContain('register(Column);');
+    expect(output).toContain('<BulmaColumn />');
+    expect(todos.map(t => t.message)).toContain(stays('`Column`'));
+  });
+
+  it('keeps the declaration one kept that way reads', () => {
+    const { output, todos } = migrated([
+      "import { Card } from 'react-bulma-components';",
+      'const { Footer } = Card;',
+      'const { Item } = Footer;',
+      'export const A = () => <Item.Bogus />;',
+    ]);
+    expect(output).toContain('const { Footer } = Card;\n');
+    expect(output).toContain('const { Item } = Footer;\n');
+    expect(todos.filter(t => t.rule === 'imports').map(t => t.message)).toEqual(
+      [
+        stays('`Item`'),
+        'kept for a destructuring of `Footer` that stays; migrate that one first',
+      ]
+    );
+  });
+
+  it('still prunes one whose every use converts', () => {
+    const { output, todos } = migrated([
+      "import { Card } from 'react-bulma-components';",
+      'const { Footer } = Card;',
+      'export const A = () => <Footer data-x={Footer}><Footer.Item /></Footer>;',
+      'export const X = { Footer, Item: Footer.Item, o: { Footer: 1 } };',
+      'export function F(Footer: unknown) { return Footer; }',
+    ]);
+    expect(output).not.toContain('= Card');
+    expect(output).not.toContain("'react-bulma-components'");
+    expect(output).toContain('return Footer;');
+    expect(todos).toEqual([]);
+  });
+
+  it('tells a use left as written from one converted under the same name', () => {
+    // `Form.Input` is bestax's `Input`, so a converted `<Input />` reads as
+    // written. Kept, the declaration's `Input` moves bestax's aside.
+    const stranded = migrated([
+      "import { Form } from 'react-bulma-components';",
+      'const { Input } = Form;',
+      'export const A = () => <><Input /><Input.Bogus /></>;',
+      'export const B = Input;',
+    ]);
+    expect(stranded.output).toContain('const { Input } = Form;');
+    expect(stranded.output).toContain(
+      '<><BulmaInput /><Input.Bogus /></>;\nexport const B = BulmaInput;'
+    );
+    expect(stranded.todos.map(t => t.message)).toContain(stays('`Input`'));
+    // A name a pass writes reads like the alias too: `Form.Input` becomes
+    // `Input`, and so does the re-export's local.
+    const converted = migrated([
+      "import { Form } from 'react-bulma-components';",
+      'const { Input } = Form;',
+      'export const A = () => <Input />;',
+      'export const B = Input;',
+      'export const C = { Input };',
+      'export const D = Form.Input;',
+      'export { Input };',
+    ]);
+    expect(converted.output).not.toContain('= Form');
+    expect(converted.output).toContain(
+      [
+        'export const A = () => <Input />;',
+        'export const B = Input;',
+        'export const C = { Input };',
+        'export const D = Input;',
+        'export { Input };',
+      ].join('\n')
+    );
+    expect(converted.todos).toEqual([]);
+  });
+});

@@ -1567,3 +1567,100 @@ describe('a destructuring the pass keeps (#2350)', () => {
     expect(todos).toEqual([]);
   });
 });
+
+describe('a destructuring with a use the later passes leave (#2366)', () => {
+  /** The output, which must parse. */
+  function migrated(lines: string[]) {
+    const result = migrate(lines.join('\n'));
+    expect(() => makeApi().j(result.output)).not.toThrow();
+    return result;
+  }
+  const stays = (names: string) =>
+    `kept for the uses of ${names} that stay as written; migrate them first`;
+
+  it('keeps one an unknown member reads through', () => {
+    // Pruning it left `<Footer.Bogus />` reading a name nothing declared.
+    for (const use of [
+      'export const A = () => <Footer.Bogus />;',
+      'export const X = Footer.Bogus;',
+      'type P = Footer.Props;',
+      'export const K = { [Footer]: 1 };',
+      'export enum E { A = Footer }',
+    ]) {
+      const { output, todos } = migrated([
+        "import { Card } from 'rbx';",
+        'const { Footer } = Card;',
+        use,
+        'export const B = () => <Card><Footer /></Card>;',
+      ]);
+      expect(output).toContain('const { Footer } = Card;');
+      expect(output).toContain(use);
+      expect(output).toContain("import { Card } from 'rbx';");
+      expect(output).toContain('<BulmaCard><BulmaCard.Footer /></BulmaCard>');
+      expect(todos.map(t => t.message)).toContain(stays('`Footer`'));
+    }
+  });
+
+  it('keeps one read as a value through a `special` mapping', () => {
+    // `Column.Group` converts as an element, through its handler, and not as
+    // a value.
+    const { output, todos } = migrated([
+      "import { Column } from 'rbx';",
+      'const { Group } = Column;',
+      'register(Group);',
+      'export const A = () => <Group><Column /></Group>;',
+    ]);
+    expect(output).toContain('const { Group } = Column;');
+    expect(output).toContain('register(Group);');
+    expect(todos.map(t => t.message)).toContain(stays('`Group`'));
+  });
+
+  it('keeps one whose elements a handler leaves as written, naming each', () => {
+    // `Dropdown.Trigger`'s and `Dropdown.Menu`'s handlers only ask for them
+    // to be moved by hand, so the elements stay, and bestax's `Dropdown`
+    // takes another local.
+    const { output, todos } = migrated([
+      "import { Dropdown } from 'rbx';",
+      'const { Trigger, Menu, Item } = Dropdown;',
+      'export const A = () => <Dropdown><Trigger>x</Trigger><Menu><Item>y</Item></Menu></Dropdown>;',
+    ]);
+    expect(output).toContain('const { Trigger, Menu, Item } = Dropdown;');
+    expect(output).toContain(
+      '<BulmaDropdown><Trigger>x</Trigger><Menu><BulmaDropdown.Item>y</BulmaDropdown.Item></Menu></BulmaDropdown>'
+    );
+    expect(todos.map(t => t.message)).toContain(stays('`Trigger`, `Menu`'));
+  });
+
+  it('keeps the declaration one kept that way reads', () => {
+    const { output, todos } = migrated([
+      "import { Card } from 'rbx';",
+      'const { Footer } = Card;',
+      'const { Item } = Footer;',
+      'export const A = () => <Item.Bogus />;',
+    ]);
+    expect(output).toContain('const { Footer } = Card;\n');
+    expect(output).toContain('const { Item } = Footer;\n');
+    expect(todos.map(t => t.message)).toEqual([
+      stays('`Item`'),
+      'kept for a destructuring of `Footer` that stays; migrate that one first',
+      '`Card.Footer.Item.Bogus` is not a known rbx v2 export; migrate it by hand',
+    ]);
+  });
+
+  it('still prunes one whose every use converts', () => {
+    const { output, todos } = migrated([
+      "import { Card } from 'rbx';",
+      'const { Footer } = Card;',
+      'export const A = () => <Footer data-x={Footer}><Footer.Item /></Footer>;',
+      'export const X = { Footer, Item: Footer.Item, o: { Footer: 1 } };',
+      'export function F(Footer: unknown) { return Footer; }',
+    ]);
+    expect(output).not.toContain('= Card');
+    expect(output).not.toContain("'rbx'");
+    expect(output).toContain(
+      '<Card.Footer data-x={Card.Footer}><Card.FooterItem /></Card.Footer>'
+    );
+    expect(output).toContain('return Footer;');
+    expect(todos).toEqual([]);
+  });
+});

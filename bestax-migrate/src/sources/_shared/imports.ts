@@ -7,7 +7,11 @@
  */
 
 import type { ASTPath, Collection, JSCodeshift } from 'jscodeshift';
-import type { ComponentMapping } from '../../types.js';
+import type {
+  ComponentMapping,
+  TodoEntry,
+  TransformOptions,
+} from '../../types.js';
 import { addTodo, type TransformContext } from './jsx-utils.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -190,6 +194,8 @@ export interface AliasRegistry {
    * undefined when no alias applies to that reference.
    */
   aliasAt(name: string, at?: unknown): string[] | undefined;
+  /** The node owning the scope whose alias `name` at `at` resolves to. */
+  ownerAt(name: string, at: unknown): unknown;
   /** Whether ANY scope aliases `name` — regardless of the reference. */
   anyAlias(name: string): boolean;
 }
@@ -225,6 +231,12 @@ export function makeAliasRegistry(): AliasRegistry {
         ? aliasesByOwner.get(owners[0])!.get(name)
         : undefined;
     }
+    const owner = ownerAt(name, at);
+    return owner === undefined
+      ? undefined
+      : aliasesByOwner.get(owner)?.get(name);
+  };
+  const ownerAt = (name: string, at: unknown): unknown => {
     type Anc = { parent?: Anc; node?: unknown };
     let cursor = at as Anc | undefined;
     while (cursor) {
@@ -253,7 +265,7 @@ export function makeAliasRegistry(): AliasRegistry {
           ) {
             return undefined;
           }
-          return hit;
+          return cursor.node;
         }
       }
       cursor = cursor.parent;
@@ -261,7 +273,7 @@ export function makeAliasRegistry(): AliasRegistry {
     return undefined;
   };
   const anyAlias = (name: string): boolean => ownersFor(name).length > 0;
-  return { register, aliasAt, anyAlias };
+  return { register, aliasAt, ownerAt, anyAlias };
 }
 
 /**
@@ -279,6 +291,97 @@ export function flatReExportTarget(
     : undefined;
 }
 
+/**
+ * What one run of a transform hands the next about its destructurings: the
+ * ones to keep, and the pruned ones a use of which stayed as written. Each is
+ * keyed by its declarator's offset in the source, with the names so used.
+ */
+export interface DestructuringRun {
+  keepAt: ReadonlyMap<number, ReadonlySet<string>>;
+  stranded: Map<number, Set<string>>;
+}
+
+/**
+ * Run `migrate`, then again with each destructuring it pruned a use of which
+ * stayed as written kept, until none is. Which uses the reference passes
+ * leave is known only once they have run, after the bestax import's locals
+ * are chosen from the names the file still binds, so such a declaration is
+ * kept by a fresh run rather than put back. Only the last run reports.
+ */
+export function migrateKeepingStranded(
+  options: TransformOptions,
+  migrate: (
+    options: TransformOptions,
+    run: DestructuringRun
+  ) => string | undefined
+): string | undefined {
+  let keepAt = new Map<number, ReadonlySet<string>>();
+  for (;;) {
+    const todos: TodoEntry[] = [];
+    const run = { keepAt, stranded: new Map<number, Set<string>>() };
+    const output = migrate(
+      { ...options, collector: { add: entry => todos.push(entry) } },
+      run
+    );
+    const more = [...run.stranded].filter(([at]) => !keepAt.has(at));
+    if (more.length === 0) {
+      for (const entry of todos) options.collector?.add(entry);
+      return output;
+    }
+    keepAt = new Map([...keepAt, ...more]);
+  }
+}
+
+/**
+ * Whether the identifier at `ref` reads its binding: not a member, key, label
+ * or private name, a JSX attribute or closing tag, the public name of an
+ * export, or a name a type declares.
+ */
+function readsBinding(ref: ASTPath<any>): boolean {
+  const node = ref.node;
+  if (node.type === 'JSXIdentifier') {
+    let top: any = node;
+    let up: any = ref.parent;
+    while (up?.node?.type === 'JSXMemberExpression' && up.node.object === top) {
+      top = up.node;
+      up = up.parent;
+    }
+    return up?.node?.type === 'JSXOpeningElement' && up.node.name === top;
+  }
+  const parent = ref.parent?.node;
+  if (!parent) return true;
+  switch (parent.type) {
+    case 'ImportSpecifier':
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+    case 'LabeledStatement':
+    case 'BreakStatement':
+    case 'ContinueStatement':
+    case 'MetaProperty':
+    case 'PrivateName':
+      return false;
+    case 'TSEnumMember':
+      return parent.id !== node;
+    case 'ExportSpecifier':
+      return parent.local === node;
+    case 'TSQualifiedName':
+      return parent.left === node;
+    case 'MemberExpression':
+    case 'OptionalMemberExpression':
+      return parent.property !== node || parent.computed;
+  }
+  // `interface Footer`, and a parameter's name in a type signature.
+  if (
+    parent.type.startsWith('TS') &&
+    (parent.id === node ||
+      parent.parameters?.includes(node) ||
+      parent.params?.includes(node))
+  ) {
+    return false;
+  }
+  return parent.key !== node || parent.computed || Boolean(parent.shorthand);
+}
+
 /** What the destructuring pass decided about its declarations. */
 export interface DestructuringPlan {
   /**
@@ -291,7 +394,10 @@ export interface DestructuringPlan {
   kept: WeakSet<object>;
   /** Keep the declaration at `path`, destructured from `root`, with a TODO. */
   keep(path: ASTPath<any>, root: string, message: string): void;
-  /** Prune the declaration at `path` in `settle`, unless a kept one reads it. */
+  /**
+   * Prune the declaration at `path` in `settle`, unless a kept one reads it
+   * or the run's `keepAt` names it.
+   */
   prune(path: ASTPath<any>, root: string): void;
   /**
    * Keep each declaration a kept one reads (`const { Item, Bogus } = Footer`
@@ -299,16 +405,45 @@ export interface DestructuringPlan {
    * once every declaration is decided, before the scope tables change.
    */
   settle(): void;
+  /**
+   * Record that a reference pass converted the use at `node`, a JSX name or
+   * an identifier, in place, where it still reads as written (`<Input />` is
+   * bestax's `Input` too).
+   */
+  converts(node: any): void;
+  /**
+   * After the reference passes, put each pruned declaration a use of whose
+   * names they left as written in the run's `stranded`. `ownerAt` is the
+   * alias registry's.
+   */
+  findStranded(ownerAt: (name: string, at: unknown) => unknown): void;
 }
 
 /** A `DestructuringPlan` for the transform whose context is `ctx`. */
 export function makeDestructuringPlan(
-  ctx: TransformContext
+  ctx: TransformContext,
+  root: Collection<any>,
+  run: DestructuringRun
 ): DestructuringPlan {
   const kept = new WeakSet<object>();
   const keptPaths: ASTPath<any>[] = [];
   const prunable: { path: ASTPath<any>; root: string }[] = [];
+  const pruned: { at: number; owner: unknown; names: Set<string> }[] = [];
+  /** Every decided declaration's pattern names, which are no use of it. */
+  const bound = new WeakSet<object>();
+  /**
+   * Once some declaration is pruned, the file's identifiers as written, less
+   * those a pass then converts in place. One a pass writes is not among them.
+   */
+  const written = new WeakSet<object>();
+  const decide = (path: ASTPath<any>) => {
+    for (const prop of path.node.id.properties) {
+      if (prop.key) bound.add(prop.key);
+      if (prop.value) bound.add(prop.value);
+    }
+  };
   const keep = (path: ASTPath<any>, root: string, message: string) => {
+    decide(path);
     const declarator = path.node;
     for (const prop of declarator.id.properties) {
       if (prop.value?.type !== 'Identifier') continue;
@@ -319,6 +454,19 @@ export function makeDestructuringPlan(
     ctx.retained.add(root);
     keptPaths.push(path);
     addTodo(ctx, path, 'imports', message);
+  };
+  const prune = (path: ASTPath<any>, root: string) => {
+    const uses = run.keepAt.get(path.node.start);
+    if (uses === undefined) {
+      decide(path);
+      prunable.push({ path, root });
+    } else {
+      keep(
+        path,
+        root,
+        `kept for the uses of ${[...uses].map(name => `\`${name}\``).join(', ')} that stay as written; migrate them first`
+      );
+    }
   };
   const settle = () => {
     for (let i = 0; i < keptPaths.length; i++) {
@@ -345,6 +493,11 @@ export function makeDestructuringPlan(
       }
     }
     for (const { path } of prunable) {
+      pruned.push({
+        at: path.node.start,
+        owner: (path as any).scope?.path?.node,
+        names: new Set(path.node.id.properties.map((p: any) => p.value.name)),
+      });
       const declaration = path.parent;
       if (
         declaration?.node?.type === 'VariableDeclaration' &&
@@ -356,11 +509,27 @@ export function makeDestructuringPlan(
       }
       ctx.dirty = true;
     }
+    if (pruned.length > 0) {
+      root.find(ctx.j.Identifier).forEach(ref => written.add(ref.node));
+    }
   };
-  return {
-    kept,
-    keep,
-    prune: (path, root) => prunable.push({ path, root }),
-    settle,
+  const converts = (node: any) => {
+    while (node?.type === 'JSXMemberExpression') node = node.object;
+    written.delete(node);
   };
+  const findStranded = (ownerAt: (name: string, at: unknown) => unknown) => {
+    if (pruned.length === 0) return;
+    root.find(ctx.j.Identifier).forEach(ref => {
+      const name: string = ref.node.name;
+      if (!written.has(ref.node) || bound.has(ref.node)) return;
+      if (!pruned.some(p => p.names.has(name)) || !readsBinding(ref)) return;
+      const owner = ownerAt(name, ref);
+      for (const p of pruned) {
+        if (p.owner !== owner || !p.names.has(name)) continue;
+        const names = run.stranded.get(p.at) ?? new Set<string>();
+        run.stranded.set(p.at, names.add(name));
+      }
+    });
+  };
+  return { kept, keep, prune, settle, converts, findStranded };
 }

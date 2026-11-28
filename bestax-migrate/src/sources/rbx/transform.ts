@@ -57,10 +57,12 @@ import {
 import { rewriteStylesheetImports } from '../_shared/css-imports.js';
 import {
   collectBoundNames,
+  type DestructuringRun,
   flatReExportTarget,
   makeAliasRegistry,
   makeDestructuringPlan,
   makeReserve,
+  migrateKeepingStranded,
   nameOf,
   prefersTabs,
   resolvesToBinding,
@@ -82,6 +84,17 @@ export default function transform(
   fileInfo: FileInfo,
   api: API,
   options: TransformOptions = {}
+): string | undefined {
+  return migrateKeepingStranded(options, (runOptions, run) =>
+    migrate(fileInfo, api, runOptions, run)
+  );
+}
+
+function migrate(
+  fileInfo: FileInfo,
+  api: API,
+  options: TransformOptions,
+  run: DestructuringRun
 ): string | undefined {
   const j = api.jscodeshift;
   const root = j(fileInfo.source);
@@ -216,7 +229,12 @@ export default function transform(
   // The scope each binding was collected in, so a reference can be checked
   // against the binding it actually resolves to rather than matched by name.
   const programScope: unknown = root.find(j.Program).paths()[0]?.scope;
-  const { register: registerAlias, aliasAt, anyAlias } = makeAliasRegistry();
+  const {
+    register: registerAlias,
+    aliasAt,
+    ownerAt,
+    anyAlias,
+  } = makeAliasRegistry();
 
   /**
    * Locals a re-export names. Pruning the declaration that binds one of them
@@ -230,7 +248,7 @@ export default function transform(
   });
 
   // ---- 1b. Resolve `const { Item } = Card` destructuring -----------------
-  const destructurings = makeDestructuringPlan(ctx);
+  const destructurings = makeDestructuringPlan(ctx, root, run);
   root.find(j.VariableDeclarator).forEach(path => {
     const node = path.node;
     if (node.id?.type !== 'ObjectPattern' || node.init?.type !== 'Identifier')
@@ -613,6 +631,7 @@ export default function transform(
       renameElement(j, element, localTarget);
       ctx.dirty = true;
     }
+    destructurings.converts(element.openingElement.name);
 
     // Breakpoint objects: the universal `responsive` prop, plus the Column
     // and Column.Group per-breakpoint shapes.
@@ -933,6 +952,7 @@ export default function transform(
         shorthandMapping.target &&
         !shorthandMapping.special
       ) {
+        destructurings.converts(path.node);
         const [root, ...rest] = shorthandMapping.target.split('.');
         const local = ctx.reserve(root);
         let value: any = j.identifier(local);
@@ -991,6 +1011,7 @@ export default function transform(
       } else if (local !== name) {
         path.node.name = local;
       }
+      destructurings.converts(path.node);
       ctx.dirty = true;
     } else {
       ctx.retained.add(imported);
@@ -1002,6 +1023,8 @@ export default function transform(
       );
     }
   });
+
+  destructurings.findStranded(ownerAt);
 
   // ---- 3. Rewrite imports -----------------------------------------------
   if (imports.size > 0) {
