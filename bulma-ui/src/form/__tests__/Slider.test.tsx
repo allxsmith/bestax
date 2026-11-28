@@ -1650,7 +1650,8 @@ describe('Slider', () => {
     });
 
     // A range thumb at the default or small size takes presses on a box at
-    // least 24px square, which the browser insets the thumb by (#2195).
+    // least 24px square, which the browser insets the thumb by (#2195), a
+    // circle thumb's included (#2324).
     it.each([
       [
         'a default range slider by its thumb’s box',
@@ -1680,7 +1681,7 @@ describe('Slider', () => {
         'var(--bulma-slider-thumb-size-medium)',
       ],
       [
-        'a circle range slider by its thumb',
+        'a circle range slider by its thumb’s box',
         <Slider
           key="c"
           range
@@ -1688,7 +1689,31 @@ describe('Slider', () => {
           defaultValue={[25, 75]}
           tooltip="always"
         />,
-        '(var(--bulma-slider-thumb-size) * 1.2)',
+        'max(24px, (var(--bulma-slider-thumb-size) * 1.2))',
+      ],
+      [
+        'a small circle range slider by its thumb’s box',
+        <Slider
+          key="sc"
+          range
+          isCircle
+          size="small"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        'max(24px, (var(--bulma-slider-thumb-size-small) * 1.2))',
+      ],
+      [
+        'a medium circle range slider by its thumb',
+        <Slider
+          key="mc"
+          range
+          isCircle
+          size="medium"
+          defaultValue={[25, 75]}
+          tooltip="always"
+        />,
+        '(var(--bulma-slider-thumb-size-medium) * 1.2)',
       ],
       [
         'a single slider by its thumb',
