@@ -209,7 +209,7 @@ describe('Pagination.Link', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('does not throw when clicked without an onClick handler (covers the if-onClick branch)', () => {
+  it('does not throw when clicked without an onClick handler', () => {
     render(
       <Pagination.List>
         <Pagination.Link data-testid="link">3</Pagination.Link>
@@ -759,35 +759,35 @@ describe('Pagination from total', () => {
   });
 });
 
+/** The props every part takes alike. */
+type PartProps = Pick<
+  PaginationPreviousNextProps,
+  'href' | 'role' | 'disabled' | 'onClick' | 'onAuxClick' | 'onKeyDown'
+>;
+const PARTS: [string, (props: PartProps) => ReactNode][] = [
+  [
+    'Pagination.Link',
+    props => (
+      <Pagination.List>
+        <Pagination.Link {...props}>2</Pagination.Link>
+      </Pagination.List>
+    ),
+  ],
+  [
+    'Pagination.Previous',
+    props => <Pagination.Previous {...props}>Previous</Pagination.Previous>,
+  ],
+  [
+    'Pagination.Next',
+    props => <Pagination.Next {...props}>Next</Pagination.Next>,
+  ],
+];
+
 // An <a> with no href is no link: it has no role, and the browser activates it
 // on no key, so a part with only an onClick took focus and then did nothing
 // from the keyboard (#1919). With no href the parts are buttons; with one they
 // stay links, as they were.
 describe('a part with no href', () => {
-  /** The props every part takes alike. */
-  type PartProps = Pick<
-    PaginationPreviousNextProps,
-    'href' | 'role' | 'disabled' | 'onClick' | 'onKeyDown'
-  >;
-  const PARTS: [string, (props: PartProps) => ReactNode][] = [
-    [
-      'Pagination.Link',
-      props => (
-        <Pagination.List>
-          <Pagination.Link {...props}>2</Pagination.Link>
-        </Pagination.List>
-      ),
-    ],
-    [
-      'Pagination.Previous',
-      props => <Pagination.Previous {...props}>Previous</Pagination.Previous>,
-    ],
-    [
-      'Pagination.Next',
-      props => <Pagination.Next {...props}>Next</Pagination.Next>,
-    ],
-  ];
-
   it.each(PARTS)(
     'makes %s a button that Enter and Space click',
     (_name, part) => {
@@ -885,6 +885,57 @@ describe('a part with no href', () => {
       // A link doesn't answer Space, and the part doesn't make it.
       expect(fireEvent.keyDown(link, { key: ' ' })).toBe(true);
       expect(onClick).not.toHaveBeenCalled();
+    }
+  );
+});
+
+// A middle click follows a link from `auxclick`, which no click handler sees,
+// so a disabled part with an href opened its page in a new tab (#2347).
+describe('a part with an href, middle-clicked', () => {
+  /** Middle-clicks `el`, and returns whether the default was prevented. */
+  const middleClick = (el: HTMLElement) => {
+    const event = new MouseEvent('auxclick', {
+      bubbles: true,
+      cancelable: true,
+      button: 1,
+    });
+    el.dispatchEvent(event);
+    return event.defaultPrevented;
+  };
+
+  // As with its click, a disabled part keeps the middle click from the
+  // handlers around it too.
+  it.each(PARTS)(
+    'drops the middle click on a disabled %s, and keeps its href',
+    (_name, part) => {
+      const onAuxClick = vi.fn();
+      const around = vi.fn();
+      render(
+        <Pagination onAuxClick={around}>
+          {part({ href: '#3', disabled: true, onAuxClick })}
+        </Pagination>
+      );
+      const link = screen.getByRole('link');
+      expect(middleClick(link)).toBe(true);
+      expect(onAuxClick).not.toHaveBeenCalled();
+      expect(around).not.toHaveBeenCalled();
+      expect(link).toHaveAttribute('href', '#3');
+    }
+  );
+
+  it.each(PARTS)(
+    'leaves the middle click on an enabled %s to it and its onAuxClick',
+    (_name, part) => {
+      const onAuxClick = vi.fn();
+      const around = vi.fn();
+      render(
+        <Pagination onAuxClick={around}>
+          {part({ href: '#3', onAuxClick })}
+        </Pagination>
+      );
+      expect(middleClick(screen.getByRole('link'))).toBe(false);
+      expect(onAuxClick).toHaveBeenCalledTimes(1);
+      expect(around).toHaveBeenCalledTimes(1);
     }
   );
 });
