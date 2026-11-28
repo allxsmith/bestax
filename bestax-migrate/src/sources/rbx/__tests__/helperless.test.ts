@@ -130,20 +130,18 @@ describe('rbx helpers on a bestax part that takes no helper props (#2348)', () =
     expect(dropped).toHaveLength(1);
     expect(dropped[0].message).toContain('drops whatever this spread carries');
     expect(spread.output).toContain('<Dropdown.Divider {...p} />');
-    // The passes before it take what they can first: the tooltip becomes
-    // its wrapper, and `as` and `innerRef` keep their own TODOs.
+    // The tooltip still becomes its wrapper, and what the later passes
+    // would only flag is named once, as removed.
     const passes = migrate(
-      divider('tooltip="hi" as="div" innerRef={p.r} key="k"')
+      divider('tooltip="hi" as="div" innerRef={p.r} textColor="danger" key="k"')
     );
     expect(passes.output).toContain(
       '<Tooltip key="k" label="hi"><Dropdown.Divider /></Tooltip>'
     );
-    expect(passes.todos.map(t => t.rule)).toEqual(
-      expect.arrayContaining([
-        'prop:as',
-        'prop:innerRef',
-        'component:Dropdown.Divider',
-      ])
+    const once = passes.todos.filter(t => /Dropdown\.Divider`/.test(t.message));
+    expect(once.map(t => t.rule)).toEqual(['component:Dropdown.Divider']);
+    expect(once[0].message).toContain(
+      '`as`, `innerRef`, `textColor` were removed'
     );
   });
 

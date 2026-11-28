@@ -734,6 +734,18 @@ export default function transform(
           mergeClass(ctx, path, element, cls, name);
         }
       }
+      // What the later passes would only flag on a target that takes no
+      // props (`as`, `innerRef`, a color) is left to the last step, which
+      // removes it and names it once. A tooltip or badge still becomes its
+      // wrapper.
+      if (noProps) {
+        for (const attr of attributesOf(element)) {
+          const name: string = attr.name.name;
+          if (!(name in BADGE_PROPS) && !(name in TOOLTIP_PROPS)) {
+            handled.add(name);
+          }
+        }
+      }
     }
 
     // Rename to the bestax name, aliasing the import root on collision.
