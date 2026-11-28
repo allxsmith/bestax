@@ -204,8 +204,8 @@ to it from the navbar.
 // The packages create-vite's react-compiler starters add to its react ones.
 // When create-vite moves them, these follow (create-bestax/CLAUDE.md).
 export const REACT_COMPILER_DEV_DEPENDENCIES: Record<string, string> = {
-  '@babel/core': '^7.29.7',
-  '@rolldown/plugin-babel': '^0.2.4',
+  '@babel/core': '^7.29.13',
+  '@rolldown/plugin-babel': '^0.3.1',
   'babel-plugin-react-compiler': '^1.0.0',
 };
 
@@ -782,10 +782,10 @@ export const LINTERS: Linter[] = [
 // create-vite moves them, these follow (create-bestax/CLAUDE.md).
 export const ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
   '@eslint/js': '^10.0.1',
-  eslint: '^10.13.0',
+  eslint: '^10.15.0',
   'eslint-plugin-react-hooks': '^7.1.1',
-  'eslint-plugin-react-refresh': '^0.5.7',
-  globals: '^17.13.0',
+  'eslint-plugin-react-refresh': '^0.5.8',
+  globals: '^17.14.0',
 };
 
 // What `--eslint` adds for a TypeScript app. typescript-eslint loads
@@ -793,7 +793,7 @@ export const ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
 // TypeScript below 6.1 only, so the app stays on TypeScript 6 (#394).
 export const ESLINT_TYPESCRIPT_DEV_DEPENDENCIES: Record<string, string> = {
   typescript: '~6.0.3',
-  'typescript-eslint': '^8.72.0',
+  'typescript-eslint': '^8.73.0',
 };
 
 /** The eslint.config.js create-vite's `--eslint` writes. */
